@@ -1,0 +1,9 @@
+/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/CGS.dir
+/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/edit_cache.dir
+/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/rebuild_cache.dir
+/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/list_install_components.dir
+/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/install.dir
+/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/install/local.dir
+/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/install/strip.dir
+/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/CGS_autogen_timestamp_deps.dir
+/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/CGS_autogen.dir

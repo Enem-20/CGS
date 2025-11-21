@@ -1,0 +1,17 @@
+# ninja log v5
+3	205	1763738362870699670	CGS_autogen/timestamp	61a3edebbad7ec4a
+3	205	1763738362870699670	CGS_autogen/mocs_compilation.cpp	61a3edebbad7ec4a
+3	205	1763738362870699670	/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CGS_autogen/timestamp	61a3edebbad7ec4a
+3	205	1763738362870699670	/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CGS_autogen/mocs_compilation.cpp	61a3edebbad7ec4a
+206	1225	1763738363889745563	CMakeFiles/CGS.dir/main.cpp.o	65ca3345f086d0f
+206	1210	1763738363876744977	CMakeFiles/CGS.dir/CGS_autogen/mocs_compilation.cpp.o	eeee56009c89fdf3
+206	1400	1763738364065753489	CMakeFiles/CGS.dir/mainwindow.cpp.o	430527e832d49a32
+1400	1614	1763738364281763217	CGS	359a0a66e6c006c2
+1	260	1763741380653561086	CGS_autogen/timestamp	61a3edebbad7ec4a
+1	260	1763741380653561086	CGS_autogen/mocs_compilation.cpp	61a3edebbad7ec4a
+1	260	1763741380653561086	/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CGS_autogen/timestamp	61a3edebbad7ec4a
+1	260	1763741380653561086	/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CGS_autogen/mocs_compilation.cpp	61a3edebbad7ec4a
+260	1443	1763741381837614228	CMakeFiles/CGS.dir/CGS_autogen/mocs_compilation.cpp.o	716af8a0777cd872
+261	1472	1763741381865615485	CMakeFiles/CGS.dir/main.cpp.o	e0e67c14e00cf234
+261	1712	1763741382104626212	CMakeFiles/CGS.dir/mainwindow.cpp.o	a2d09f7b2a696bdb
+1712	1912	1763741382308635369	CGS	359a0a66e6c006c2
