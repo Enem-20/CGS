@@ -443,6 +443,36 @@
 		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Widgets/Qt6WidgetsMacros.cmake",
 		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Widgets/Qt6WidgetsPlugins.cmake",
 		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Widgets/Qt6WidgetsVersionlessAliasTargets.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6NetworkConfigVersion.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6NetworkConfigVersionImpl.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6NetworkConfig.cmake",
+		"/usr/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6NetworkDependencies.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6NetworkTargets.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6NetworkTargets-relwithdebinfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6NetworkAdditionalTargetInfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6NetworkPlugins.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QGlibNetworkInformationPluginConfig.cmake",
+		"/usr/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QGlibNetworkInformationPluginTargets.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QGlibNetworkInformationPluginTargets-relwithdebinfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QGlibNetworkInformationPluginAdditionalTargetInfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QNetworkManagerNetworkInformationPluginConfig.cmake",
+		"/usr/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QNetworkManagerNetworkInformationPluginTargets.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QNetworkManagerNetworkInformationPluginTargets-relwithdebinfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QNetworkManagerNetworkInformationPluginAdditionalTargetInfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QTlsBackendCertOnlyPluginConfig.cmake",
+		"/usr/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QTlsBackendCertOnlyPluginTargets.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QTlsBackendCertOnlyPluginTargets-relwithdebinfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QTlsBackendCertOnlyPluginAdditionalTargetInfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QTlsBackendOpenSSLPluginConfig.cmake",
+		"/usr/share/cmake-4.1/Modules/CMakeFindDependencyMacro.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QTlsBackendOpenSSLPluginTargets.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QTlsBackendOpenSSLPluginTargets-relwithdebinfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6QTlsBackendOpenSSLPluginAdditionalTargetInfo.cmake",
+		"/home/szamaro/Qt/6.8.2/gcc_64/lib/cmake/Qt6Network/Qt6NetworkVersionlessAliasTargets.cmake",
 		"/usr/share/cmake-4.1/Modules/GNUInstallDirs.cmake"
 	],
 	"CMAKE_SOURCE_DIR" : "/home/szamaro/Projects/CGS",
@@ -452,16 +482,52 @@
 	"HEADERS" : 
 	[
 		[
+			"/home/szamaro/Projects/CGS/attitude.h",
+			"MU",
+			"EWIEGA46WW/moc_attitude.cpp",
+			null
+		],
+		[
+			"/home/szamaro/Projects/CGS/localpositionned.h",
+			"MU",
+			"EWIEGA46WW/moc_localpositionned.cpp",
+			null
+		],
+		[
 			"/home/szamaro/Projects/CGS/mainwindow.h",
 			"MU",
 			"EWIEGA46WW/moc_mainwindow.cpp",
+			null
+		],
+		[
+			"/home/szamaro/Projects/CGS/mavlinkdevice.h",
+			"MU",
+			"EWIEGA46WW/moc_mavlinkdevice.cpp",
+			null
+		],
+		[
+			"/home/szamaro/Projects/CGS/parameterlist.h",
+			"MU",
+			"EWIEGA46WW/moc_parameterlist.cpp",
+			null
+		],
+		[
+			"/home/szamaro/Projects/CGS/statustext.h",
+			"MU",
+			"EWIEGA46WW/moc_statustext.cpp",
+			null
+		],
+		[
+			"/home/szamaro/Projects/CGS/udpmavlinkdevice.h",
+			"MU",
+			"EWIEGA46WW/moc_udpmavlinkdevice.cpp",
 			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
 	"INCLUDE_DIR" : "/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CGS_autogen/include",
 	"MOC_COMPILATION_FILE" : "/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CGS_autogen/mocs_compilation.cpp",
-	"MOC_DEFINITIONS" : [ "QT_CORE_LIB", "QT_GUI_LIB", "QT_WIDGETS_LIB" ],
+	"MOC_DEFINITIONS" : [ "QT_CORE_LIB", "QT_GUI_LIB", "QT_NETWORK_LIB", "QT_WIDGETS_LIB" ],
 	"MOC_DEPEND_FILTERS" : 
 	[
 		[
@@ -471,11 +537,13 @@
 	],
 	"MOC_INCLUDES" : 
 	[
+		"/home/szamaro/Projects/CGS/external/c_library_v2",
 		"/home/szamaro/Qt/6.8.2/gcc_64/include/QtCore",
 		"/home/szamaro/Qt/6.8.2/gcc_64/include",
 		"/home/szamaro/Qt/6.8.2/gcc_64/mkspecs/linux-g++",
 		"/home/szamaro/Qt/6.8.2/gcc_64/include/QtWidgets",
 		"/home/szamaro/Qt/6.8.2/gcc_64/include/QtGui",
+		"/home/szamaro/Qt/6.8.2/gcc_64/include/QtNetwork",
 		"/usr/include",
 		"/usr/include/c++/11",
 		"/usr/include/x86_64-linux-gnu/c++/11",
@@ -517,8 +585,14 @@
 	"SETTINGS_FILE" : "/home/szamaro/Projects/CGS/build/Desktop_Qt_6_8_2-Debug/CMakeFiles/CGS_autogen.dir/AutogenUsed.txt",
 	"SOURCES" : 
 	[
+		[ "/home/szamaro/Projects/CGS/attitude.cpp", "MU", null ],
+		[ "/home/szamaro/Projects/CGS/localpositionned.cpp", "MU", null ],
 		[ "/home/szamaro/Projects/CGS/main.cpp", "MU", null ],
-		[ "/home/szamaro/Projects/CGS/mainwindow.cpp", "MU", null ]
+		[ "/home/szamaro/Projects/CGS/mainwindow.cpp", "MU", null ],
+		[ "/home/szamaro/Projects/CGS/mavlinkdevice.cpp", "MU", null ],
+		[ "/home/szamaro/Projects/CGS/parameterlist.cpp", "MU", null ],
+		[ "/home/szamaro/Projects/CGS/statustext.cpp", "MU", null ],
+		[ "/home/szamaro/Projects/CGS/udpmavlinkdevice.cpp", "MU", null ]
 	],
 	"UIC_OPTIONS" : [],
 	"UIC_SEARCH_PATHS" : [],

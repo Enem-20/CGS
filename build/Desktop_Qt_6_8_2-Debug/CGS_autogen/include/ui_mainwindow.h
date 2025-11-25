@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
@@ -30,21 +31,23 @@ class Ui_MainWindow
 {
 public:
     QAction *actionParameters_set;
+    QAction *actionRefresh_configs;
     QWidget *centralwidget;
     QGridLayout *gridLayout;
-    QListWidget *listWidget;
+    QLabel *label_7;
     QFrame *frame;
     QHBoxLayout *horizontalLayout;
+    QLabel *armedStatus;
     QLabel *label_8;
-    QLabel *label_9;
+    QLabel *modeValue;
     QSpacerItem *horizontalSpacer;
-    QLabel *label;
-    QLabel *label_4;
-    QLabel *label_5;
-    QLabel *label_6;
-    QLabel *label_2;
-    QLabel *label_3;
-    QLabel *label_7;
+    QListWidget *gcsLog;
+    QFrame *frame_2;
+    QHBoxLayout *horizontalLayout_3;
+    QLabel *attitude;
+    QLabel *speeds;
+    QSpacerItem *horizontalSpacer_2;
+    QCheckBox *logAutoScroll;
     QMenuBar *menubar;
     QMenu *menuParameters_set;
     QStatusBar *statusbar;
@@ -53,17 +56,19 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName("MainWindow");
-        MainWindow->resize(800, 600);
+        MainWindow->resize(800, 669);
         actionParameters_set = new QAction(MainWindow);
         actionParameters_set->setObjectName("actionParameters_set");
+        actionRefresh_configs = new QAction(MainWindow);
+        actionRefresh_configs->setObjectName("actionRefresh_configs");
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName("centralwidget");
         gridLayout = new QGridLayout(centralwidget);
         gridLayout->setObjectName("gridLayout");
-        listWidget = new QListWidget(centralwidget);
-        listWidget->setObjectName("listWidget");
+        label_7 = new QLabel(centralwidget);
+        label_7->setObjectName("label_7");
 
-        gridLayout->addWidget(listWidget, 2, 0, 1, 1);
+        gridLayout->addWidget(label_7, 1, 0, 1, 1);
 
         frame = new QFrame(centralwidget);
         frame->setObjectName("frame");
@@ -71,57 +76,62 @@ public:
         frame->setFrameShadow(QFrame::Shadow::Raised);
         horizontalLayout = new QHBoxLayout(frame);
         horizontalLayout->setObjectName("horizontalLayout");
+        armedStatus = new QLabel(frame);
+        armedStatus->setObjectName("armedStatus");
+
+        horizontalLayout->addWidget(armedStatus);
+
         label_8 = new QLabel(frame);
         label_8->setObjectName("label_8");
 
         horizontalLayout->addWidget(label_8);
 
-        label_9 = new QLabel(frame);
-        label_9->setObjectName("label_9");
+        modeValue = new QLabel(frame);
+        modeValue->setObjectName("modeValue");
 
-        horizontalLayout->addWidget(label_9);
+        horizontalLayout->addWidget(modeValue);
 
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
 
         horizontalLayout->addItem(horizontalSpacer);
 
-        label = new QLabel(frame);
-        label->setObjectName("label");
-
-        horizontalLayout->addWidget(label);
-
-        label_4 = new QLabel(frame);
-        label_4->setObjectName("label_4");
-
-        horizontalLayout->addWidget(label_4);
-
-        label_5 = new QLabel(frame);
-        label_5->setObjectName("label_5");
-
-        horizontalLayout->addWidget(label_5);
-
-        label_6 = new QLabel(frame);
-        label_6->setObjectName("label_6");
-
-        horizontalLayout->addWidget(label_6);
-
-        label_2 = new QLabel(frame);
-        label_2->setObjectName("label_2");
-
-        horizontalLayout->addWidget(label_2);
-
-        label_3 = new QLabel(frame);
-        label_3->setObjectName("label_3");
-
-        horizontalLayout->addWidget(label_3);
-
 
         gridLayout->addWidget(frame, 0, 0, 1, 1);
 
-        label_7 = new QLabel(centralwidget);
-        label_7->setObjectName("label_7");
+        gcsLog = new QListWidget(centralwidget);
+        gcsLog->setObjectName("gcsLog");
+        gcsLog->setAutoScroll(false);
 
-        gridLayout->addWidget(label_7, 1, 0, 1, 1);
+        gridLayout->addWidget(gcsLog, 2, 0, 1, 1);
+
+        frame_2 = new QFrame(centralwidget);
+        frame_2->setObjectName("frame_2");
+        frame_2->setFrameShape(QFrame::Shape::StyledPanel);
+        frame_2->setFrameShadow(QFrame::Shadow::Raised);
+        horizontalLayout_3 = new QHBoxLayout(frame_2);
+        horizontalLayout_3->setObjectName("horizontalLayout_3");
+        attitude = new QLabel(frame_2);
+        attitude->setObjectName("attitude");
+
+        horizontalLayout_3->addWidget(attitude);
+
+        speeds = new QLabel(frame_2);
+        speeds->setObjectName("speeds");
+
+        horizontalLayout_3->addWidget(speeds);
+
+        horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout_3->addItem(horizontalSpacer_2);
+
+        logAutoScroll = new QCheckBox(frame_2);
+        logAutoScroll->setObjectName("logAutoScroll");
+        logAutoScroll->setChecked(false);
+
+        horizontalLayout_3->addWidget(logAutoScroll);
+
+
+        gridLayout->addWidget(frame_2, 3, 0, 1, 1);
 
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
@@ -136,6 +146,7 @@ public:
 
         menubar->addAction(menuParameters_set->menuAction());
         menuParameters_set->addAction(actionParameters_set);
+        menuParameters_set->addAction(actionRefresh_configs);
 
         retranslateUi(MainWindow);
 
@@ -146,15 +157,14 @@ public:
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
         actionParameters_set->setText(QCoreApplication::translate("MainWindow", "Parameters set", nullptr));
-        label_8->setText(QCoreApplication::translate("MainWindow", "Mode:", nullptr));
-        label_9->setText(QCoreApplication::translate("MainWindow", "None", nullptr));
-        label->setText(QCoreApplication::translate("MainWindow", "R:", nullptr));
-        label_4->setText(QCoreApplication::translate("MainWindow", "0.0", nullptr));
-        label_5->setText(QCoreApplication::translate("MainWindow", "P:", nullptr));
-        label_6->setText(QCoreApplication::translate("MainWindow", "0.0", nullptr));
-        label_2->setText(QCoreApplication::translate("MainWindow", "Y:", nullptr));
-        label_3->setText(QCoreApplication::translate("MainWindow", "0.0", nullptr));
+        actionRefresh_configs->setText(QCoreApplication::translate("MainWindow", "Refresh configs", nullptr));
         label_7->setText(QCoreApplication::translate("MainWindow", "Log", nullptr));
+        armedStatus->setText(QCoreApplication::translate("MainWindow", "DISARMED", nullptr));
+        label_8->setText(QCoreApplication::translate("MainWindow", "Mode:", nullptr));
+        modeValue->setText(QCoreApplication::translate("MainWindow", "None", nullptr));
+        attitude->setText(QCoreApplication::translate("MainWindow", "R: 0.0\302\260, P: 0.0\302\260, Y: 0.0\302\260", nullptr));
+        speeds->setText(QCoreApplication::translate("MainWindow", "FS: 0.0 m/s, LS: 0.0 m/s, VS: 0.0 m/s", nullptr));
+        logAutoScroll->setText(QCoreApplication::translate("MainWindow", "Log auto scroll", nullptr));
         menuParameters_set->setTitle(QCoreApplication::translate("MainWindow", "Settings", nullptr));
     } // retranslateUi
 

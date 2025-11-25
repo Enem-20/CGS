@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>669</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,8 +15,12 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0">
-     <widget class="QListWidget" name="listWidget"/>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_7">
+      <property name="text">
+       <string>Log</string>
+      </property>
+     </widget>
     </item>
     <item row="0" column="0">
      <widget class="QFrame" name="frame">
@@ -28,6 +32,13 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
+        <widget class="QLabel" name="armedStatus">
+         <property name="text">
+          <string>DISARMED</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QLabel" name="label_8">
          <property name="text">
           <string>Mode:</string>
@@ -35,7 +46,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_9">
+        <widget class="QLabel" name="modeValue">
          <property name="text">
           <string>None</string>
          </property>
@@ -54,56 +65,63 @@
          </property>
         </spacer>
        </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QListWidget" name="gcsLog">
+      <property name="autoScroll">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QFrame" name="frame_2">
+      <property name="frameShape">
+       <enum>QFrame::Shape::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="attitude">
          <property name="text">
-          <string>R:</string>
+          <string>R: 0.0°, P: 0.0°, Y: 0.0°</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_4">
+        <widget class="QLabel" name="speeds">
          <property name="text">
-          <string>0.0</string>
+          <string>FS: 0.0 m/s, LS: 0.0 m/s, VS: 0.0 m/s</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="label_5">
-         <property name="text">
-          <string>P:</string>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
-        </widget>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item>
-        <widget class="QLabel" name="label_6">
+        <widget class="QCheckBox" name="logAutoScroll">
          <property name="text">
-          <string>0.0</string>
+          <string>Log auto scroll</string>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Y:</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>0.0</string>
+         <property name="checked">
+          <bool>false</bool>
          </property>
         </widget>
        </item>
       </layout>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_7">
-      <property name="text">
-       <string>Log</string>
-      </property>
      </widget>
     </item>
    </layout>
@@ -122,6 +140,7 @@
      <string>Settings</string>
     </property>
     <addaction name="actionParameters_set"/>
+    <addaction name="actionRefresh_configs"/>
    </widget>
    <addaction name="menuParameters_set"/>
   </widget>
@@ -129,6 +148,11 @@
   <action name="actionParameters_set">
    <property name="text">
     <string>Parameters set</string>
+   </property>
+  </action>
+  <action name="actionRefresh_configs">
+   <property name="text">
+    <string>Refresh configs</string>
    </property>
   </action>
  </widget>

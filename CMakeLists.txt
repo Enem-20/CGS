@@ -9,8 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -23,6 +23,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(CGS
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        mavlinkdevice.h mavlinkdevice.cpp
+        udpmavlinkdevice.h udpmavlinkdevice.cpp
+        attitude.h attitude.cpp
+        localpositionned.h localpositionned.cpp
+        parameterlist.h parameterlist.cpp parameterlist.ui
+        statustext.h statustext.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET CGS APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -42,7 +48,9 @@ else()
     endif()
 endif()
 
-target_link_libraries(CGS PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_include_directories(CGS PRIVATE ${CMAKE_SOURCE_DIR}/external/c_library_v2)
+
+target_link_libraries(CGS PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
