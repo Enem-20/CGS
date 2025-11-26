@@ -183,6 +183,9 @@ MainWindow::MainWindow(QWidget *parent)
         _parameterList.handleMavlink(param);
     });
 
+    connect(&_parameterList, &ParameterList::setParameterRequest, this, &MainWindow::setParamRequested);
+    connect(this, &MainWindow::setParamRequest, &_mavlinkContext, &MavlinkContext::sendCommand);
+
     _mavlinkThread.start(QThread::LowPriority);
 }
 
@@ -215,4 +218,8 @@ void MainWindow::onParamExtUpdated(const mavlink_param_value_t& param) {
 
 void MainWindow::paramsRequested(const mavlink_message_t& msg) {
     emit paramsRequest(msg);
+}
+
+void MainWindow::setParamRequested(const mavlink_message_t& msg) {
+    emit setParamRequest(msg);
 }

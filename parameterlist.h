@@ -35,12 +35,17 @@ public:
 
 signals:
     void parametersRequest(const mavlink_message_t& msg);
+    void setParameterRequest(const mavlink_message_t& msg);
+    void setParameterExtRequest(const mavlink_message_t& msg);
 private slots:
     void on_syncWithVehicle_clicked();
 public slots:
     void onAutopilotHeartbeat(const mavlink_message_t& msg);
     void handleMavlink(const mavlink_param_value_t& msg);
     void handleMavlink(const mavlink_param_ext_value_t& msg);
+
+    void setSingleParameterRequested(size_t rowIndex);
+    void setAllParametersRequested();
 private:
     Ui::ParameterList *ui;
 };

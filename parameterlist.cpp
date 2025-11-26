@@ -8,6 +8,9 @@ ParameterList::ParameterList(QWidget *parent)
     , ui(new Ui::ParameterList)
 {
     ui->setupUi(this);
+    connect(ui->tableWidget, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item){
+        setSingleParameterRequested(item->row());
+    });
 }
 
 ParameterList::~ParameterList()
@@ -30,16 +33,44 @@ void ParameterList::onAutopilotHeartbeat(const mavlink_message_t& msg) {
 void ParameterList::handleMavlink(const mavlink_param_value_t& msg) {
     QList<QTableWidgetItem*> items = ui->tableWidget->findItems(msg.param_id, Qt::MatchExactly);
     QTableWidgetItem* valueItemToSet = nullptr;
+    ui->tableWidget->blockSignals(true);
     if(!items.empty()) {
         QTableWidgetItem* parameterItemName = items[0];
         valueItemToSet = ui->tableWidget->item(parameterItemName->row(), 1);
-        ui->tableWidget->setItem(parameterItemName->row(), 1, valueItemToSet);
+        if(!valueItemToSet) {
+            valueItemToSet = new QTableWidgetItem();
+            ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 1, valueItemToSet);
+        };
+        QTableWidgetItem* paramIdItem = ui->tableWidget->item(parameterItemName->row(), 2);
+        if(!paramIdItem) {
+            paramIdItem = new QTableWidgetItem(QString::number(msg.param_index));
+            paramIdItem->setFlags(paramIdItem->flags() & ~Qt::ItemIsEditable);
+            ui->tableWidget->setItem(parameterItemName->row(), 2, paramIdItem);
+        }
+        QTableWidgetItem* paramTypeItem = ui->tableWidget->item(parameterItemName->row(), 3);
+        if(!paramTypeItem) {
+            paramTypeItem = new QTableWidgetItem(QString::number(msg.param_type));
+            paramTypeItem->setFlags(paramIdItem->flags() & ~Qt::ItemIsEditable);
+            ui->tableWidget->setItem(parameterItemName->row(), 3, paramTypeItem);
+        }
     }
     else {
         ui->tableWidget->insertRow(ui->tableWidget->rowCount());
-        ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 0, new QTableWidgetItem(msg.param_id));
+
+        QTableWidgetItem* paramNameItem = new QTableWidgetItem(QString(msg.param_id).trimmed());
+        paramNameItem->setFlags(paramNameItem->flags() & ~Qt::ItemIsEditable);
+        ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 0, paramNameItem);
+
         valueItemToSet = new QTableWidgetItem();
         ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 1, valueItemToSet);
+
+        QTableWidgetItem* paramIdItem = new QTableWidgetItem(QString::number(msg.param_index));
+        paramIdItem->setFlags(paramIdItem->flags() & ~Qt::ItemIsEditable);
+        ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 2, paramIdItem);
+
+        QTableWidgetItem* paramTypeItem = new QTableWidgetItem(QString::number(msg.param_type));
+        paramTypeItem->setFlags(paramTypeItem->flags() & ~Qt::ItemIsEditable);
+        ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 3, paramTypeItem);
     }
 
     switch (msg.param_type) {
@@ -70,10 +101,12 @@ void ParameterList::handleMavlink(const mavlink_param_value_t& msg) {
     default:
         break;
     }
-
+    ui->tableWidget->blockSignals(false);
+    //ui->tableWidget->resizeColumnsToContents();
 }
 
 void ParameterList::handleMavlink(const mavlink_param_ext_value_t& msg) {
+    ui->tableWidget->blockSignals(true);
     QList<QTableWidgetItem*> items = ui->tableWidget->findItems(msg.param_id, Qt::MatchExactly);
     QTableWidgetItem* valueItemToSet = nullptr;
     if(!items.empty()) {
@@ -82,10 +115,21 @@ void ParameterList::handleMavlink(const mavlink_param_ext_value_t& msg) {
     }
     else {
         ui->tableWidget->insertRow(ui->tableWidget->rowCount());
+
         ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 0, new QTableWidgetItem(msg.param_id));
+
         valueItemToSet = new QTableWidgetItem();
+        ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 1, valueItemToSet);
+
+        QTableWidgetItem* paramIdItem = new QTableWidgetItem(QString::number(msg.param_index));
+        paramIdItem->setFlags(paramIdItem->flags() & ~Qt::ItemIsEditable);
+        ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 2, paramIdItem);
+
+        QTableWidgetItem* paramTypeItem = new QTableWidgetItem(QString::number(msg.param_type));
+        paramTypeItem->setFlags(paramTypeItem->flags() & ~Qt::ItemIsEditable);
+        //ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 3, paramTypeItem);
     }
-    ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 0, valueItemToSet);
+
     if(!valueItemToSet) {
         switch (msg.param_type) {
         case MAV_PARAM_TYPE_UINT8:
@@ -115,5 +159,41 @@ void ParameterList::handleMavlink(const mavlink_param_ext_value_t& msg) {
         default:
             break;
         }
+    }
+    ui->tableWidget->blockSignals(false);
+    //ui->tableWidget->resizeColumnsToContents();
+}
+
+void ParameterList::setSingleParameterRequested(size_t rowIndex) {
+    QTableWidgetItem* paramNameItem = ui->tableWidget->item(rowIndex, 0);
+    QTableWidgetItem* paramValueItem = ui->tableWidget->item(rowIndex, 1);
+    QTableWidgetItem* paramTypeItem = ui->tableWidget->item(rowIndex, 2);
+    QTableWidgetItem* paramIndexItem = ui->tableWidget->item(rowIndex, 3);
+    if(paramNameItem && paramValueItem && paramTypeItem && paramIndexItem) {
+        QString paramName = paramNameItem->text();
+        uint8_t paramType = paramTypeItem->text().toUInt();
+        uint16_t paramIndex = paramIndexItem->text().toUInt();
+
+        mavlink_param_set_t paramSet = {0};
+        paramSet.target_system = _sysId;
+        paramSet.target_component = _compId;
+        paramSet.param_type = paramType;
+        paramSet.param_value = paramValueItem->text().toFloat();
+
+        QByteArray paramNameBytes = paramName.toUtf8();
+        int len = qMin(paramNameBytes.size(), 16);
+        strncpy(paramSet.param_id, paramNameBytes.constData(), len);
+        if (len < 16) {
+            paramSet.param_id[len] = '\0';
+        }
+        mavlink_message_t msg;
+        mavlink_msg_param_set_encode(255, MAV_COMP_ID_MISSIONPLANNER, &msg, &paramSet);
+        emit setParameterRequest(msg);
+    }
+}
+
+void ParameterList::setAllParametersRequested() {
+    for(size_t i = 0; i < ui->tableWidget->rowCount(); ++i) {
+        setSingleParameterRequested(i);
     }
 }

@@ -69,6 +69,7 @@ public:
     ~MainWindow();
 signals:
     void paramsRequest(const mavlink_message_t& msg);
+    void setParamRequest(const mavlink_message_t& msg);
 private slots:
     void on_actionParameters_set_triggered();
     void on_actionRefresh_configs_triggered();
@@ -76,5 +77,6 @@ private slots:
     void onParamExtUpdated(const mavlink_param_value_t& param);
 
     void paramsRequested(const mavlink_message_t& msg);
+    void setParamRequested(const mavlink_message_t& msg);
 };
 #endif // MAINWINDOW_H
