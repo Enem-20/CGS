@@ -38,7 +38,9 @@ signals:
     void setParameterRequest(const mavlink_message_t& msg);
     void setParameterExtRequest(const mavlink_message_t& msg);
 private slots:
-    void on_syncWithVehicle_clicked();
+    void on_syncVehicleWithUs_clicked();
+    void on_syncUsWithVehicle_clicked();
+
 public slots:
     void onAutopilotHeartbeat(const mavlink_message_t& msg);
     void handleMavlink(const mavlink_param_value_t& msg);

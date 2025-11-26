@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QTableWidget" name="tableWidget">
+    <widget class="QTableWidget" name="parameterList">
      <property name="sizeAdjustPolicy">
       <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
      </property>
@@ -60,9 +60,16 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QPushButton" name="syncWithVehicle">
+       <widget class="QPushButton" name="syncUsWithVehicle">
         <property name="text">
-         <string>Sync with vehicle</string>
+         <string>Sync us with vehicle</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="syncVehicleWithUs">
+        <property name="text">
+         <string>Sync vehicle with us</string>
         </property>
        </widget>
       </item>
