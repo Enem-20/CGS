@@ -63,7 +63,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 private:
-    MavlinkContext _mavlinkContext;
+    MavlinkContext* _mavlinkContext;
     ParameterList _parameterList;
     LogsWindow _logsWindow;
     QThread _mavlinkThread;
