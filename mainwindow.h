@@ -14,6 +14,7 @@
 #include "statustext.h"
 
 #include "parameterlist.h"
+#include "logswindow.h"
 
 class MavlinkContext : public QObject {
     Q_OBJECT
@@ -43,6 +44,8 @@ signals:
 
     void paramUpdated(const mavlink_param_value_t& param);
     void paramExtUpdated(const mavlink_param_ext_value_t& param);
+    void logEntryRecieved(const mavlink_log_entry_t& logEntry);
+    void logDataRecieved(const mavlink_log_data_t& logData, const mavlink_message_t& msg);
 private slots:
     void handleMavlinkMessage(mavlink_message_t msg);
 public slots:
@@ -62,6 +65,7 @@ class MainWindow : public QMainWindow
 private:
     MavlinkContext _mavlinkContext;
     ParameterList _parameterList;
+    LogsWindow _logsWindow;
     QThread _mavlinkThread;
     Ui::MainWindow *ui;
 public:
@@ -78,5 +82,6 @@ private slots:
 
     void paramsRequested(const mavlink_message_t& msg);
     void setParamRequested(const mavlink_message_t& msg);
+    void on_actionLogs_triggered();
 };
 #endif // MAINWINDOW_H

@@ -141,6 +141,7 @@
     </property>
     <addaction name="actionParameters_set"/>
     <addaction name="actionRefresh_configs"/>
+    <addaction name="actionLogs"/>
    </widget>
    <addaction name="menuParameters_set"/>
   </widget>
@@ -153,6 +154,11 @@
   <action name="actionRefresh_configs">
    <property name="text">
     <string>Refresh configs</string>
+   </property>
+  </action>
+  <action name="actionLogs">
+   <property name="text">
+    <string>Logs</string>
    </property>
   </action>
  </widget>

@@ -122,6 +122,14 @@ void MavlinkContext::handleMavlinkMessage(mavlink_message_t msg) {
         mavlink_param_ext_value_t paramExtValue;
         mavlink_msg_param_ext_value_decode(&msg, &paramExtValue);
         emit paramExtUpdated(paramExtValue);
+    case MAVLINK_MSG_ID_LOG_ENTRY:
+        mavlink_log_entry_t logEntry;
+        mavlink_msg_log_entry_decode(&msg, &logEntry);
+        emit logEntryRecieved(logEntry);
+    case MAVLINK_MSG_ID_LOG_DATA:
+        mavlink_log_data_t logData;
+        mavlink_msg_log_data_decode(&msg, &logData);
+        emit logDataRecieved(logData, msg);
     break;
     }
 }
@@ -153,6 +161,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    _logsWindow.setMavlinkContext(&_mavlinkContext);
     _mavlinkContext.moveToThread(&_mavlinkThread);
     connect(&_mavlinkThread, &QThread::started, &_mavlinkContext, &MavlinkContext::loadModes);
     connect(&_mavlinkContext, &MavlinkContext::modeUpdated, ui->modeValue, &QLabel::setText);
@@ -181,6 +190,12 @@ MainWindow::MainWindow(QWidget *parent)
     });
     connect(&_mavlinkContext, &MavlinkContext::paramExtUpdated, this, [this](const mavlink_param_ext_value_t& param){
         _parameterList.handleMavlink(param);
+    });
+    connect(&_mavlinkContext, &MavlinkContext::logEntryRecieved, this, [this](const mavlink_log_entry_t& logEntry){
+        _logsWindow.handleMavlink(logEntry);
+    });
+    connect(&_mavlinkContext, &MavlinkContext::logDataRecieved, this, [this](const mavlink_log_data_t& logData, const mavlink_message_t& msg){
+        _logsWindow.handleMavlink(logData, msg);
     });
 
     connect(&_parameterList, &ParameterList::setParameterRequest, this, &MainWindow::setParamRequested);
@@ -223,3 +238,8 @@ void MainWindow::paramsRequested(const mavlink_message_t& msg) {
 void MainWindow::setParamRequested(const mavlink_message_t& msg) {
     emit setParamRequest(msg);
 }
+void MainWindow::on_actionLogs_triggered() {
+    if(_logsWindow.isHidden())
+        _logsWindow.show();
+}
+
