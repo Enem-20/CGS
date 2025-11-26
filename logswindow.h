@@ -4,8 +4,11 @@
 #include <QFile>
 #include <QDataStream>
 #include <QByteArray>
+#include <QTimer>
 
 #include <QWidget>
+
+#include <bitset>
 
 namespace Ui {
 class LogsWindow;
@@ -72,6 +75,8 @@ private slots:
 
     void on_pushButton_4_clicked();
 
+    void on_pushButton_5_clicked();
+
 public slots:
     void onAutopilotHeartbeat(const mavlink_message_t& msg);
     void handleMavlink(const mavlink_log_entry_t& msg);
@@ -83,12 +88,15 @@ private:
     uint32_t _receivingDataId = 0xffffffff;
     uint32_t _dataReceivedBytes = 0;
     QByteArray _logDataBuffer;
-    QList<uint8_t> _packetSeq;
+    static constexpr size_t LOGS_MASK_SIZE = 1024 * 1024 * 1024;
+    std::bitset<LOGS_MASK_SIZE>* _logsDataMask;
+    QTimer _logsTimeout;
 
     void refreshLogs();
     void downloadLog(uint32_t id);
     void clearLogs();
     void stopLogTransfer();
+    void requestMissingLogPackets();
 };
 
 #endif // LOGSWINDOW_H

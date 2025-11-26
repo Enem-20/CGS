@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 
 #include <QMessageBox>
+#include <QStandardPaths>
 
 #include <common/mavlink.h>
 
@@ -11,6 +12,8 @@ LogsWindow::LogsWindow(QWidget *parent)
     , ui(new Ui::LogsWindow)
 {
     ui->setupUi(this);
+
+    connect(&_logsTimeout, &QTimer::timeout, this, &LogsWindow::requestMissingLogPackets);
 }
 
 LogsWindow::~LogsWindow() {
@@ -42,16 +45,6 @@ void LogsWindow::on_pushButton_clicked() {
 }
 
 void LogsWindow::on_pushButton_2_clicked() {
-    if (_packetSeq.size() > 0) {
-        uint8_t cur = _packetSeq[0];
-        for (int32_t i = 1; i < _packetSeq.size(); i++) {
-            if(uint8_t(cur + 1) != (uint8_t)_packetSeq[i]) {
-                qDebug() << "Missing packet: " << i <<"\n";
-            }
-            cur = _packetSeq[i];
-        }
-    }
-
     QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
     if (selectedItems.size() == 0) return;
     int32_t id = selectedItems[0]->row() + 1;
@@ -76,12 +69,20 @@ void LogsWindow::on_pushButton_4_clicked() {
     }
 }
 
+void LogsWindow::on_pushButton_5_clicked() {
+    stopLogTransfer();
+    ui->progressBar->setValue(0);
+    ui->recievedBytes->setText(QString("Download stopped"));
+}
+
 void LogsWindow::onAutopilotHeartbeat(const mavlink_message_t& msg) {
     _sysId = msg.sysid;
     _compId = msg.compid;
 }
 
 void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
+    if (msg.id == 0) return;
+
     LogEntry entry;
     entry.id = msg.id;
     entry.timestamp = msg.time_utc;
@@ -115,21 +116,29 @@ void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
 void LogsWindow::handleMavlink(const mavlink_log_data_t& logData, const mavlink_message_t& msg) {
     if (_receivingDataId == 0xffffffff || _receivingDataId != logData.id) return;
 
-    _packetSeq.push_back(msg.seq);
-
     _logDataBuffer.replace(logData.ofs, logData.count, (const char*)logData.data, logData.count);
+
+    for (int32_t i = logData.ofs; i < logData.ofs + logData.count; i++) {
+        _logsDataMask->set(i, true);
+    }
 
     _dataReceivedBytes += logData.count;
     ui->progressBar->setValue(((float)_dataReceivedBytes * 100.0f) / (float)_logDataBuffer.size());
+    ui->recievedBytes->setText(QString::number(_dataReceivedBytes) +"/" + QString::number(_logDataBuffer.size()) + " bytes");
+
+    _logsTimeout.start(5000);
 
     if (_dataReceivedBytes > _logDataBuffer.size()) {
         throw std::exception();
     }
 
     if (logData.count == 0 || _dataReceivedBytes == _logDataBuffer.size()) {
+        _logsTimeout.stop();
+
         ui->progressBar->setValue(100);
 
-        QString filePath = "log_"+ QString::number(_logEntries[_receivingDataId - 1].timestamp) +".bin";
+        QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+        QString filePath = downloadsPath + "/log_"+ QString::number(_logEntries[_receivingDataId - 1].timestamp) +".bin";
 
         QFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
@@ -139,9 +148,6 @@ void LogsWindow::handleMavlink(const mavlink_log_data_t& logData, const mavlink_
         } else {
             qDebug() << "Error opening file:" << file.errorString();
         }
-
-        _receivingDataId = 0xffffffff;
-        _logDataBuffer.resize(0);
 
         stopLogTransfer();
 
@@ -176,6 +182,8 @@ void LogsWindow::downloadLog(uint32_t id) {
 
     if(id < 1 || id > _logEntries.size()) return;
 
+    _logsDataMask = new std::bitset<LOGS_MASK_SIZE>;
+
     _receivingDataId = id;
     _dataReceivedBytes = 0;
     _logDataBuffer.resize(_logEntries[id - 1].size);
@@ -193,6 +201,8 @@ void LogsWindow::downloadLog(uint32_t id) {
         );
 
     _mavlinkContext->sendCommand(command);
+
+    _logsTimeout.start(2000);
 }
 
 void LogsWindow::clearLogs() {
@@ -213,7 +223,13 @@ void LogsWindow::clearLogs() {
     _mavlinkContext->sendCommand(command);
 }
 
-void LogsWindow::stopLogTransfer() {
+void LogsWindow::stopLogTransfer() {    
+    _logsTimeout.stop();
+    _receivingDataId = 0xffffffff;
+    _logDataBuffer.resize(0);
+    delete _logsDataMask;
+    _logsDataMask = nullptr;
+
     if (!_mavlinkContext) return;
 
     mavlink_message_t command;
@@ -226,4 +242,33 @@ void LogsWindow::stopLogTransfer() {
     );
 
     _mavlinkContext->sendCommand(command);
+}
+
+void LogsWindow::requestMissingLogPackets() {
+    qDebug() << "Not all packets arrived.";
+    for (size_t i = 0; i < _logDataBuffer.size();) {
+        if (_logsDataMask->test(i)) {
+            i++;
+            continue;
+        }
+        size_t segmentStart = i;
+        while(!_logsDataMask->test(++i) && i < _logDataBuffer.size()) {}
+        size_t segmentEnd = i;
+
+        qDebug() << "Missing segment: " << segmentStart << " " << segmentEnd;
+
+        mavlink_message_t command;
+        mavlink_msg_log_request_data_pack(
+            255,
+            MAV_COMP_ID_MISSIONPLANNER,
+            &command,
+            _sysId,
+            _compId,
+            _receivingDataId,
+            segmentStart,
+            segmentEnd - segmentStart
+        );
+
+        _mavlinkContext->sendCommand(command);
+    }
 }
