@@ -23,7 +23,6 @@ void SegmentationChecker::resize(uint32_t newSize) {
 void SegmentationChecker::use() {
     _usedSegments.clear();
     _freeSegments.clear();
-    _usedSegments.push_back({_start, _size});
 }
 
 void SegmentationChecker::use(uint32_t offset, uint32_t size) {
@@ -37,7 +36,6 @@ void SegmentationChecker::use(Segment segment) {
 void SegmentationChecker::free() {
     _usedSegments.clear();
     _freeSegments.clear();
-    _freeSegments.push_back({_start, _size});
 }
 
 void SegmentationChecker::free(uint32_t offset, uint32_t size) {
