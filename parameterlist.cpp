@@ -5,6 +5,7 @@
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 #include <QFileDialog>
+#include <QThread>
 
 #include <common/mavlink.h>
 
@@ -276,10 +277,10 @@ void ParameterList::setSingleParameterRequestedACK(size_t rowIndex) {
     }
 }
 
-coroutine ParameterList::setAllParametersRequested() {
+void ParameterList::setAllParametersRequested() {
     for(size_t i = 0; i < ui->parameterList->rowCount(); ++i) {
         setSingleParameterRequested(i);
-        co_return;
+        QThread::usleep(1000);
     }
 }
 
@@ -343,8 +344,7 @@ void ParameterList::parameterWasSet() {
 
 void ParameterList::on_syncVehicleWithUs_clicked()
 {
-    _coroutineSetParameter = setAllParametersRequested();
-    _coroutineSetParameter.resume();
+    setAllParametersRequested();
 }
 
 

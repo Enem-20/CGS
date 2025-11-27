@@ -62,12 +62,22 @@ struct Parameter {
     QString type;
 };
 
-class ParameterList : public QWidget
-{
+class ParameterList : public QWidget {
     Q_OBJECT
 private:
+    enum class State : uint8_t {
+        Idle = 0,
+        PullingParameters
+    };
+
+    QTimer _pullParameterTimeout;
+    State _currentState = State::Idle;
+    uint32_t _parametersCount = 0;
+    uint32_t _pulledParamsCount;
+
+
+
     QTimer _paramSetTimeout;
-    QTimer _paramBatchTimer;
     QString _prevEdit = "";
     coroutine _coroutineSetParameter;
     QTableWidget* _buffer;
@@ -88,9 +98,7 @@ signals:
 private slots:
     void on_syncVehicleWithUs_clicked();
     void on_syncUsWithVehicle_clicked();
-
     void on_saveToFileButton_clicked();
-
     void on_loadFromFileButton_clicked();
 
     void on_lineEdit_textChanged(const QString &arg1);
@@ -103,12 +111,14 @@ public slots:
 
     void setSingleParameterRequested(size_t rowIndex);
     void setSingleParameterRequestedACK(size_t rowIndex);
-    coroutine setAllParametersRequested();
+    void setAllParametersRequested();
     void repeatParamSetRequest();
 
     QString serializeParameter(size_t rowIndex);
     void saveToFile(const QString& path);
     void parameterWasSet();
+
+    //void onParameterPulled(const mavlink_param_value_t& msg);
 };
 
 #endif // PARAMETERLIST_H

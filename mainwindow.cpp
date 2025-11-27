@@ -162,7 +162,6 @@ void MavlinkContext::loadModes() {
 
 void MavlinkContext::sendCommand(const mavlink_message_t& msg) {
     _localDefaultDevice.sendCommand(msg);
-    thread()->sleep(std::chrono::nanoseconds(3000));
 }
 
 MainWindow::MainWindow(QWidget *parent)
