@@ -122,14 +122,22 @@ void MavlinkContext::handleMavlinkMessage(mavlink_message_t msg) {
         mavlink_param_ext_value_t paramExtValue;
         mavlink_msg_param_ext_value_decode(&msg, &paramExtValue);
         emit paramExtUpdated(paramExtValue);
+    break;
     case MAVLINK_MSG_ID_LOG_ENTRY:
         mavlink_log_entry_t logEntry;
         mavlink_msg_log_entry_decode(&msg, &logEntry);
         emit logEntryRecieved(logEntry);
+    break;
     case MAVLINK_MSG_ID_LOG_DATA:
         mavlink_log_data_t logData;
         mavlink_msg_log_data_decode(&msg, &logData);
         emit logDataRecieved(logData, msg);
+    break;
+    case MAVLINK_MSG_ID_PARAM_EXT_ACK:
+        qDebug() << "got MAVLINK_MSG_ID_PARAM_EXT_ACK";
+        mavlink_param_ext_ack_t paramAck;
+        mavlink_msg_param_ext_ack_decode(&msg, &paramAck);
+        emit paramAckRecieved(paramAck);
     break;
     }
 }
@@ -154,6 +162,7 @@ void MavlinkContext::loadModes() {
 
 void MavlinkContext::sendCommand(const mavlink_message_t& msg) {
     _localDefaultDevice.sendCommand(msg);
+    thread()->sleep(std::chrono::nanoseconds(3000));
 }
 
 MainWindow::MainWindow(QWidget *parent)
@@ -186,18 +195,23 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(&_parameterList, &ParameterList::parametersRequest, this, &MainWindow::paramsRequested);
     connect(this, &MainWindow::paramsRequest, _mavlinkContext, &MavlinkContext::sendCommand);
-    connect(_mavlinkContext, &MavlinkContext::paramUpdated, this, [this](const mavlink_param_value_t& param){
-        _parameterList.handleMavlink(param);
-    });
-    connect(_mavlinkContext, &MavlinkContext::paramExtUpdated, this, [this](const mavlink_param_ext_value_t& param){
-        _parameterList.handleMavlink(param);
-    });
+    connect(_mavlinkContext, &MavlinkContext::paramUpdated, &_parameterList,
+        QOverload<const mavlink_param_value_t&>::of(&ParameterList::handleMavlink)
+    );
+
+    connect(_mavlinkContext, &MavlinkContext::paramExtUpdated, &_parameterList,
+        QOverload<const mavlink_param_ext_value_t&>::of(&ParameterList::handleMavlink)
+    );
+    connect(_mavlinkContext, &MavlinkContext::paramAckRecieved, &_parameterList,
+        QOverload<const mavlink_param_ext_ack_t&>::of(&ParameterList::handleMavlink)
+    );
     connect(_mavlinkContext, &MavlinkContext::logEntryRecieved, this, [this](const mavlink_log_entry_t& logEntry){
         _logsWindow.handleMavlink(logEntry);
     });
     connect(_mavlinkContext, &MavlinkContext::logDataRecieved, this, [this](const mavlink_log_data_t& logData, const mavlink_message_t& msg){
         _logsWindow.handleMavlink(logData, msg);
     });
+
 
     connect(&_parameterList, &ParameterList::setParameterRequest, this, &MainWindow::setParamRequested);
     connect(this, &MainWindow::setParamRequest, _mavlinkContext, &MavlinkContext::sendCommand);

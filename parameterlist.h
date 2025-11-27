@@ -67,6 +67,7 @@ class ParameterList : public QWidget
     Q_OBJECT
 private:
     QTimer _paramSetTimeout;
+    QTimer _paramBatchTimer;
     QString _prevEdit = "";
     coroutine _coroutineSetParameter;
     QTableWidget* _buffer;
@@ -101,6 +102,7 @@ public slots:
     void handleMavlink(const mavlink_param_ext_ack_t& msg);
 
     void setSingleParameterRequested(size_t rowIndex);
+    void setSingleParameterRequestedACK(size_t rowIndex);
     coroutine setAllParametersRequested();
     void repeatParamSetRequest();
 

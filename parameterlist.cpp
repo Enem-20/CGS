@@ -57,7 +57,7 @@ ParameterList::ParameterList(QWidget *parent)
     });
     //ui->parameterList->sortItems(0);
 
-    connect(&_paramSetTimeout, &QTimer::timeout, this, &ParameterList::requestMissingLogPackets);
+    connect(&_paramSetTimeout, &QTimer::timeout, this, &ParameterList::repeatParamSetRequest);
 }
 
 ParameterList::~ParameterList()
@@ -210,7 +210,8 @@ void ParameterList::handleMavlink(const mavlink_param_ext_value_t& msg) {
 }
 
 void ParameterList::handleMavlink(const mavlink_param_ext_ack_t& msg) {
-
+    _paramSetTimeout.stop();
+    parameterWasSet();
 }
 
 void ParameterList::setSingleParameterRequested(size_t rowIndex) {
@@ -223,12 +224,11 @@ void ParameterList::setSingleParameterRequested(size_t rowIndex) {
         uint8_t paramType = paramTypeItem->text().toUInt();
         uint16_t paramIndex = paramIndexItem->text().toUInt();
 
-        mavlink_param_ext_set_t paramSet = {0};
+        mavlink_param_set_t paramSet = {0};
         paramSet.target_system = _sysId;
         paramSet.target_component = _compId;
         paramSet.param_type = paramType;
-        float param = paramValueItem->text().toFloat();
-        std::memcpy(paramSet.param_value, &param, sizeof(param));
+        paramSet.param_value = paramValueItem->text().toFloat();
 
         QByteArray paramNameBytes = paramName.toUtf8();
         int len = qMin(paramNameBytes.size(), 16);
@@ -237,9 +237,7 @@ void ParameterList::setSingleParameterRequested(size_t rowIndex) {
             paramSet.param_id[len] = '\0';
         }
         mavlink_message_t msg;
-        mavlink_msg_param_ext_set_encode(255, MAV_COMP_ID_MISSIONPLANNER, &msg, &paramSet);
-
-        _paramSetTimeout.start(1000);
+        mavlink_msg_param_set_encode(255, MAV_COMP_ID_MISSIONPLANNER, &msg, &paramSet);
 
         emit setParameterRequest(msg);
     }
@@ -271,7 +269,7 @@ void ParameterList::setSingleParameterRequestedACK(size_t rowIndex) {
         mavlink_message_t msg;
         mavlink_msg_param_ext_set_encode(255, MAV_COMP_ID_MISSIONPLANNER, &msg, &paramSet);
 
-        _lastParameterSetIndex = paramSet.param_id;
+        _lastParameterSetIndex = rowIndex;
         _paramSetTimeout.start(1000);
 
         emit setParameterRequest(msg);
@@ -286,7 +284,8 @@ coroutine ParameterList::setAllParametersRequested() {
 }
 
 void ParameterList::repeatParamSetRequest() {
-    setSingleParameterRequested(_lastParameterSetIndex);
+    qDebug() << "Parameter set ack is missing.";
+    setSingleParameterRequestedACK(_lastParameterSetIndex);
 }
 
 QString ParameterList::serializeParameter(size_t rowIndex) {
@@ -345,6 +344,7 @@ void ParameterList::parameterWasSet() {
 void ParameterList::on_syncVehicleWithUs_clicked()
 {
     _coroutineSetParameter = setAllParametersRequested();
+    _coroutineSetParameter.resume();
 }
 
 

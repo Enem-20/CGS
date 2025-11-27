@@ -46,6 +46,7 @@ signals:
     void paramExtUpdated(const mavlink_param_ext_value_t& param);
     void logEntryRecieved(const mavlink_log_entry_t& logEntry);
     void logDataRecieved(const mavlink_log_data_t& logData, const mavlink_message_t& msg);
+    void paramAckRecieved(const mavlink_param_ext_ack_t& paramAck);
 private slots:
     void handleMavlinkMessage(mavlink_message_t msg);
 public slots:
