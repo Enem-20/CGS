@@ -34,7 +34,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 
         logswindow.h logswindow.cpp logswindow.ui
         segmentationchecker.h segmentationchecker.cpp
-        ardupilotparametersparser.h ardupilotparametersparser.cpp
 
     )
 # Define target properties for Android with Qt 6 as:

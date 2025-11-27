@@ -4,6 +4,7 @@
 #include <QFile>
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
+#include <QFileDialog>
 
 #include <common/mavlink.h>
 
@@ -55,6 +56,8 @@ ParameterList::ParameterList(QWidget *parent)
         setSingleParameterRequested(item->row());
     });
     //ui->parameterList->sortItems(0);
+
+    connect(&_paramSetTimeout, &QTimer::timeout, this, &ParameterList::requestMissingLogPackets);
 }
 
 ParameterList::~ParameterList()
@@ -206,6 +209,10 @@ void ParameterList::handleMavlink(const mavlink_param_ext_value_t& msg) {
     //ui->tableWidget->resizeColumnsToContents();
 }
 
+void ParameterList::handleMavlink(const mavlink_param_ext_ack_t& msg) {
+
+}
+
 void ParameterList::setSingleParameterRequested(size_t rowIndex) {
     QTableWidgetItem* paramNameItem = ui->parameterList->item(rowIndex, 0);
     QTableWidgetItem* paramValueItem = ui->parameterList->item(rowIndex, 1);
@@ -216,11 +223,12 @@ void ParameterList::setSingleParameterRequested(size_t rowIndex) {
         uint8_t paramType = paramTypeItem->text().toUInt();
         uint16_t paramIndex = paramIndexItem->text().toUInt();
 
-        mavlink_param_set_t paramSet = {0};
+        mavlink_param_ext_set_t paramSet = {0};
         paramSet.target_system = _sysId;
         paramSet.target_component = _compId;
         paramSet.param_type = paramType;
-        paramSet.param_value = paramValueItem->text().toFloat();
+        float param = paramValueItem->text().toFloat();
+        std::memcpy(paramSet.param_value, &param, sizeof(param));
 
         QByteArray paramNameBytes = paramName.toUtf8();
         int len = qMin(paramNameBytes.size(), 16);
@@ -229,15 +237,56 @@ void ParameterList::setSingleParameterRequested(size_t rowIndex) {
             paramSet.param_id[len] = '\0';
         }
         mavlink_message_t msg;
-        mavlink_msg_param_set_encode(255, MAV_COMP_ID_MISSIONPLANNER, &msg, &paramSet);
+        mavlink_msg_param_ext_set_encode(255, MAV_COMP_ID_MISSIONPLANNER, &msg, &paramSet);
+
+        _paramSetTimeout.start(1000);
+
         emit setParameterRequest(msg);
     }
 }
 
-void ParameterList::setAllParametersRequested() {
+void ParameterList::setSingleParameterRequestedACK(size_t rowIndex) {
+    QTableWidgetItem* paramNameItem = ui->parameterList->item(rowIndex, 0);
+    QTableWidgetItem* paramValueItem = ui->parameterList->item(rowIndex, 1);
+    QTableWidgetItem* paramTypeItem = ui->parameterList->item(rowIndex, 2);
+    QTableWidgetItem* paramIndexItem = ui->parameterList->item(rowIndex, 3);
+    if(paramNameItem && paramValueItem && paramTypeItem && paramIndexItem) {
+        QString paramName = paramNameItem->text();
+        uint8_t paramType = paramTypeItem->text().toUInt();
+        uint16_t paramIndex = paramIndexItem->text().toUInt();
+
+        mavlink_param_ext_set_t paramSet = {0};
+        paramSet.target_system = _sysId;
+        paramSet.target_component = _compId;
+        paramSet.param_type = paramType;
+        float param = paramValueItem->text().toFloat();
+        std::memcpy(paramSet.param_value, &param, sizeof(param));
+
+        QByteArray paramNameBytes = paramName.toUtf8();
+        int len = qMin(paramNameBytes.size(), 16);
+        strncpy(paramSet.param_id, paramNameBytes.constData(), len);
+        if (len < 16) {
+            paramSet.param_id[len] = '\0';
+        }
+        mavlink_message_t msg;
+        mavlink_msg_param_ext_set_encode(255, MAV_COMP_ID_MISSIONPLANNER, &msg, &paramSet);
+
+        _lastParameterSetIndex = paramSet.param_id;
+        _paramSetTimeout.start(1000);
+
+        emit setParameterRequest(msg);
+    }
+}
+
+coroutine ParameterList::setAllParametersRequested() {
     for(size_t i = 0; i < ui->parameterList->rowCount(); ++i) {
         setSingleParameterRequested(i);
+        co_return;
     }
+}
+
+void ParameterList::repeatParamSetRequest() {
+    setSingleParameterRequested(_lastParameterSetIndex);
 }
 
 QString ParameterList::serializeParameter(size_t rowIndex) {
@@ -289,9 +338,13 @@ void ParameterList::saveToFile(const QString& path) {
         qDebug() << "File size:" << file.size() << "bytes";
 }
 
+void ParameterList::parameterWasSet() {
+    _coroutineSetParameter.resume();
+}
+
 void ParameterList::on_syncVehicleWithUs_clicked()
 {
-    setAllParametersRequested();
+    _coroutineSetParameter = setAllParametersRequested();
 }
 
 
@@ -311,7 +364,8 @@ void ParameterList::on_saveToFileButton_clicked()
 
 void ParameterList::on_loadFromFileButton_clicked()
 {
-    QFile file("/home/szamaro/Projects/CGS/parameterSet.param");
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), "/home/jana", tr("Image Files (*.parm *.param)"));
+    QFile file(fileName);
     file.open(QIODevice::ReadOnly);
     if(file.isOpen()) {
         ui->parameterList->blockSignals(true);
@@ -319,7 +373,7 @@ void ParameterList::on_loadFromFileButton_clicked()
             QString line = file.readLine();
             line = line.trimmed();
             if(line.size() < 1) break;
-            QStringList list = line.split(QRegularExpression("\\s+"));
+            QStringList list = line.split(QRegularExpression("[\\s,]+"));
 
             Parameter parameter(list[0], list[1]);
             QList<QTableWidgetItem*> items = ui->parameterList->findItems(parameter.name, Qt::MatchExactly);
