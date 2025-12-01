@@ -89,7 +89,7 @@ private:
     uint32_t _dataReceivedBytes = 0;
     QByteArray _logDataBuffer;
     static constexpr size_t LOGS_MASK_SIZE = 1024 * 1024 * 1024;
-    std::bitset<LOGS_MASK_SIZE>* _logsDataMask;
+    static std::bitset<LOGS_MASK_SIZE> _logsDataMask;
     QTimer _logsTimeout;
 
     void refreshLogs();

@@ -7,6 +7,8 @@
 
 #include <common/mavlink.h>
 
+std::bitset<LogsWindow::LOGS_MASK_SIZE> LogsWindow::_logsDataMask;
+
 LogsWindow::LogsWindow(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::LogsWindow)
@@ -119,7 +121,7 @@ void LogsWindow::handleMavlink(const mavlink_log_data_t& logData, const mavlink_
     _logDataBuffer.replace(logData.ofs, logData.count, (const char*)logData.data, logData.count);
 
     for (int32_t i = logData.ofs; i < logData.ofs + logData.count; i++) {
-        _logsDataMask->set(i, true);
+        _logsDataMask.set(i, true);
     }
 
     _dataReceivedBytes += logData.count;
@@ -182,7 +184,7 @@ void LogsWindow::downloadLog(uint32_t id) {
 
     if(id < 1 || id > _logEntries.size()) return;
 
-    _logsDataMask = new std::bitset<LOGS_MASK_SIZE>;
+    //_logsDataMask = new std::bitset<LOGS_MASK_SIZE>;
 
     _receivingDataId = id;
     _dataReceivedBytes = 0;
@@ -227,8 +229,7 @@ void LogsWindow::stopLogTransfer() {
     _logsTimeout.stop();
     _receivingDataId = 0xffffffff;
     _logDataBuffer.resize(0);
-    delete _logsDataMask;
-    _logsDataMask = nullptr;
+    _logsDataMask.reset();
 
     if (!_mavlinkContext) return;
 
@@ -247,12 +248,12 @@ void LogsWindow::stopLogTransfer() {
 void LogsWindow::requestMissingLogPackets() {
     qDebug() << "Not all packets arrived.";
     for (size_t i = 0; i < _logDataBuffer.size();) {
-        if (_logsDataMask->test(i)) {
+        if (_logsDataMask.test(i)) {
             i++;
             continue;
         }
         size_t segmentStart = i;
-        while(!_logsDataMask->test(++i) && i < _logDataBuffer.size()) {}
+        while(!_logsDataMask.test(++i) && i < _logDataBuffer.size()) {}
         size_t segmentEnd = i;
 
         qDebug() << "Missing segment: " << segmentStart << " " << segmentEnd;

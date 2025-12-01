@@ -30,11 +30,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         localpositionned.h localpositionned.cpp
         parameterlist.h parameterlist.cpp parameterlist.ui
         statustext.h statustext.cpp
-
-
         logswindow.h logswindow.cpp logswindow.ui
         segmentationchecker.h segmentationchecker.cpp
-
+        segmentmap.h segmentmap.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET CGS APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

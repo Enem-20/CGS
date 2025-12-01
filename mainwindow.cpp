@@ -193,6 +193,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_mavlinkContext, &MavlinkContext::heartbeatMessageReceived, &_parameterList, &ParameterList::onAutopilotHeartbeat);
 
     connect(&_parameterList, &ParameterList::parametersRequest, this, &MainWindow::paramsRequested);
+    connect(&_parameterList, &ParameterList::singleParameterRequest, _mavlinkContext, &MavlinkContext::sendCommand);
     connect(this, &MainWindow::paramsRequest, _mavlinkContext, &MavlinkContext::sendCommand);
     connect(_mavlinkContext, &MavlinkContext::paramUpdated, &_parameterList,
         QOverload<const mavlink_param_value_t&>::of(&ParameterList::handleMavlink)
