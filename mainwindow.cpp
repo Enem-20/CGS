@@ -30,6 +30,11 @@ MavlinkContext::MavlinkContext()
         );
     });
 
+    connect(&_globalPositionInt, &GlobalPositionInt::altitudeUpdated, this, [this](int32_t altitude) {
+        QString result("Alt: %1 m");
+        emit altitudeUpdated(result.arg(altitude));
+    });
+
     connect(&_statusText, &StatusText::logUpdated, this, [this](QString msg, QString severity) {
         QColor resultColor;
         if(severity == "EMERGENCY") {
@@ -108,6 +113,11 @@ void MavlinkContext::handleMavlinkMessage(mavlink_message_t msg) {
         mavlink_msg_local_position_ned_decode(&msg, &localPositionNED);
         _lPositionNED.handleMavlink(localPositionNED);
     break;
+    case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
+        mavlink_global_position_int_t globalPositionInt;
+        mavlink_msg_global_position_int_decode(&msg, &globalPositionInt);
+        _globalPositionInt.handleMavlink(globalPositionInt);
+    break;
     case MAVLINK_MSG_ID_STATUSTEXT:
         mavlink_statustext_t statusText;
         mavlink_msg_statustext_decode(&msg, &statusText);
@@ -177,6 +187,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_mavlinkContext, &MavlinkContext::armedUpdated, ui->armedStatus, &QLabel::setText);
     connect(_mavlinkContext, &MavlinkContext::attitudeUpdated, ui->attitude, &QLabel::setText);
     connect(_mavlinkContext, &MavlinkContext::speedsUpdated, ui->speeds, &QLabel::setText);
+    connect(_mavlinkContext, &MavlinkContext::altitudeUpdated, ui->altitude, &QLabel::setText);
     connect(_mavlinkContext, &MavlinkContext::logUpdated, this, [this](QString msg, QString severity, QColor color) {
         QListWidgetItem* item = new QListWidgetItem(QString("[%1] %2").arg(severity).arg(msg));
         item->setForeground(color);

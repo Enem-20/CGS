@@ -90,6 +90,7 @@ private:
     };
 
     QTimer _pullParameterTimeout;
+    QTimer _heartBeatTimeout;
 
     QString _prevEdit = "";
     coroutine _coroutineSetParameter;
@@ -102,6 +103,7 @@ private:
     uint32_t _pulledParamsCount;
     uint8_t _sysId = 0;
     uint8_t _compId = 0;
+    bool _isParametersInitialPulled = false;
 private:
     void hideAll();
     void showAll();
@@ -115,6 +117,9 @@ signals:
     void parametersRequest(const mavlink_message_t& msg);
     void setParameterRequest(const mavlink_message_t& msg);
     void setParameterExtRequest(const mavlink_message_t& msg);
+
+    void parametersPullingCompleted();
+    void heartBeatReceived();
 private slots:
     void on_syncVehicleWithUs_clicked();
     void on_syncUsWithVehicle_clicked();
@@ -152,6 +157,8 @@ public slots:
     int getParamPositionByName(const QString& paramName) const;
     int getParamPositionById(const QString& paramId) const;
     //void onParameterPulled(const mavlink_param_value_t& msg);
+    void onParametersPullingCompleted();
+    void onHeartbeatReceived();
 };
 
 #endif // PARAMETERLIST_H

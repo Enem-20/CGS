@@ -88,8 +88,12 @@ ParameterList::ParameterList(QWidget *parent)
     connect(ui->parameterList, &QTableWidget::itemChanged, this, [this](QTableWidgetItem* item){
         setSingleParameterRequested(item->row());
     });
+    connect(this, &ParameterList::parametersPullingCompleted, this, &ParameterList::onParametersPullingCompleted);
     //ui->parameterList->sortItems(0);
-
+    connect(&_heartBeatTimeout, &QTimer::timeout, this, [this]()
+    {
+        _isParametersInitialPulled = false;
+    });
 }
 
 ParameterList::~ParameterList()
@@ -98,8 +102,10 @@ ParameterList::~ParameterList()
 }
 
 void ParameterList::onAutopilotHeartbeat(const mavlink_message_t& msg) {
+    _heartBeatTimeout.start(5000);
     _sysId = msg.sysid;
     _compId = msg.compid;
+    emit onHeartbeatReceived();
 }
 
 void ParameterList::handleMavlink(const mavlink_param_value_t& msg) {
@@ -357,7 +363,10 @@ void ParameterList::repeatParamSetRequest() {
 void ParameterList::repeatParametersRequest() {
     qDebug() << "repeating request parameters";
     QList<size_t> missingSegments = _segmentMap.getMissingSegments();
-    if(!missingSegments.size()) disconnect(&_pullParameterTimeout, &QTimer::timeout, this, &ParameterList::repeatParametersRequest);
+    if(!missingSegments.size()) {
+        emit parametersPullingCompleted();
+    }
+
     for(size_t i = 0; i < missingSegments.size(); ++i) {
         QList<QTableWidgetItem*> items = ui->parameterList->findItems(QString::number(missingSegments[i]), Qt::MatchExactly);
         if(items.size()) {
@@ -457,6 +466,18 @@ int ParameterList::getParamPositionByName(const QString& paramName) const {
 int ParameterList::getParamPositionById(const QString& paramId) const {
     QList<QTableWidgetItem*> items = ui->parameterList->findItems(paramId, Qt::MatchExactly);
     return items.size() ? items[0]->row() : -1;
+}
+
+void ParameterList::onParametersPullingCompleted() {
+    _isParametersInitialPulled = true;
+    disconnect(&_pullParameterTimeout, &QTimer::timeout, this, &ParameterList::repeatParametersRequest);
+}
+
+void ParameterList::onHeartbeatReceived() {
+    if(!_isParametersInitialPulled) {
+        on_syncUsWithVehicle_clicked();
+        _isParametersInitialPulled = true;
+    }
 }
 
 void ParameterList::on_syncVehicleWithUs_clicked()

@@ -17,8 +17,6 @@ public:
     void handleMavlink(const mavlink_local_position_ned_t& msg);
 signals:
     void speedsUpdated(const QVector3D& orientation);
-
-signals:
 };
 
 #endif // LOCALPOSITIONNED_H

@@ -11,6 +11,7 @@
 #include "udpmavlinkdevice.h"
 #include "attitude.h"
 #include "localpositionned.h"
+#include "globalpositionint.h"
 #include "statustext.h"
 
 #include "parameterlist.h"
@@ -23,6 +24,7 @@ private:
     UDPMavlinkDevice _localDefaultDevice;
     Attitude _attitude;
     LocalPositionNED _lPositionNED;
+    GlobalPositionInt _globalPositionInt;
     StatusText _statusText;
     QTimer _heartBeatTimer;
     mavlink_message_t _heartBeatMsg;
@@ -40,6 +42,7 @@ signals:
     void armedUpdated(const QString& armed);
     void attitudeUpdated(const QString& rollPitchYaw);
     void speedsUpdated(const QString& speeds);
+    void altitudeUpdated(const QString& altitude);
     void logUpdated(const QString& msg, const QString& severity, QColor color);
 
     void paramUpdated(const mavlink_param_value_t& param);
