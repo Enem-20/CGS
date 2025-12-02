@@ -180,6 +180,7 @@ MainWindow::MainWindow(QWidget *parent)
     , _mavlinkContext(new MavlinkContext())
 {
     ui->setupUi(this);
+    _parameterList.setWindowTitle("Parameters list");
     _logsWindow.setMavlinkContext(_mavlinkContext);
     _mavlinkContext->moveToThread(&_mavlinkThread);
     connect(&_mavlinkThread, &QThread::started, _mavlinkContext, &MavlinkContext::loadModes);
