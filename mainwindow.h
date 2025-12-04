@@ -13,6 +13,7 @@
 #include "localpositionned.h"
 #include "globalpositionint.h"
 #include "statustext.h"
+#include "mavlinkpacketizer.h"
 
 #include "parameterlist.h"
 #include "logswindow.h"
@@ -29,6 +30,7 @@ private:
     QTimer _heartBeatTimer;
     mavlink_message_t _heartBeatMsg;
     QJsonObject _existingModes;
+    MavlinkPacketizer _packetizer;
 
 public:
     MavlinkContext();

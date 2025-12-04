@@ -65,6 +65,7 @@ MavlinkContext::MavlinkContext()
     });
 
     connect(&_localDefaultDevice, &UDPMavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+    //connect(&_localDefaultDevice, &UDPMavlinkDevice::messageReceived, &_packetizer, &MavlinkPacketizer::mavlinkMsgReceived);
 }
 
 void MavlinkContext::sendHeartbeat() {

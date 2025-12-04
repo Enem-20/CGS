@@ -15,6 +15,8 @@ public:
     void handleMavlink(const mavlink_statustext_t& msg);
 signals:
     void logUpdated(QString msg, QString severity);
+public slots:
+
 };
 
 #endif // STATUSTEXT_H
