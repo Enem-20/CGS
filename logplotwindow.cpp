@@ -39,9 +39,15 @@ void LogPlotWindow::wrapShow() {
 
     const QList<LogFormatData>& data = parser.getData();
 
-    for (qsizetype i = 0; i < data.size(); i++) {
+    for (qsizetype groupIndex = 0; groupIndex < data.size(); groupIndex++) {
         QTreeWidgetItem* topItem = new QTreeWidgetItem();
-        topItem->setText(0, data[i].name);
+        topItem->setText(0, data[groupIndex].name);
+        for (qsizetype columIndex = 0; columIndex < data[groupIndex].columns.size(); columIndex++) {
+            QTreeWidgetItem* item = new QTreeWidgetItem();
+            item->setText(0, data[groupIndex].columns[columIndex]);
+            item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+            topItem->addChild(item);
+        }
         ui->dataTree->addTopLevelItem(topItem);
     }
 

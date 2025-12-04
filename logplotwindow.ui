@@ -128,7 +128,22 @@
            <number>2</number>
           </property>
           <item>
-           <widget class="QTreeWidget" name="dataTree"/>
+           <widget class="QTreeWidget" name="dataTree">
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="indentation">
+             <number>10</number>
+            </property>
+            <property name="sortingEnabled">
+             <bool>true</bool>
+            </property>
+            <column>
+             <property name="text">
+              <string>Log Data</string>
+             </property>
+            </column>
+           </widget>
           </item>
          </layout>
         </widget>
