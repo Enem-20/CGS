@@ -36,6 +36,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         segmentmap.h segmentmap.cpp
         globalpositionint.h globalpositionint.cpp
         dataflashparser.h dataflashparser.cpp
+        logplotwindow.h logplotwindow.cpp logplotwindow.ui
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET CGS APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
