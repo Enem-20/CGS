@@ -8,8 +8,6 @@
 
 #include <common/mavlink.h>
 
-#include "dataflashparser.h"
-
 std::bitset<LogsWindow::LOGS_MASK_SIZE> LogsWindow::_logsDataMask;
 
 LogsWindow::LogsWindow(QWidget *parent)
@@ -67,12 +65,9 @@ void LogsWindow::on_pushButton_5_clicked() {
 }
 
 void LogsWindow::on_pushButton_6_clicked() {
-    QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-    QString path = QFileDialog::getOpenFileName(nullptr, "Select log file to review", downloadsPath);
-    if (path == "") return;
-
-    DataFlashParser parser;
-    parser.parseFile(path);
+    if (_logPlotWindow.isHidden()) {
+        _logPlotWindow.wrapShow();
+    }
 }
 
 void LogsWindow::onAutopilotHeartbeat(const mavlink_message_t& msg) {

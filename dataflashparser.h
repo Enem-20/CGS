@@ -72,6 +72,8 @@ public:
     explicit DataFlashParser(QObject *parent = nullptr);
 
     void parseFile(QString path);
+    const QList<LogFormatData>& getData();
+    const QList<LogParameterData>& getParameters();
 
 protected:
     QByteArray _logFileContent;
