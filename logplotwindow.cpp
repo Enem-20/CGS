@@ -4,6 +4,7 @@
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QSplitter>
+#include <QTreeWidgetItem>
 
 LogPlotWindow::LogPlotWindow(QWidget *parent)
     : QWidget(parent)
@@ -11,14 +12,11 @@ LogPlotWindow::LogPlotWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    QSplitter* splitter = new QSplitter(ui->frameMain);
-    ui->frameMain->layout()->addWidget(splitter);
+    _plotter = new Plotter(ui->plotFrame);
+    ui->plotFrame->layout()->addWidget(_plotter);
+    _plotter->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
 
-    _plotter = new Plotter(splitter);
-    // splitter->addWidget(_plotter);
-
-    ui->dataList->setParent(splitter);
-    // splitter->addWidget(ui->dataList);
+    // ui->plotFrame->setLayout(new QVBoxLayout());
 
     _plotter->createPlotGroup("FLME");
     _plotter->createPlot("FLME", "azim", "time", "azim", {0, 120}, {-100, 100});
@@ -40,6 +38,12 @@ void LogPlotWindow::wrapShow() {
     parser.parseFile(path);
 
     const QList<LogFormatData>& data = parser.getData();
+
+    for (qsizetype i = 0; i < data.size(); i++) {
+        QTreeWidgetItem* topItem = new QTreeWidgetItem();
+        topItem->setText(0, data[i].name);
+        ui->dataTree->addTopLevelItem(topItem);
+    }
 
     _plotter->addData("FLME", "azim", "azim", data[184].values[0], data[184].values[1]);
 
