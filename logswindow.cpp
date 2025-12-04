@@ -45,8 +45,10 @@ void LogsWindow::on_pushButton_3_clicked() {
 }
 
 void LogsWindow::on_pushButton_4_clicked() {
-    QMessageBox::StandardButton pressed = QMessageBox::warning(nullptr, "Accept clear", "Would you like to clear all logs from the vehicle?",
-                                                               QMessageBox::Ok | QMessageBox::Cancel);
+    QMessageBox::StandardButton pressed = QMessageBox::warning(
+        nullptr, "Accept clear", "Would you like to clear all logs from the vehicle?",
+        QMessageBox::Ok | QMessageBox::Cancel);
+
     switch (pressed) {
     case QMessageBox::Ok:
         clearLogs();
@@ -65,8 +67,9 @@ void LogsWindow::on_pushButton_5_clicked() {
 }
 
 void LogsWindow::on_pushButton_6_clicked() {
-    QString path = QFileDialog::getOpenFileName();
-    if(path == "") return;
+    QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+    QString path = QFileDialog::getOpenFileName(nullptr, "Select log file to review", downloadsPath);
+    if (path == "") return;
 
     DataFlashParser parser;
     parser.parseFile(path);
