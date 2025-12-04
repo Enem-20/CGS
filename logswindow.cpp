@@ -4,8 +4,11 @@
 
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QFileDialog>
 
 #include <common/mavlink.h>
+
+#include "dataflashparser.h"
 
 std::bitset<LogsWindow::LOGS_MASK_SIZE> LogsWindow::_logsDataMask;
 
@@ -75,6 +78,14 @@ void LogsWindow::on_pushButton_5_clicked() {
     stopLogTransfer();
     ui->progressBar->setValue(0);
     ui->recievedBytes->setText(QString("Download stopped"));
+}
+
+void LogsWindow::on_pushButton_6_clicked() {
+    QString path = QFileDialog::getOpenFileName();
+    if(path == "") return;
+
+    DataFlashParser parser;
+    parser.parseFile(path);
 }
 
 void LogsWindow::onAutopilotHeartbeat(const mavlink_message_t& msg) {
