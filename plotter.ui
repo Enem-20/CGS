@@ -15,7 +15,9 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <widget class="QListWidget" name="plots"/>
+    <widget class="QWidget" name="plots" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout"/>
+    </widget>
    </item>
   </layout>
  </widget>
