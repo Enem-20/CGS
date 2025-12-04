@@ -24,19 +24,8 @@
     <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
    </property>
    <item row="0" column="0">
-    <widget class="QListWidget" name="plots">
-     <property name="sizeAdjustPolicy">
-      <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContentsOnFirstShow</enum>
-     </property>
-     <property name="movement">
-      <enum>QListView::Movement::Static</enum>
-     </property>
-     <property name="resizeMode">
-      <enum>QListView::ResizeMode::Adjust</enum>
-     </property>
-     <property name="itemAlignment">
-      <set>Qt::AlignmentFlag::AlignLeading</set>
-     </property>
+    <widget class="QWidget" name="plots" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout"/>
     </widget>
    </item>
   </layout>
