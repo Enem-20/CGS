@@ -55,7 +55,21 @@ void DataFlashParser::processFileContent() {
 
                 data.values.resize(data.columns.size());
 
-                _logData.push_back(data);
+                qsizetype index = -1;
+                for (qsizetype i = 0; i < _logData.size(); i++) {
+                    if (_logData[i].type == data.type) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index == -1) {
+                    _logData.push_back(data);
+                }
+                else {
+                    qDebug() << "Message description is repeated: " << data.name;
+                    _logData[index] = data;
+                }
 
                 break;
             }
@@ -80,6 +94,7 @@ void DataFlashParser::processFileContent() {
                 char unitsBuffer[17] {'\0'};
                 memcpy(unitsBuffer, logFormatUnits.units, 16);
                 QString units = QString(unitsBuffer);
+                data.units.clear();
                 for (qsizetype unitIndex = 0; unitIndex < units.size(); unitIndex++) {
                     char unitChar = units[unitIndex].toLatin1();
                     QString unit = getUnits(unitChar);
@@ -89,6 +104,7 @@ void DataFlashParser::processFileContent() {
                 char multipliersBuffer[17] {'\0'};
                 memcpy(multipliersBuffer, logFormatUnits.multipliers, 16);
                 QString multipliers = QString(multipliersBuffer);
+                data.multipliers.clear();
                 for (qsizetype multiplierIndex = 0; multiplierIndex < multipliers.size(); multiplierIndex++) {
                     char multiplierChar = multipliers[multiplierIndex].toLatin1();
                     double multiplier = getMultiplier(multiplierChar);
