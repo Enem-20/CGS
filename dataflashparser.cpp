@@ -189,6 +189,14 @@ void DataFlashParser::processFileContent() {
     qDebug() << "parsing finished";
 }
 
+const QList<LogFormatData>& DataFlashParser::getData() {
+    return _logData;
+}
+
+const QList<LogParameterData>& DataFlashParser::getParameters() {
+    return _logParameters;
+}
+
 double DataFlashParser::parseTypeAsDouble(char typeChar) {
     switch (typeChar) {
         case 'a': {

@@ -10,6 +10,8 @@
 
 #include <bitset>
 
+#include "logplotwindow.h"
+
 namespace Ui {
 class LogsWindow;
 }
@@ -87,6 +89,8 @@ private:
     static constexpr size_t LOGS_MASK_SIZE = 1024 * 1024 * 1024;
     static std::bitset<LOGS_MASK_SIZE> _logsDataMask;
     QTimer _logsTimeout;
+
+    LogPlotWindow _logPlotWindow;
 
     void refreshLogs();
     void downloadLog(uint32_t id);
