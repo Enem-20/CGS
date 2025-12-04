@@ -2,6 +2,7 @@
 #define LOGPLOTWINDOW_H
 
 #include <QWidget>
+#include <QTreeWidget>
 
 #include "plotter.h"
 
@@ -22,11 +23,14 @@ public:
 private:
     Ui::LogPlotWindow *ui;
     Plotter* _plotter;
+    DataFlashParser _parser;
+
 public slots:
     void wrapShow();
 private slots:
     void on_resetViewButton_clicked();
     void on_resetPlotButton_clicked();
+    void handleDataSelectionChanged(QTreeWidgetItem *item, int column);
 };
 
 #endif // LOGPLOTWINDOW_H
