@@ -10,6 +10,7 @@ Plotter::Plotter(QWidget *parent)
     , ui(new Ui::Plotter)
 {
     ui->setupUi(this);
+    ui->plots->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 Plotter::~Plotter()
@@ -21,6 +22,7 @@ void Plotter::createPlotGroup(const QString& name) {
     auto groupIt = _plotGroups.find(name);
     if(groupIt == _plotGroups.end()) {
         PlotGroup* group = new PlotGroup(name, ui->plots);
+        group->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         _plotGroups.emplace(name, group);
     } else {
         qWarning() << "Plot group " << name << " already exists";

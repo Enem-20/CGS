@@ -15,6 +15,7 @@ Plot::Plot(const QString& name,
     _plot->yAxis->setRange(yRange.first, yRange.second);
     _plot->replot();
     _plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+    _plot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 QCustomPlot* Plot::getRaw() {
