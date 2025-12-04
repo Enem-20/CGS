@@ -60,12 +60,6 @@ public:
 
     void setMavlinkContext(MavlinkContext* mavlinkContext);
 
-signals:
-    void refreshLogs(const mavlink_message_t& msg);
-    void requestLogData(const mavlink_message_t& msg);
-    void requestLogEnd(const mavlink_message_t& msg);
-    void eraseAllLogs(const mavlink_message_t& msg);
-
 private slots:
     void on_pushButton_clicked();
 
@@ -76,6 +70,8 @@ private slots:
     void on_pushButton_4_clicked();
 
     void on_pushButton_5_clicked();
+
+    void on_pushButton_6_clicked();
 
 public slots:
     void onAutopilotHeartbeat(const mavlink_message_t& msg);

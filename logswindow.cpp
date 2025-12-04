@@ -4,8 +4,11 @@
 
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QFileDialog>
 
 #include <common/mavlink.h>
+
+#include "dataflashparser.h"
 
 std::bitset<LogsWindow::LOGS_MASK_SIZE> LogsWindow::_logsDataMask;
 
@@ -26,22 +29,6 @@ void LogsWindow::setMavlinkContext(MavlinkContext* mavlinkContext) {
     _mavlinkContext = mavlinkContext;
 }
 
-// void LogsWindow::refreshLogs(const mavlink_message_t& msg) {
-
-// }
-
-// void LogsWindow::requestLogData(const mavlink_message_t& msg) {
-
-// }
-
-// void LogsWindow::requestLogEnd(const mavlink_message_t& msg) {
-
-// }
-
-// void LogsWindow::eraseAllLogs(const mavlink_message_t& msg) {
-
-// }
-
 void LogsWindow::on_pushButton_clicked() {
     refreshLogs();
 }
@@ -58,8 +45,10 @@ void LogsWindow::on_pushButton_3_clicked() {
 }
 
 void LogsWindow::on_pushButton_4_clicked() {
-    QMessageBox::StandardButton pressed = QMessageBox::warning(nullptr, "Accept clear", "Would you like to clear all logs from the vehicle?",
-                                                               QMessageBox::Ok | QMessageBox::Cancel);
+    QMessageBox::StandardButton pressed = QMessageBox::warning(
+        nullptr, "Accept clear", "Would you like to clear all logs from the vehicle?",
+        QMessageBox::Ok | QMessageBox::Cancel);
+
     switch (pressed) {
     case QMessageBox::Ok:
         clearLogs();
@@ -75,6 +64,15 @@ void LogsWindow::on_pushButton_5_clicked() {
     stopLogTransfer();
     ui->progressBar->setValue(0);
     ui->recievedBytes->setText(QString("Download stopped"));
+}
+
+void LogsWindow::on_pushButton_6_clicked() {
+    QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+    QString path = QFileDialog::getOpenFileName(nullptr, "Select log file to review", downloadsPath);
+    if (path == "") return;
+
+    DataFlashParser parser;
+    parser.parseFile(path);
 }
 
 void LogsWindow::onAutopilotHeartbeat(const mavlink_message_t& msg) {
@@ -180,9 +178,15 @@ void LogsWindow::refreshLogs() {
 void LogsWindow::downloadLog(uint32_t id) {
     if (!_mavlinkContext) return;
 
-    if(_logDataBuffer.size() > 0) return;
+    if (_logDataBuffer.size() > 0) return;
 
-    if(id < 1 || id > _logEntries.size()) return;
+    if (id < 1 || id > _logEntries.size()) return;
+
+    ui->pushButton->setDisabled(true);
+    ui->pushButton_2->setDisabled(true);
+    ui->pushButton_3->setDisabled(true);
+    ui->pushButton_4->setDisabled(true);
+    ui->pushButton_6->setDisabled(true);
 
     //_logsDataMask = new std::bitset<LOGS_MASK_SIZE>;
 
@@ -243,6 +247,12 @@ void LogsWindow::stopLogTransfer() {
     );
 
     _mavlinkContext->sendCommand(command);
+
+    ui->pushButton->setDisabled(false);
+    ui->pushButton_2->setDisabled(false);
+    ui->pushButton_3->setDisabled(false);
+    ui->pushButton_4->setDisabled(false);
+    ui->pushButton_6->setDisabled(false);
 }
 
 void LogsWindow::requestMissingLogPackets() {
