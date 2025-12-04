@@ -5,17 +5,14 @@
 #include <QVector>
 #include <QByteArray>
 
-#include <array>
-#include <any>
-
 struct LogFormatData {
     uint8_t type;
     uint8_t size;
     QString name;
     QString types;
-    QString units;
-    QString multipliers;
-    QList<QString> columns;
+    QVector<QString> columns;
+    QVector<QString> units;
+    QVector<double> multipliers;
     QVector<QVector<double>> values;
 };
 
@@ -28,7 +25,7 @@ struct LogParameterData {
 class DataFlashParser : public QObject {
     Q_OBJECT
 
-#pragma pack(1)
+#pragma pack(push, 1)
 
     struct __attribute__((packed)) MessageHead {
         union {
@@ -63,7 +60,7 @@ class DataFlashParser : public QObject {
         float defaultValue;
     };
 
-#pragma pack()
+#pragma pack(pop)
 
     enum class DataFlashMessage {
         LogParameter = 32,
@@ -79,12 +76,14 @@ public:
 protected:
     QByteArray _logFileContent;
     uint32_t _cursor;
-
-    void processFileContent();
-    double parseTypeAsDouble(char type);
-
     QList<LogFormatData> _logData;
     QList<LogParameterData> _logParameters;
+
+    void processFileContent();
+
+    double parseTypeAsDouble(char typeChar);
+    double getMultiplier(char multiplierChar) const;
+    QString getUnits(char unitsChar) const;
 
     template<typename T>
     T parseType() {
