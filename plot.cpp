@@ -13,9 +13,9 @@ Plot::Plot(const QString& name,
     _plot->yAxis->setLabel(vertAxisName);
     _plot->xAxis->setRange(xRange.first, xRange.second);
     _plot->yAxis->setRange(yRange.first, yRange.second);
-    _plot->replot();
+    _plot->replot(QCustomPlot::rpQueuedReplot);
     _plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    _plot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    _plot->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 }
 
 QCustomPlot* Plot::getRaw() {

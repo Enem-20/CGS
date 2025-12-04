@@ -7,6 +7,7 @@
 namespace Ui {
 class Plotter;
 }
+class QResizeEvent;
 
 class QCustomPlot;
 class QCPGraph;
@@ -22,6 +23,8 @@ private:
 public:
     explicit Plotter(QWidget *parent = nullptr);
     ~Plotter();
+protected:
+    void resizeEvent(QResizeEvent* event) override;
 public slots:
     void createPlotGroup(const QString& name);
     void createPlot(const QString& groupName, const QString& name,

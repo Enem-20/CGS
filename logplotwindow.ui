@@ -43,63 +43,40 @@
      <property name="frameShadow">
       <enum>QFrame::Shadow::Raised</enum>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <property name="spacing">
-       <number>2</number>
-      </property>
-      <property name="leftMargin">
-       <number>2</number>
-      </property>
-      <property name="topMargin">
-       <number>2</number>
-      </property>
-      <property name="rightMargin">
-       <number>2</number>
-      </property>
-      <property name="bottomMargin">
-       <number>2</number>
-      </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QSplitter" name="splitter">
         <property name="orientation">
          <enum>Qt::Orientation::Horizontal</enum>
         </property>
-        <widget class="QFrame" name="plotFrame">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+        <widget class="QScrollArea" name="scrollArea">
+         <property name="sizeAdjustPolicy">
+          <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
          </property>
-         <property name="minimumSize">
-          <size>
-           <width>400</width>
-           <height>0</height>
-          </size>
+         <property name="widgetResizable">
+          <bool>true</bool>
          </property>
-         <property name="frameShape">
-          <enum>QFrame::Shape::StyledPanel</enum>
-         </property>
-         <property name="frameShadow">
-          <enum>QFrame::Shadow::Raised</enum>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_4">
-          <property name="sizeConstraint">
-           <enum>QLayout::SizeConstraint::SetMaximumSize</enum>
+         <widget class="QWidget" name="plotFrame">
+          <property name="geometry">
+           <rect>
+            <x>0</x>
+            <y>0</y>
+            <width>68</width>
+            <height>532</height>
+           </rect>
           </property>
-          <property name="leftMargin">
-           <number>2</number>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
           </property>
-          <property name="topMargin">
-           <number>2</number>
-          </property>
-          <property name="rightMargin">
-           <number>2</number>
-          </property>
-          <property name="bottomMargin">
-           <number>2</number>
-          </property>
-         </layout>
+          <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="sizeConstraint">
+            <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
+           </property>
+          </layout>
+         </widget>
         </widget>
         <widget class="QFrame" name="dataListFrame">
          <property name="sizePolicy">

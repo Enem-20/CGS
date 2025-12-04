@@ -21,7 +21,6 @@ LogPlotWindow::LogPlotWindow(QWidget *parent)
     _plotter->createPlotGroup("FLME");
     _plotter->createPlot("FLME", "azim", "time", "azim", {0, 120}, {-100, 100});
     _plotter->createGraph("FLME", "azim", "azim");
-
 }
 
 LogPlotWindow::~LogPlotWindow()
@@ -51,7 +50,7 @@ void LogPlotWindow::wrapShow() {
         ui->dataTree->addTopLevelItem(topItem);
     }
 
-    _plotter->addData("FLME", "azim", "azim", data[184].values[0], data[184].values[1]);
+    _plotter->addData("FLME", "azim", "azim", data[25].values[0], data[25].values[1]);
 
     show();
 }
