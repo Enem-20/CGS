@@ -50,6 +50,12 @@
          <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <widget class="QScrollArea" name="scrollArea">
+         <property name="minimumSize">
+          <size>
+           <width>400</width>
+           <height>100</height>
+          </size>
+         </property>
          <property name="sizeAdjustPolicy">
           <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
          </property>
@@ -61,7 +67,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>68</width>
+            <width>398</width>
             <height>532</height>
            </rect>
           </property>

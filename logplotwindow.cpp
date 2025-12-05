@@ -50,7 +50,7 @@ void LogPlotWindow::wrapShow() {
         ui->dataTree->addTopLevelItem(topItem);
     }
 
-    _plotter->addData("FLME", "azim", "azim", data[25].values[0], data[25].values[1]);
+    _plotter->addData("FLME", "azim", "azim", data[140].values[0], data[140].values[1]);
 
     show();
 }

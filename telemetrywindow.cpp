@@ -22,6 +22,8 @@ TelemetryWindow::~TelemetryWindow()
 
 void TelemetryWindow::onGlobalPositionIntUpdated(const mavlink_global_position_int_t& msg) {
     if(!_telemetryMap.contains("GLOBAL_POSITION_INT")) [[unlikely]] {
+        _plotter->createPlotGroup("GLOBAL_POSITION_INT");
+        //_plotter->createPlot();
         QHash<QString, TelemetryParam> params;
         params.emplace("alt",   TelemetryParam{"alt",   QVector<float>{static_cast<float>(msg.alt)}});
         params.emplace("hdg",   TelemetryParam{"hdg",   QVector<float>{static_cast<float>(msg.hdg)}});

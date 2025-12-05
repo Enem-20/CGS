@@ -21,8 +21,6 @@ PlotGroup::~PlotGroup()
 
 void PlotGroup::resizeEvent(QResizeEvent* resizeEvent) {
     QWidget::resizeEvent(resizeEvent);
-    //adjustSize();
-    qDebug() << "new size: " << size() << ". old size: " << resizeEvent->oldSize();
 
     for(auto plot : _plots.values()) {
         plot->getRaw()->replot(QCustomPlot::rpQueuedReplot);
