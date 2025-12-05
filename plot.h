@@ -8,6 +8,10 @@
 
 class QCustomPlot;
 class QCPGraph;
+class QCPItemTracer;
+class QCPItemText;
+class QCPItemRect;
+class QCPItemStraightLine;
 
 inline size_t qHash(const QColor &color, size_t seed = 0) noexcept
 {
@@ -18,12 +22,26 @@ class Plot : public QObject
 {
     Q_OBJECT
 private:
+    QCPItemTracer* _tooltipTracer = nullptr;
+    QCPItemText* _tooltipText = nullptr;
+    QCPItemRect* _tooltipRect = nullptr;
+    QCPItemStraightLine* _tooltipVLine = nullptr;
+    QCPItemStraightLine* _tooltipHLine = nullptr;
+    bool _tooltipEnabled = false;
+
     QSet<QColor> _usedColors;
     QHash<QString, QCPGraph*> _graphs;
     QCustomPlot* _plot;
 private:
+    void setupTooltip();
+    void updateTooltip(double mouseX, double mouseY);
+    void hideTooltip();
+    QCPGraph* findNearestGraph(double x, double y, double& foundX, double& foundY, double tolerance = 0.1);
+
     bool colorContrastedWithOthers(const QColor& color);
     QColor generateColor();
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override;
 public:
     explicit Plot(const QString& name,
                   const QString& horzAxisName, const QString& vertAxisName,
