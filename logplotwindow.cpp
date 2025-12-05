@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QSplitter>
 #include <QTreeWidgetItem>
+#include <QCheckBox>
 
 LogPlotWindow::LogPlotWindow(QWidget *parent)
     : QWidget(parent)
@@ -72,8 +73,13 @@ void LogPlotWindow::on_resetViewButton_clicked() {
 }
 
 void LogPlotWindow::on_resetPlotButton_clicked() {
-    for (QTreeWidgetItem* child : ui->dataTree->selectedItems()) {
-        child->setCheckState(0, Qt::CheckState::Unchecked);
+    auto items = ui->dataTree->findItems(".*", Qt::MatchRegularExpression);
+    for(QTreeWidgetItem* item : items) {
+        for(size_t i = 0; i < item->childCount(); ++i) {
+            if(item->child(i)->checkState(0) == Qt::Checked) {
+                item->child(i)->setCheckState(0, Qt::Unchecked);
+            }
+        }
     }
 }
 
@@ -112,4 +118,6 @@ void LogPlotWindow::handleDataSelectionChanged(QTreeWidgetItem *item, int column
         }
         break;
     }
+
+    _plotter->replot();
 }
