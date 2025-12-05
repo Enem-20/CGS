@@ -178,3 +178,83 @@ void Plotter::addPoint(const QString& groupName, const QString& plotName, const 
         qWarning() << "Failed to add point for " << groupName << " and plot " << plotName << ". Create them first, then try again";
     }
 }
+
+void Plotter::setXRangePlot(const QString& groupName, const QString& name, std::pair<int64_t, int64_t> range) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->setXRangePlot(name, range);
+        return;
+    }
+
+    qWarning() << "Failed to change x range for plot " << name << ": missing parent group " << groupName;
+}
+
+void Plotter::setYRangePlot(const QString& groupName, const QString& name, std::pair<int64_t, int64_t> range) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->setYRangePlot(name, range);
+        return;
+    }
+
+    qWarning() << "Failed to change y range for plot " << name << ": missing parent group " << groupName;
+}
+
+void Plotter::setRangesPlot(const QString& groupName, const QString& name, std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->setXRangePlot(name, xRange);
+        groupIt.value()->setXRangePlot(name, yRange);
+        return;
+    }
+
+    qWarning() << "Failed to change ranges for plot " << name << ": missing parent group " << groupName;
+}
+
+void Plotter::setXRangeGroup(const QString& groupName, std::pair<int64_t, int64_t> range) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->setXRanges(range);
+        return;
+    }
+
+    qWarning() << "Failed to change x range for group " << groupName << ": it's missing";
+}
+
+void Plotter::setYRangeGroup(const QString& groupName, std::pair<int64_t, int64_t> range) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->setYRanges(range);
+        return;
+    }
+
+    qWarning() << "Failed to change y range for group " << groupName << ": it's missing";
+}
+
+void Plotter::setRangesGroup(const QString& groupName, std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->setRanges(xRange, yRange);
+        return;
+    }
+
+    qWarning() << "Failed to change y range for group " << groupName << ": it's missing";
+}
+
+void Plotter::setXRanges(std::pair<int64_t, int64_t> range) {
+    for(PlotGroup* group : _plotGroups) {
+        group->setXRanges(range);
+    }
+}
+
+void Plotter::setYRanges(std::pair<int64_t, int64_t> range) {
+    for(PlotGroup* group : _plotGroups) {
+        group->setYRanges(range);
+    }
+}
+
+void Plotter::setRanges(std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
+    for(PlotGroup* group : _plotGroups) {
+        group->setXRanges(xRange);
+        group->setYRanges(yRange);
+    }
+}

@@ -62,6 +62,9 @@ public slots:
                  const QVector<double>& keys, const QVector<double>& values);
     void addPoint(const QString& graphName,
                   const QPair<double, double>& point);
+    void setXRange(std::pair<int64_t, int64_t> range);
+    void setYRange(std::pair<int64_t, int64_t> range);
+    void setRanges(std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange);
 };
 
 #endif // PLOT_H

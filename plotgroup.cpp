@@ -144,3 +144,50 @@ void PlotGroup::addPoint(const QString& plotName, const QString& graphName,
     }
     qWarning() << "Failed to add point for plot " << plotName << " it's missing";
 }
+
+void PlotGroup::setXRangePlot(const QString& plotName, std::pair<int64_t, int64_t> range) {
+    auto plotIt = _plots.find(plotName);
+    if(plotIt != _plots.end()) {
+        plotIt.value()->setXRange(range);
+        return;
+    }
+    qWarning() << "Failed to set range of missing plot " << plotName;
+}
+
+void PlotGroup::setYRangePlot(const QString& plotName, std::pair<int64_t, int64_t> range) {
+    auto plotIt = _plots.find(plotName);
+    if(plotIt != _plots.end()) {
+        plotIt.value()->setYRange(range);
+        return;
+    }
+    qWarning() << "Failed to set range of missing plot " << plotName;
+}
+
+void PlotGroup::setRangesPlot(const QString& plotName, std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
+    auto plotIt = _plots.find(plotName);
+    if(plotIt != _plots.end()) {
+        plotIt.value()->setXRange(xRange);
+        plotIt.value()->setYRange(yRange);
+        return;
+    }
+    qWarning() << "Failed to set range of missing plot " << plotName;
+}
+
+void PlotGroup::setXRanges(std::pair<int64_t, int64_t> range) {
+    for(Plot* plot : _plots) {
+        plot->setXRange(range);
+    }
+}
+
+void PlotGroup::setYRanges(std::pair<int64_t, int64_t> range) {
+    for(Plot* plot : _plots) {
+        plot->setYRange(range);
+    }
+}
+
+void PlotGroup::setRanges(std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
+    for(Plot* plot : _plots) {
+        plot->setXRange(xRange);
+        plot->setYRange(yRange);
+    }
+}
