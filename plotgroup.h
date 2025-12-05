@@ -25,11 +25,17 @@ public:
 protected:
     void resizeEvent(QResizeEvent* resizeEvent);
 public slots:
+    QCPGraph* getGraph(const QString& plotName, const QString& name);
+    Plot* getPlot(const QString& name);
+    void removeGraph(const QString& plotName, const QString& name);
+    void removePlot(const QString& name);
+    void clear();
+
     void setName(const QString& name);
-    void createPlot(const QString& name,
+    Plot* createPlot(const QString& name,
                     const QString& horzAxisName, const QString& vertAxisName,
                     std::pair<int64_t, int64_t> xRange = {0,0}, std::pair<int64_t, int64_t> yRange = {0,0});
-    void createGraph(const QString& plotName, const QString& name);
+    QCPGraph* createGraph(const QString& plotName, const QString& name);
 
     void setData(const QString& plotName, const QString& graphName,
                  const QVector<double>& keys, const QVector<double>& values);

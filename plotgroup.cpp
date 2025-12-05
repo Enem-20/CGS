@@ -15,6 +15,7 @@ PlotGroup::PlotGroup(const QString& name, QWidget *parent)
 
 PlotGroup::~PlotGroup()
 {
+    clear();
     delete ui;
 }
 
@@ -27,25 +28,78 @@ void PlotGroup::resizeEvent(QResizeEvent* resizeEvent) {
     }
 }
 
+QCPGraph* PlotGroup::getGraph(const QString& plotName, const QString& name) {
+    auto plotIt = _plots.find(plotName);
+    if(plotIt != _plots.end()) {
+        return plotIt.value()->getGraph(name);
+    }
+    qWarning() << "Graph " << name << " missing due to missing parent plot " << plotName;
+    return nullptr;
+}
+
+Plot* PlotGroup::getPlot(const QString& name) {
+    auto plotIt = _plots.find(name);
+    if(plotIt != _plots.end())
+        return plotIt.value();
+    qWarning() << "Plot " << name << " missing";
+    return nullptr;
+}
+
+void PlotGroup::removeGraph(const QString& plotName, const QString& name) {
+    auto plotIt = _plots.find(plotName);
+    if(plotIt != _plots.end()) {
+        plotIt.value()->removeGraph(name);
+        return;
+    }
+    qWarning() << "Can't remove graph " << name << " due to missing plot " << plotName;
+}
+
+void PlotGroup::removePlot(const QString& name) {
+    auto plotIt = _plots.find(name);
+    if(plotIt != _plots.end()) {
+        plotIt.value()->deleteLater();
+        _plots.remove(name);
+        return;
+    }
+    qWarning() << "Can't remove plot " << name << ": it's missing";
+}
+
+void PlotGroup::clear() {
+    for(Plot* plot : _plots) {
+        plot->deleteLater();
+    }
+    _plots.clear();
+}
+
 void PlotGroup::setName(const QString& name) {
     ui->groupName->setText(name);
 }
 
-void PlotGroup::createPlot(const QString& name,
+Plot* PlotGroup::createPlot(const QString& name,
                          const QString& horzAxisName, const QString& vertAxisName,
                          std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
-    Plot* plot = new Plot(name, horzAxisName, vertAxisName, xRange, yRange, ui->plots);
-    _plots.emplace(name, plot);
-    ui->plots->layout()->addWidget(plot->getRaw());
+    auto plotIt = _plots.find(name);
+    if(plotIt == _plots.end()) {
+        Plot* plot = new Plot(name, horzAxisName, vertAxisName, xRange, yRange, ui->plots);
+
+        _plots.emplace(name, plot);
+        ui->plots->layout()->addWidget(plot->getRaw());
+        return plot;
+    }
+    qWarning() << "Plot " << name << " already exists. Returned old one with same name";
+
+    return plotIt.value();
 }
 
-void PlotGroup::createGraph(const QString& plotName, const QString& name) {
+QCPGraph* PlotGroup::createGraph(const QString& plotName, const QString& name) {
     auto plotIt = _plots.find(plotName);
     if(plotIt != _plots.end()) {
         QCPGraph* graph = plotIt.value()->createGraph(name);
-        return;
+        return graph;
     }
     qWarning() << "Graph " << name << " wasn't create. Plot " << plotName << " is missing";
+
+    return nullptr;
 }
 
 void PlotGroup::setData(const QString& plotName, const QString& graphName,

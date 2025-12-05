@@ -18,8 +18,22 @@ Plot::Plot(const QString& name,
     _plot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
+Plot::~Plot() {
+    delete _plot;
+    _graphs.clear();
+}
+
 QCustomPlot* Plot::getRaw() {
     return _plot;
+}
+
+QCPGraph* Plot::getGraph(const QString& name) {
+    auto graphIt = _graphs.find(name);
+    if(graphIt != _graphs.end()) {
+        return graphIt.value();
+    }
+    qWarning() << "Graph " << name << " missing";
+    return nullptr;
 }
 
 QCPGraph* Plot::createGraph(const QString& name) {
@@ -31,6 +45,20 @@ QCPGraph* Plot::createGraph(const QString& name) {
     }
     qWarning() << "Graph " << name << " already exists. An old graph with same name will be returned";
     return _graphs.find(name).value();
+}
+
+void Plot::removeGraph(const QString& name) {
+    if(_graphs.contains(name)) {
+        _plot->removeGraph(getGraph(name));
+        _graphs.remove(name);
+        return;
+    }
+    qWarning() << "Can't remove graph " << name << ": it's missing";
+}
+
+void Plot::clear() {
+    _plot->clearGraphs();
+    _graphs.clear();
 }
 
 void Plot::setData(const QString& graphName,

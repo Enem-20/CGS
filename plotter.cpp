@@ -29,33 +29,97 @@ void Plotter::resizeEvent(QResizeEvent* event) {
     }
 }
 
-void Plotter::createPlotGroup(const QString& name) {
+QCPGraph* Plotter::getGraph(const QString& groupName, const QString& plotName, const QString& name) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        return groupIt.value()->getGraph(plotName, name);
+    }
+
+    qWarning() << "Graph " << name << " missing due to missing group " << groupName;
+    return nullptr;
+}
+
+Plot* Plotter::getPlot(const QString& groupName, const QString& name) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        return groupIt.value()->getPlot(name);
+    }
+
+    qWarning() << "Plot " << name << " missing due to missing group " << groupName;
+    return nullptr;
+}
+
+PlotGroup* Plotter::getGroup(const QString& name) {
+    auto groupIt = _plotGroups.find(name);
+    if(groupIt != _plotGroups.end()) {
+        return groupIt.value();
+    }
+
+    qWarning() << "Group " << name << " missing";
+    return nullptr;
+}
+
+void Plotter::removeGraph(const QString& groupName, const QString& plotName, const QString& name) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->removeGraph(plotName, name);
+        return;
+    }
+    qWarning() << "Can't remove graph " << name << " due to missing group " << groupName;
+}
+
+void Plotter::removePlot(const QString& groupName, const QString& name) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->removePlot(name);
+        return;
+    }
+    qWarning() << "Can't remove plot " << name << " due to missing group " << groupName;
+}
+
+void Plotter::removeGroup(const QString& name) {
+    auto groupIt = _plotGroups.find(name);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->deleteLater();
+        return;
+    }
+}
+
+void Plotter::clear() {
+    for(PlotGroup* group : _plotGroups) {
+        group->deleteLater();
+    }
+    _plotGroups.clear();
+}
+
+PlotGroup* Plotter::createPlotGroup(const QString& name) {
     auto groupIt = _plotGroups.find(name);
     if(groupIt == _plotGroups.end()) {
         PlotGroup* group = new PlotGroup(name, ui->plots);
         _plotGroups.emplace(name, group);
-    } else {
-        qWarning() << "Plot group " << name << " already exists";
+        return group;
     }
+    qWarning() << "Plot group " << name << " already exists";
+    return groupIt.value();
 }
 
-void Plotter::createPlot(const QString& groupName, const QString& name,
+Plot* Plotter::createPlot(const QString& groupName, const QString& name,
                          const QString& horzAxisName, const QString& vertAxisName,
                          std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
     auto groupIt = _plotGroups.find(groupName);
     if(groupIt != _plotGroups.end()) {
-        groupIt.value()->createPlot(name, horzAxisName, vertAxisName, xRange, yRange);
+        return groupIt.value()->createPlot(name, horzAxisName, vertAxisName, xRange, yRange);
     } else {
         createPlotGroup(groupName);
         groupIt = _plotGroups.find(groupName);
-        groupIt.value()->createPlot(name, horzAxisName, vertAxisName, xRange, yRange);
+        return groupIt.value()->createPlot(name, horzAxisName, vertAxisName, xRange, yRange);
     }
 }
 
-void Plotter::createGraph(const QString& groupName, const QString& plotName, const QString& name) {
+QCPGraph* Plotter::createGraph(const QString& groupName, const QString& plotName, const QString& name) {
     auto groupIt = _plotGroups.find(groupName);
     if(groupIt != _plotGroups.end()) {
-        groupIt.value()->createGraph(plotName, name);
+        return groupIt.value()->createGraph(plotName, name);
     } else {
         qWarning() << "Missing group " << groupName << " and plot " << plotName << ". Create them first, then try again";
     }

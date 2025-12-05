@@ -12,6 +12,7 @@ class QResizeEvent;
 class QCustomPlot;
 class QCPGraph;
 class PlotGroup;
+class Plot;
 
 
 class Plotter : public QWidget
@@ -26,11 +27,19 @@ public:
 protected:
     void resizeEvent(QResizeEvent* event) override;
 public slots:
-    void createPlotGroup(const QString& name);
-    void createPlot(const QString& groupName, const QString& name,
+    QCPGraph* getGraph(const QString& groupName, const QString& plotName, const QString& name);
+    Plot* getPlot(const QString& groupName, const QString& name);
+    PlotGroup* getGroup(const QString& name);
+    void removeGraph(const QString& groupName, const QString& plotName, const QString& name);
+    void removePlot(const QString& groupName, const QString& name);
+    void removeGroup(const QString& name);
+    void clear();
+
+    PlotGroup* createPlotGroup(const QString& name);
+    Plot* createPlot(const QString& groupName, const QString& name,
                     const QString& horzAxisName, const QString& vertAxisName,
                     std::pair<int64_t, int64_t> xRange = {0,0}, std::pair<int64_t, int64_t> yRange = {0,0});
-    void createGraph(const QString& groupName, const QString& plotName, const QString& name);
+    QCPGraph* createGraph(const QString& groupName, const QString& plotName, const QString& name);
 
     void setData(const QString& groupName, const QString& plotName, const QString& graphName,
                  const QVector<double>& keys, const QVector<double>& values);

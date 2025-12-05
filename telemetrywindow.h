@@ -62,6 +62,8 @@ private:
     QHash<QString, TelemetryGroup> _telemetryMap;
     QString _customTelemetry = "^(\\d+):\\s*([^:]+?)\\s*:\\s*([^:]+?)\\s*:\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?)";
     Ui::TelemetryWindow *ui;
+private:
+    void createGroup(const QString& name);
 public:
     explicit TelemetryWindow(QWidget *parent = nullptr);
     ~TelemetryWindow();
