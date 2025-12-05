@@ -18,6 +18,10 @@ bool TelemetryWindow::parameterExists(const QString& groupName, const QString& p
     return groupExists(groupName) && _telemetryMap[groupName]._params.contains(paramName);
 }
 
+bool TelemetryWindow::parameterExists(const TelemetryGroup& group, const QString& paramName) {
+    return group._params.contains(paramName);
+}
+
 TelemetryGroup& TelemetryWindow::createGroup(const QString& groupName, uint64_t timestamp) {
     if (!_telemetryMap.contains(groupName)) {
         PlotGroup* plotGroup = _plotter->createPlotGroup(groupName);
@@ -45,7 +49,7 @@ void TelemetryWindow::createParam(TelemetryGroup& group, const QString& name) {
     treeItem->setFlags(treeItem->flags() | Qt::ItemIsUserCheckable);
     treeItem->setCheckState(0, Qt::Checked);
 
-    Plot* plot = group.plotGroup->createPlot(name, "t", name);
+    Plot* plot = group.plotGroup->createPlot(name, "t", name, {group.timestamp, group.timestamp + 10});
     plot->createGraph(name);
 
     group.treeItem->addChild(treeItem);
@@ -155,31 +159,22 @@ void TelemetryWindow::onStatusTextUpdated(const mavlink_statustext_t& msg) {
     QRegularExpressionMatch match = regex.match(text);
     if (match.hasMatch()) {
         quint64 timestamp = match.captured(1).toLongLong();
-        QString group = match.captured(2).trimmed();
-        QString name = match.captured(3).trimmed();
+        QString groupName = match.captured(2).trimmed();
+        QString paramName = match.captured(3).trimmed();
         QString value = match.captured(4);
 
-        if(!_telemetryMap.contains(group)) [[unlikely]]{
-            QHash<QString, TelemetryParam> params;
-            QVector<float> values;
-            values.append(value.toFloat());
-            params.insert(name, TelemetryParam{name, values});
+        if (!groupExists(groupName)) [[unlikely]] {
+            createGroup(groupName, timestamp);
+        }
 
-            TelemetryGroup group {
-                timestamp,
-                "GLOBAL_POSITION_INT",
-                params
-            };
+        TelemetryGroup& group = _telemetryMap[groupName];
+        if (!parameterExists(group, paramName)) [[unlikely]] {
+            createParam(group, paramName);
         }
-         else {
-            TelemetryGroup& _telemetryGroup = _telemetryMap.find(group).value();
-            if(_telemetryGroup._params.contains(name))
-                _telemetryGroup._params[name].values.append(value.toFloat());
-            else
-                _telemetryGroup._params.emplace(name, TelemetryParam{ name, QVector<float>{value.toFloat()}});
-        }
+
+        group._params[paramName].values += value.toFloat();
+        plotValue(groupName, paramName, static_cast<double>(timestamp), value.toDouble());
     }
-
 }
 
 void TelemetryWindow::onHeartbeatUpdated(const mavlink_heartbeat_t& msg) {
