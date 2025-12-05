@@ -61,6 +61,10 @@ void Plot::clear() {
     _graphs.clear();
 }
 
+void Plot::replot() {
+    _plot->replot(QCustomPlot::rpQueuedReplot);
+}
+
 void Plot::setData(const QString& graphName,
              const QVector<double>& keys, const QVector<double>& values) {
     auto graphIt = _graphs.find(graphName);

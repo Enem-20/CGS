@@ -92,6 +92,30 @@ void Plotter::clear() {
     _plotGroups.clear();
 }
 
+void Plotter::replotExactGroup(const QString& name) {
+    auto groupIt = _plotGroups.find(name);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->replot();
+        return;
+    }
+    qWarning() << "Can't replot group " << name << ": it's missing";
+}
+
+void Plotter::replotExactPlot(const QString& groupName, const QString& name) {
+    auto groupIt = _plotGroups.find(name);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->replotExact(name);
+        return;
+    }
+    qWarning() << "Can't replot plot " << name << ": group " << groupName << " is missing";
+}
+
+void Plotter::replot() {
+    for(PlotGroup* group : _plotGroups) {
+        group->replot();
+    }
+}
+
 PlotGroup* Plotter::createPlotGroup(const QString& name) {
     auto groupIt = _plotGroups.find(name);
     if(groupIt == _plotGroups.end()) {

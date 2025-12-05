@@ -25,6 +25,7 @@ public slots:
     QCPGraph* createGraph(const QString& name);
     void removeGraph(const QString& name);
     void clear();
+    void replot();
 
     void setData(const QString& graphName,
                  const QVector<double>& keys, const QVector<double>& values);

@@ -30,6 +30,8 @@ public slots:
     void removeGraph(const QString& plotName, const QString& name);
     void removePlot(const QString& name);
     void clear();
+    void replotExact(const QString& name);
+    void replot();
 
     void setName(const QString& name);
     Plot* createPlot(const QString& name,

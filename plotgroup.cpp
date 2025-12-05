@@ -71,6 +71,21 @@ void PlotGroup::clear() {
     _plots.clear();
 }
 
+void PlotGroup::replotExact(const QString& name) {
+    auto plotIt = _plots.find(name);
+    if(plotIt != _plots.end()) {
+        plotIt.value()->replot();
+        return;
+    }
+    qWarning() << "Can't replot " << name << ": it's missing";
+}
+
+void PlotGroup::replot() {
+    for(Plot* plot : _plots) {
+        plot->replot();
+    }
+}
+
 void PlotGroup::setName(const QString& name) {
     ui->groupName->setText(name);
 }
