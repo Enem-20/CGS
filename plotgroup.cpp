@@ -10,7 +10,6 @@ PlotGroup::PlotGroup(const QString& name, QWidget *parent)
 {
     ui->setupUi(this);
     setName(name);
-    ui->plots->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setAttribute(Qt::WA_PendingResizeEvent);
 }
 

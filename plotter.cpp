@@ -25,7 +25,7 @@ void Plotter::resizeEvent(QResizeEvent* event) {
     QWidget::resizeEvent(event);
 
     for(auto group : _plotGroups.values()) {
-        group->resize(size().width(), size().width()/1.3);
+        group->resize(size().width(), size().height() / _plotGroups.size());
     }
 }
 
@@ -33,7 +33,6 @@ void Plotter::createPlotGroup(const QString& name) {
     auto groupIt = _plotGroups.find(name);
     if(groupIt == _plotGroups.end()) {
         PlotGroup* group = new PlotGroup(name, ui->plots);
-        group->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         _plotGroups.emplace(name, group);
     } else {
         qWarning() << "Plot group " << name << " already exists";
