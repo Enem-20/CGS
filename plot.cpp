@@ -252,6 +252,7 @@ QCPGraph* Plot::createGraph(const QString& name) {
         QCPGraph* graph = _plot->addGraph();
         graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
         graph->setPen(generateColor());
+        graph->setAdaptiveSampling(true);
         //graph->addToLegend();
         graph->setName(name);
         _graphs.emplace(name, graph);
@@ -307,4 +308,16 @@ void Plot::addPoint(const QString& graphName,
         return;
     }
     qWarning() << "Failed to add point for " << graphName << " it's missing";
+}
+
+void Plot::setXRange(std::pair<int64_t, int64_t> range) {
+    _plot->xAxis->setRange(range.first, range.second);
+}
+
+void Plot::setYRange(std::pair<int64_t, int64_t> range) {
+    _plot->yAxis->setRange(range.first, range.second);
+}
+
+void Plot::setRanges(std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
+    setXRange(xRange); setXRange(yRange);
 }
