@@ -13,18 +13,31 @@ namespace Ui {
 class LogPlotWindow;
 }
 
-class LogPlotWindow : public QWidget
-{
+class LogPlotWindow : public QWidget {
     Q_OBJECT
+
+    struct ActiveGraphHandle {
+        qsizetype groupIndex = 0;
+        qsizetype paramIndex = 0;
+        qsizetype timeIndex = 0;
+        QTreeWidgetItem* treeItem = nullptr;
+    };
 
 public:
     explicit LogPlotWindow(QWidget *parent = nullptr);
     ~LogPlotWindow();
 
+    static void showFileContents(const QString& filePath, const QString& title = "");
+
 private:
     Ui::LogPlotWindow *ui;
     Plotter* _plotter;
     DataFlashParser _parser;
+    QList<ActiveGraphHandle> _activeGraphs;
+
+    void parseFile(const QString& path);
+    void resetXRange();
+    void resetYRange();
 
 public slots:
     void wrapShow();

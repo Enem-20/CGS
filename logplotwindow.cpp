@@ -23,14 +23,30 @@ LogPlotWindow::LogPlotWindow(QWidget *parent)
     connect(ui->dataTree, &QTreeWidget::itemChanged, this, &LogPlotWindow::handleDataSelectionChanged);
 }
 
-LogPlotWindow::~LogPlotWindow()
-{
+LogPlotWindow::~LogPlotWindow() {
     delete ui;
+}
+
+void LogPlotWindow::showFileContents(const QString& filePath, const QString& title) {
+    LogPlotWindow* tempWindow = new LogPlotWindow();
+    if (title != "") {
+        tempWindow->setWindowTitle(title);
+    }
+    tempWindow->setAttribute(Qt::WA_DeleteOnClose);
+    tempWindow->parseFile(filePath);
+    tempWindow->show();
 }
 
 void LogPlotWindow::wrapShow() {
     QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
     QString path = QFileDialog::getOpenFileName(nullptr, "Select log file to review", downloadsPath);
+
+    parseFile(path);
+
+    show();
+}
+
+void LogPlotWindow::parseFile(const QString& path) {
     if (path == "") return;
 
     _parser.parseFile(path);
@@ -64,22 +80,67 @@ void LogPlotWindow::wrapShow() {
 
         ui->dataTree->addTopLevelItem(topItem);
     }
+}
 
-    show();
+void LogPlotWindow::resetXRange() {
+    double min = std::numeric_limits<double>::max();
+    double max = std::numeric_limits<double>::min();
+
+    const QList<LogFormatData>& data = _parser.getData();
+
+    for (const ActiveGraphHandle& handle : _activeGraphs) {
+        QVector<double> values = data[handle.groupIndex].values[handle.timeIndex];
+        std::sort(values.begin(), values.end());
+        min = std::min(min, values[0]);
+        max = std::max(max, values.back());
+    }
+
+    min *= (1.0 / 1.05);
+    max *= 1.05;
+
+    if (min >= max) {
+        min = 0.0;
+        max = 1.0;
+    }
+
+    _plotter->setXRanges({min, max});
+}
+
+void LogPlotWindow::resetYRange() {
+    double min = std::numeric_limits<double>::max();
+    double max = std::numeric_limits<double>::min();
+
+    const QList<LogFormatData>& data = _parser.getData();
+
+    for (const ActiveGraphHandle& handle : _activeGraphs) {
+        QVector<double> values = data[handle.groupIndex].values[handle.paramIndex];
+        std::sort(values.begin(), values.end());
+        min = std::min(min, values[0]);
+        max = std::max(max, values.back());
+    }
+
+    min *= (1.0 / 1.05);
+    max *= 1.05;
+
+    min = std::max(min, -100000.0);
+    max = std::min(max, 100000.0);
+
+    if (min >= max) {
+        min = -1.0;
+        max = 1.0;
+    }
+
+    _plotter->setYRanges({min, max});
 }
 
 void LogPlotWindow::on_resetViewButton_clicked() {
-
+    resetXRange();
+    resetYRange();
 }
 
 void LogPlotWindow::on_resetPlotButton_clicked() {
-    auto items = ui->dataTree->findItems(".*", Qt::MatchRegularExpression);
-    for(QTreeWidgetItem* item : items) {
-        for(size_t i = 0; i < item->childCount(); ++i) {
-            if(item->child(i)->checkState(0) == Qt::Checked) {
-                item->child(i)->setCheckState(0, Qt::Unchecked);
-            }
-        }
+    for (const ActiveGraphHandle& handle : _activeGraphs) {
+        handle.treeItem->setCheckState(0, Qt::Unchecked);
     }
 }
 
@@ -107,10 +168,15 @@ void LogPlotWindow::handleDataSelectionChanged(QTreeWidgetItem *item, int column
                     }
                 }
 
+                _activeGraphs.push_back(ActiveGraphHandle{i, j, timeIndex, item});
+
                 _plotter->createGraph("LogReview", "FLME", label);
                 _plotter->setData("LogReview", "FLME", label, data[i].values[timeIndex], data[i].values[j]);
             }
             else {
+                _activeGraphs.removeIf([item](const ActiveGraphHandle& handle){
+                    return handle.treeItem ==  item;
+                });
                 _plotter->removeGraph("LogReview", "FLME", label);
             }
 

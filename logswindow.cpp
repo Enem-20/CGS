@@ -65,9 +65,9 @@ void LogsWindow::on_pushButton_5_clicked() {
 }
 
 void LogsWindow::on_pushButton_6_clicked() {
-    if (_logPlotWindow.isHidden()) {
-        _logPlotWindow.wrapShow();
-    }
+    QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+    QString path = QFileDialog::getOpenFileName(nullptr, "Select log file to review", downloadsPath);
+    LogPlotWindow::showFileContents(path);
 }
 
 void LogsWindow::onAutopilotHeartbeat(const mavlink_message_t& msg) {

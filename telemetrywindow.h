@@ -70,14 +70,25 @@ private:
     QHash<QString, TelemetryGroup> _telemetryMap;
     QString _customTelemetry = "^(\\d+):\\s*([^:]+?)\\s*:\\s*([^:]+?)\\s*:\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?)";
     Ui::TelemetryWindow *ui;
+
 private:
+    bool groupExists(const QString& groupName);
+    bool parameterExists(const QString& groupName, const QString& paramName);
+    bool parameterExists(const TelemetryGroup& group, const QString& paramName);
     TelemetryGroup& createGroup(const QString& name, uint64_t timestamp);
     void createParam(TelemetryGroup& group, const QString& name);
+    void plotValue(const QString& groupName, const QString& paramName, double t, double value);
+    void handleTelemetrySelectionChanged(QTreeWidgetItem *item, int column);
+
+
+
 public:
     explicit TelemetryWindow(QWidget *parent = nullptr);
     ~TelemetryWindow();
+
 signals:
     void updated(const QStringList& telemetryQueue);
+
 public slots:
     void onGlobalPositionIntUpdated(const mavlink_global_position_int_t& msg);
     void onLocalPositionNEDUpdated(const mavlink_local_position_ned_t& msg);
