@@ -34,6 +34,9 @@ public slots:
     void removePlot(const QString& groupName, const QString& name);
     void removeGroup(const QString& name);
     void clear();
+    void replotExactGroup(const QString& name);
+    void replotExactPlot(const QString& groupName, const QString& name);
+    void replot();
 
     PlotGroup* createPlotGroup(const QString& name);
     Plot* createPlot(const QString& groupName, const QString& name,
