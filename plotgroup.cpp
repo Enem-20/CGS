@@ -11,11 +11,21 @@ PlotGroup::PlotGroup(const QString& name, QWidget *parent)
     ui->setupUi(this);
     setName(name);
     ui->plots->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    setAttribute(Qt::WA_PendingResizeEvent);
 }
 
 PlotGroup::~PlotGroup()
 {
     delete ui;
+}
+
+void PlotGroup::resizeEvent(QResizeEvent* resizeEvent) {
+    QWidget::resizeEvent(resizeEvent);
+
+    for(auto plot : _plots.values()) {
+        plot->getRaw()->replot(QCustomPlot::rpQueuedReplot);
+        plot->getRaw()->updateGeometry();
+    }
 }
 
 void PlotGroup::setName(const QString& name) {

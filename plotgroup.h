@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QHash>
+#include <QResizeEvent>
 
 namespace Ui {
 class PlotGroup;
@@ -16,12 +17,13 @@ class PlotGroup : public QWidget
     Q_OBJECT
 private:
     QHash<QString, Plot*> _plots;
+    Ui::PlotGroup *ui;
 public:
     explicit PlotGroup(const QString& name, QWidget *parent = nullptr);
     ~PlotGroup();
 
-private:
-    Ui::PlotGroup *ui;
+protected:
+    void resizeEvent(QResizeEvent* resizeEvent);
 public slots:
     void setName(const QString& name);
     void createPlot(const QString& name,

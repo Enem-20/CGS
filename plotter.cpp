@@ -1,6 +1,8 @@
 #include "plotter.h"
 #include "ui_plotter.h"
 
+#include <QResizeEvent>
+
 #include "qcustomplot.h"
 
 #include "plotgroup.h"
@@ -11,6 +13,7 @@ Plotter::Plotter(QWidget *parent)
 {
     ui->setupUi(this);
     ui->plots->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    setAttribute(Qt::WA_PendingResizeEvent);
 }
 
 Plotter::~Plotter()
@@ -18,11 +21,19 @@ Plotter::~Plotter()
     delete ui;
 }
 
+void Plotter::resizeEvent(QResizeEvent* event) {
+    QWidget::resizeEvent(event);
+
+    for(auto group : _plotGroups.values()) {
+        group->resize(size().width(), group->size().height());
+    }
+}
+
 void Plotter::createPlotGroup(const QString& name) {
     auto groupIt = _plotGroups.find(name);
     if(groupIt == _plotGroups.end()) {
         PlotGroup* group = new PlotGroup(name, ui->plots);
-        group->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        group->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
         _plotGroups.emplace(name, group);
     } else {
         qWarning() << "Plot group " << name << " already exists";
