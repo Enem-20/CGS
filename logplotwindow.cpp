@@ -18,18 +18,12 @@ LogPlotWindow::LogPlotWindow(QWidget *parent)
 
     // ui->plotFrame->setLayout(new QVBoxLayout());
 
-<<<<<<< HEAD
     _plotter->createPlotGroup("LogReview");
 
     _plotter->createPlot("LogReview", "FLME", "time", "value", {0, 120}, {-100, 100});
     _plotter->createGraph("LogReview", "FLME", "azim");
 
     connect(ui->dataTree, &QTreeWidget::itemChanged, this, &LogPlotWindow::handleDataSelectionChanged);
-=======
-    _plotter->createPlotGroup("FLME");
-    _plotter->createPlot("FLME", "azim", "time", "azim", {0, 120}, {-100, 100});
-    _plotter->createGraph("FLME", "azim", "azim");
->>>>>>> master
 }
 
 LogPlotWindow::~LogPlotWindow()
@@ -74,11 +68,7 @@ void LogPlotWindow::wrapShow() {
         ui->dataTree->addTopLevelItem(topItem);
     }
 
-<<<<<<< HEAD
     _plotter->addData("LogReview", "FLME", "elev", data[184].values[0], data[184].values[2]);
-=======
-    _plotter->addData("FLME", "azim", "azim", data[140].values[0], data[140].values[1]);
->>>>>>> master
 
     show();
 }
