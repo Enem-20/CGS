@@ -23,14 +23,29 @@ LogPlotWindow::LogPlotWindow(QWidget *parent)
     connect(ui->dataTree, &QTreeWidget::itemChanged, this, &LogPlotWindow::handleDataSelectionChanged);
 }
 
-LogPlotWindow::~LogPlotWindow()
-{
+LogPlotWindow::~LogPlotWindow() {
     delete ui;
+}
+
+void LogPlotWindow::showFileContents(const QString& filePath, const QString& title) {
+    LogPlotWindow* tempWindow = new LogPlotWindow();
+    if (title != "") {
+        tempWindow->setWindowTitle(title);
+    }
+    tempWindow->setAttribute(Qt::WA_DeleteOnClose);
+    tempWindow->parseFile(filePath);
 }
 
 void LogPlotWindow::wrapShow() {
     QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
     QString path = QFileDialog::getOpenFileName(nullptr, "Select log file to review", downloadsPath);
+
+    parseFile(path);
+
+    show();
+}
+
+void LogPlotWindow::parseFile(const QString& path) {
     if (path == "") return;
 
     _parser.parseFile(path);
@@ -64,8 +79,6 @@ void LogPlotWindow::wrapShow() {
 
         ui->dataTree->addTopLevelItem(topItem);
     }
-
-    show();
 }
 
 void LogPlotWindow::on_resetViewButton_clicked() {

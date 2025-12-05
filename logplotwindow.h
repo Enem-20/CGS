@@ -21,10 +21,14 @@ public:
     explicit LogPlotWindow(QWidget *parent = nullptr);
     ~LogPlotWindow();
 
+    static void showFileContents(const QString& filePath, const QString& title = "");
+
 private:
     Ui::LogPlotWindow *ui;
     Plotter* _plotter;
     DataFlashParser _parser;
+
+    void parseFile(const QString& path);
 
 public slots:
     void wrapShow();
