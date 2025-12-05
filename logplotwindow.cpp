@@ -16,12 +16,8 @@ LogPlotWindow::LogPlotWindow(QWidget *parent)
     ui->plotFrame->layout()->addWidget(_plotter);
     _plotter->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
 
-    // ui->plotFrame->setLayout(new QVBoxLayout());
-
     _plotter->createPlotGroup("LogReview");
-
     _plotter->createPlot("LogReview", "FLME", "time", "value", {0, 120}, {-100, 100});
-    _plotter->createGraph("LogReview", "FLME", "azim");
 
     connect(ui->dataTree, &QTreeWidget::itemChanged, this, &LogPlotWindow::handleDataSelectionChanged);
 }
@@ -68,28 +64,24 @@ void LogPlotWindow::wrapShow() {
         ui->dataTree->addTopLevelItem(topItem);
     }
 
-    _plotter->addData("LogReview", "FLME", "azim", data[184].values[0], data[184].values[2]);
-
     show();
 }
 
 void LogPlotWindow::on_resetViewButton_clicked() {
-    _plotter->adjustSize();
+
 }
 
-
 void LogPlotWindow::on_resetPlotButton_clicked() {
-
+    for (QTreeWidgetItem* child : ui->dataTree->selectedItems()) {
+        child->setCheckState(0, Qt::CheckState::Unchecked);
+    }
 }
 
 void LogPlotWindow::on_showParamsButton_clicked() {
     LogParametersWindow::showTemporary(_parser.getParameters());
 }
 
-
 void LogPlotWindow::handleDataSelectionChanged(QTreeWidgetItem *item, int column) {
-    qDebug() << "Item changed";
-
     QString label = item->text(column);
     QString group = item->parent()->text(column);
 
@@ -113,7 +105,7 @@ void LogPlotWindow::handleDataSelectionChanged(QTreeWidgetItem *item, int column
                 _plotter->setData("LogReview", "FLME", label, data[i].values[timeIndex], data[i].values[j]);
             }
             else {
-                _plotter->setData("LogReview", "FLME", label, {}, {});
+                _plotter->removeGraph("LogReview", "FLME", label);
             }
 
             break;
