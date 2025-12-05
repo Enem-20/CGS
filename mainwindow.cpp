@@ -3,6 +3,7 @@
 
 #include <QJsonDocument>
 #include <QFile>
+#include "telemetrywindow.h"
 
 MavlinkContext::MavlinkContext()
     : _localDefaultDevice(14550, "0.0.0.0", this)
@@ -118,6 +119,7 @@ void MavlinkContext::handleMavlinkMessage(mavlink_message_t msg) {
         mavlink_global_position_int_t globalPositionInt;
         mavlink_msg_global_position_int_decode(&msg, &globalPositionInt);
         _globalPositionInt.handleMavlink(globalPositionInt);
+        emit globalPositionIntUpdated(globalPositionInt);
     break;
     case MAVLINK_MSG_ID_STATUSTEXT:
         mavlink_statustext_t statusText;
@@ -181,6 +183,7 @@ MainWindow::MainWindow(QWidget *parent)
     , _mavlinkContext(new MavlinkContext())
 {
     ui->setupUi(this);
+    _telemetry = new TelemetryWindow(nullptr);
     _parameterList.setWindowTitle("Parameters list");
     _logsWindow.setMavlinkContext(_mavlinkContext);
     _mavlinkContext->moveToThread(&_mavlinkThread);
@@ -229,6 +232,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&_parameterList, &ParameterList::setParameterRequest, this, &MainWindow::setParamRequested);
     connect(this, &MainWindow::setParamRequest, _mavlinkContext, &MavlinkContext::sendCommand);
 
+    connect(_mavlinkContext, &MavlinkContext::globalPositionIntUpdated, _telemetry, &TelemetryWindow::onGlobalPositionIntUpdated);
+
     connect(&_mavlinkThread, &QThread::finished, _mavlinkContext, &QObject::deleteLater);
     _mavlinkThread.start(QThread::LowPriority);
 }
@@ -237,6 +242,7 @@ MainWindow::~MainWindow()
 {
     _mavlinkThread.quit();
     _mavlinkThread.wait();
+    _telemetry->deleteLater();
     delete ui;
 }
 
@@ -270,5 +276,13 @@ void MainWindow::setParamRequested(const mavlink_message_t& msg) {
 void MainWindow::on_actionLogs_triggered() {
     if(_logsWindow.isHidden())
         _logsWindow.show();
+}
+
+
+void MainWindow::on_actionTelemetry_triggered()
+{
+    if(_telemetry->isHidden()) {
+        _telemetry->show();
+    }
 }
 

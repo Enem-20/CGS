@@ -38,6 +38,7 @@ public:
 private:
     void updateMode(uint8_t autopilot, uint8_t type, uint32_t customMode);
 signals:
+    void globalPositionIntUpdated(const mavlink_global_position_int_t& msg);
     void heartbeatMessageReceived(const mavlink_message_t& heartbeat);
     void heartbeatUpdated(const mavlink_heartbeat_t& heartbeat);
     void modeUpdated(const QString& mode);
@@ -65,6 +66,8 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+class TelemetryWindow;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -72,6 +75,7 @@ private:
     MavlinkContext* _mavlinkContext;
     ParameterList _parameterList;
     LogsWindow _logsWindow;
+    TelemetryWindow* _telemetry;
     QThread _mavlinkThread;
     Ui::MainWindow *ui;
 public:
@@ -89,5 +93,6 @@ private slots:
     void paramsRequested(const mavlink_message_t& msg);
     void setParamRequested(const mavlink_message_t& msg);
     void on_actionLogs_triggered();
+    void on_actionTelemetry_triggered();
 };
 #endif // MAINWINDOW_H

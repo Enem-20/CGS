@@ -25,7 +25,7 @@ void Plotter::resizeEvent(QResizeEvent* event) {
     QWidget::resizeEvent(event);
 
     for(auto group : _plotGroups.values()) {
-        group->resize(size().width(), group->size().height());
+        group->resize(size().width(), size().width()/1.3);
     }
 }
 

@@ -25,7 +25,7 @@
     <item row="0" column="0">
      <widget class="QFrame" name="frame">
       <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+       <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
@@ -34,6 +34,19 @@
           <string>DISARMED</string>
          </property>
         </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
        </item>
        <item>
         <widget class="QLabel" name="label_8">
@@ -49,16 +62,6 @@
          </property>
         </widget>
        </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
       </layout>
      </widget>
     </item>
@@ -72,7 +75,7 @@
     <item row="3" column="0">
      <widget class="QFrame" name="frame_2">
       <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+       <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
@@ -98,10 +101,13 @@
        </item>
        <item>
         <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
          <property name="sizeHint" stdset="0">
           <size>
-           <width>40</width>
-           <height>20</height>
+           <width>20</width>
+           <height>40</height>
           </size>
          </property>
         </spacer>
@@ -127,7 +133,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuParameters_set">
@@ -137,6 +143,7 @@
     <addaction name="actionParameters_set"/>
     <addaction name="actionRefresh_configs"/>
     <addaction name="actionLogs"/>
+    <addaction name="actionTelemetry"/>
    </widget>
    <addaction name="menuParameters_set"/>
   </widget>
@@ -154,6 +161,11 @@
   <action name="actionLogs">
    <property name="text">
     <string>Logs</string>
+   </property>
+  </action>
+  <action name="actionTelemetry">
+   <property name="text">
+    <string>Telemetry</string>
    </property>
   </action>
  </widget>

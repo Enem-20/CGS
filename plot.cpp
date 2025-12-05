@@ -8,14 +8,14 @@ Plot::Plot(const QString& name,
     : QObject{parent}
     , _plot(new QCustomPlot(qobject_cast<QWidget*>(parent)))
 {
-    _plot->plotLayout()->addElement(0,0, new QCPTextElement(_plot, name, QFont("sans", 12, QFont::Bold)));
+    //_plot->plotLayout()->addElement(0,0, new QCPTextElement(_plot, name, QFont("sans", 12, QFont::Bold)));
     _plot->xAxis->setLabel(horzAxisName);
     _plot->yAxis->setLabel(vertAxisName);
     _plot->xAxis->setRange(xRange.first, xRange.second);
     _plot->yAxis->setRange(yRange.first, yRange.second);
     _plot->replot(QCustomPlot::rpQueuedReplot);
     _plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-    _plot->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    _plot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
 
 QCustomPlot* Plot::getRaw() {
