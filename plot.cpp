@@ -129,9 +129,10 @@ void Plot::hideTooltip() {
     if (_plot) _plot->replot();
 }
 
-QCPGraph* Plot::findNearestGraph(double x, double y, double& foundX, double& foundY, double tolerance) {
+QCPGraph* Plot::findNearestGraph(double mouseX, double mouseY, double& foundX, double& foundY, double tolerance) {
     QCPGraph* nearestGraph = nullptr;
-    double minDistance = tolerance;
+    double minPixelDistance = 15.0;
+    double foundPixelDistance = minPixelDistance;
 
     for (auto it = _graphs.begin(); it != _graphs.end(); ++it) {
         QCPGraph* graph = it.value();
@@ -140,15 +141,23 @@ QCPGraph* Plot::findNearestGraph(double x, double y, double& foundX, double& fou
         if (data->isEmpty()) continue;
 
         for (auto dataIt = data->begin(); dataIt != data->end(); ++dataIt) {
-            double dx = dataIt->key - x;
-            double dy = dataIt->value - y;
-            double distance = sqrt(dx*dx + dy*dy);
+            double pointX = dataIt->key;
+            double pointY = dataIt->value;
 
-            if (distance < minDistance) {
-                minDistance = distance;
+            int pointPixelX = _plot->xAxis->coordToPixel(pointX);
+            int pointPixelY = _plot->yAxis->coordToPixel(pointY);
+
+            int mousePixelX = _plot->xAxis->coordToPixel(mouseX);
+            int mousePixelY = _plot->yAxis->coordToPixel(mouseY);
+
+            double pixelDistance = std::hypot(pointPixelX - mousePixelX,
+                                              pointPixelY - mousePixelY);
+
+            if (pixelDistance < foundPixelDistance) {
+                foundPixelDistance = pixelDistance;
                 nearestGraph = graph;
-                foundX = dataIt->key;
-                foundY = dataIt->value;
+                foundX = pointX;
+                foundY = pointY;
             }
         }
     }

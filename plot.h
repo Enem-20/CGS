@@ -36,7 +36,7 @@ private:
     void setupTooltip();
     void updateTooltip(double mouseX, double mouseY);
     void hideTooltip();
-    QCPGraph* findNearestGraph(double x, double y, double& foundX, double& foundY, double tolerance = 0.1);
+    QCPGraph* findNearestGraph(double mouseX, double mouseY, double& foundX, double& foundY, double tolerance = 0.1);
 
     bool colorContrastedWithOthers(const QColor& color);
     QColor generateColor();
