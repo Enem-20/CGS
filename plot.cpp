@@ -229,7 +229,7 @@ Plot::Plot(const QString& name,
     });
 
     connect(_plot->xAxis, qOverload<const QCPRange&>(&QCPAxis::rangeChanged), this, [this](const QCPRange &newRange){
-        int32_t scatterScaleSkipCount = (newRange.upper - newRange.lower) / 3;
+        int32_t scatterScaleSkipCount = (newRange.upper - newRange.lower) / 8;
         for(QCPGraph* graph : _graphs) {
             graph->setScatterSkip(scatterScaleSkipCount);
         }
