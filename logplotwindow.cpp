@@ -68,7 +68,7 @@ void LogPlotWindow::wrapShow() {
         ui->dataTree->addTopLevelItem(topItem);
     }
 
-    _plotter->addData("LogReview", "FLME", "elev", data[184].values[0], data[184].values[2]);
+    _plotter->addData("LogReview", "FLME", "azim", data[184].values[0], data[184].values[2]);
 
     show();
 }
