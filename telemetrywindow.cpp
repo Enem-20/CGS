@@ -10,6 +10,14 @@
 
 #include "plotter.h"
 
+bool TelemetryWindow::groupExists(const QString& groupName) {
+    return _telemetryMap.contains(groupName);
+}
+
+bool TelemetryWindow::parameterExists(const QString& groupName, const QString& paramName) {
+    return groupExists(groupName) && _telemetryMap[groupName]._params.contains(paramName);
+}
+
 TelemetryGroup& TelemetryWindow::createGroup(const QString& groupName, uint64_t timestamp) {
     if (!_telemetryMap.contains(groupName)) {
         PlotGroup* plotGroup = _plotter->createPlotGroup(groupName);
@@ -52,6 +60,33 @@ void TelemetryWindow::createParam(TelemetryGroup& group, const QString& name) {
     );
 }
 
+void TelemetryWindow::plotValue(const QString& groupName, const QString& paramName, double t, double value) {
+    if (!parameterExists(groupName, paramName)) {
+        return;
+    }
+    if (_telemetryMap[groupName]._params[paramName].plot == nullptr) {
+        return;
+    }
+    _plotter->addPoint(groupName, paramName, paramName, QPair<double, double>(t, value));
+}
+
+void TelemetryWindow::handleTelemetrySelectionChanged(QTreeWidgetItem *item, int column) {
+    QString paramName = item->text(column);
+    QString groupName = item->parent()->text(column);
+
+    if (item->checkState(column)) {
+        _telemetryMap[groupName]._params[paramName].plot = _plotter->createPlot(groupName, paramName, "t", paramName);
+        _telemetryMap[groupName]._params[paramName].plot->createGraph(paramName);
+    }
+    else {
+        _telemetryMap[groupName]._params[paramName].plot = nullptr;
+        _telemetryMap[groupName]._params[paramName].values.clear();
+        _plotter->removePlot(groupName, paramName);
+    }
+
+    _plotter->replot();
+}
+
 TelemetryWindow::TelemetryWindow(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::TelemetryWindow)
@@ -59,6 +94,8 @@ TelemetryWindow::TelemetryWindow(QWidget *parent) :
     ui->setupUi(this);
     _plotter = new Plotter(ui->plotterFrame);
     ui->plotterFrame->layout()->addWidget(_plotter);
+
+    connect(ui->telemetryTree, &QTreeWidget::itemChanged, this, &TelemetryWindow::handleTelemetrySelectionChanged);
 }
 
 TelemetryWindow::~TelemetryWindow() {
@@ -90,30 +127,15 @@ void TelemetryWindow::onGlobalPositionIntUpdated(const mavlink_global_position_i
     _telemetryGroup._params["vy"].values += static_cast<float>(msg.vy);
     _telemetryGroup._params["vz"].values += static_cast<float>(msg.vz);
 
-    _plotter->addPoint(groupName, "alt", "alt",
-        QPair<double, double>(static_cast<double>(msg.time_boot_ms), static_cast<double>(msg.alt))
-    );
-    _plotter->addPoint(groupName, "hdg", "hdg",
-        QPair<double, double>(static_cast<double>(msg.time_boot_ms), static_cast<double>(msg.hdg))
-    );
-    _plotter->addPoint(groupName, "lat", "lat",
-        QPair<double, double>(static_cast<double>(msg.time_boot_ms), static_cast<double>(msg.lat))
-    );
-    _plotter->addPoint(groupName, "lon", "lon",
-        QPair<double, double>(static_cast<double>(msg.time_boot_ms), static_cast<double>(msg.lon))
-    );
-    _plotter->addPoint(groupName, "ralt", "ralt",
-        QPair<double, double>(static_cast<double>(msg.time_boot_ms), static_cast<double>(msg.relative_alt))
-    );
-    _plotter->addPoint(groupName, "vx", "vx",
-        QPair<double, double>(static_cast<double>(msg.time_boot_ms), static_cast<double>(msg.vx))
-    );
-    _plotter->addPoint(groupName, "vy", "vy",
-        QPair<double, double>(static_cast<double>(msg.time_boot_ms), static_cast<double>(msg.vy))
-    );
-    _plotter->addPoint(groupName, "vz", "vz",
-        QPair<double, double>(static_cast<double>(msg.time_boot_ms), static_cast<double>(msg.vz))
-    );
+    const double t = static_cast<double>(msg.time_boot_ms);
+    plotValue(groupName, "alt", t, static_cast<double>(msg.alt));
+    plotValue(groupName, "hdg", t, static_cast<double>(msg.hdg));
+    plotValue(groupName, "lat", t, static_cast<double>(msg.lat));
+    plotValue(groupName, "lon", t, static_cast<double>(msg.lon));
+    plotValue(groupName, "ralt", t, static_cast<double>(msg.relative_alt));
+    plotValue(groupName, "vx", t, static_cast<double>(msg.vx));
+    plotValue(groupName, "vy", t, static_cast<double>(msg.vy));
+    plotValue(groupName, "vz", t, static_cast<double>(msg.vz));
 
     _plotter->replot();
 }
