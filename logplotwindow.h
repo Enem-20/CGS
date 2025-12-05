@@ -7,6 +7,7 @@
 #include "plotter.h"
 
 #include "dataflashparser.h"
+#include "logparameterswindow.h"
 
 namespace Ui {
 class LogPlotWindow;
@@ -31,6 +32,7 @@ private slots:
     void on_resetViewButton_clicked();
     void on_resetPlotButton_clicked();
     void handleDataSelectionChanged(QTreeWidgetItem *item, int column);
+    void on_showParamsButton_clicked();
 };
 
 #endif // LOGPLOTWINDOW_H

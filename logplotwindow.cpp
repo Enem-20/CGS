@@ -82,6 +82,10 @@ void LogPlotWindow::on_resetPlotButton_clicked() {
 
 }
 
+void LogPlotWindow::on_showParamsButton_clicked() {
+    LogParametersWindow::showTemporary(_parser.getParameters());
+}
+
 
 void LogPlotWindow::handleDataSelectionChanged(QTreeWidgetItem *item, int column) {
     qDebug() << "Item changed";
