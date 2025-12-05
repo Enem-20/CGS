@@ -17,11 +17,14 @@ public:
     explicit Plot(const QString& name,
                   const QString& horzAxisName, const QString& vertAxisName,
                   std::pair<int64_t, int64_t> xRange = {0,0}, std::pair<int64_t, int64_t> yRange = {0,0}, QObject *parent = nullptr);
-
+    ~Plot();
 signals:
 public slots:
     QCustomPlot* getRaw();
+    QCPGraph* getGraph(const QString& name);
     QCPGraph* createGraph(const QString& name);
+    void removeGraph(const QString& name);
+    void clear();
 
     void setData(const QString& graphName,
                  const QVector<double>& keys, const QVector<double>& values);

@@ -2,10 +2,21 @@
 #include "ui_telemetrywindow.h"
 
 #include <QRegularExpression>
+#include <QPushButton>
+#include "plotgroup.h"
+#include "plot.h"
 
 #include <common/mavlink.h>
 
 #include "plotter.h"
+
+void TelemetryWindow::createGroup(const QString& name) {
+    QPushButton* button = new QPushButton(name);
+    button->setObjectName("bt_" + name);
+    connect(button, &QPushButton::clicked, this, [this](){
+
+    });
+}
 
 TelemetryWindow::TelemetryWindow(QWidget *parent) :
     QWidget(parent),
@@ -23,40 +34,38 @@ TelemetryWindow::~TelemetryWindow()
 
 void TelemetryWindow::onGlobalPositionIntUpdated(const mavlink_global_position_int_t& msg) {
     if(!_telemetryMap.contains("GLOBAL_POSITION_INT")) [[unlikely]] {
-        _plotter->createPlotGroup("GLOBAL_POSITION_INT");
-        _plotter->createPlot("GLOBAL_POSITION_INT", "alt", "t", "alt");
-        _plotter->createGraph("GLOBAL_POSITION_INT", "alt", "alt");
+        PlotGroup* group = _plotter->createPlotGroup("GLOBAL_POSITION_INT");
+        Plot* plot = group->createPlot("alt", "t", "alt");
+        plot->createGraph("alt");
+        plot->setData("alt", QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.alt)});
 
-        _plotter->setData("GLOBAL_POSITION_INT", "alt", "alt",
-                          QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.alt)});
-        _plotter->createPlot("GLOBAL_POSITION_INT", "hdg", "t", "hdg");
-        _plotter->createGraph("GLOBAL_POSITION_INT", "hdg", "hdg");
-        _plotter->setData("GLOBAL_POSITION_INT", "hdg", "hdg",
-                          QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.hdg)});
-        _plotter->createPlot("GLOBAL_POSITION_INT", "lat", "t", "lat");
-        _plotter->createGraph("GLOBAL_POSITION_INT", "lat", "lat");
-        _plotter->setData("GLOBAL_POSITION_INT", "lat", "lat",
-                          QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.lat)});
-        _plotter->createPlot("GLOBAL_POSITION_INT", "lon", "t", "lon");
-        _plotter->createGraph("GLOBAL_POSITION_INT", "lon", "lon");
-        _plotter->setData("GLOBAL_POSITION_INT", "lon", "lon",
-                          QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.lon)});
-        _plotter->createPlot("GLOBAL_POSITION_INT", "ralt", "t", "ralt");
-        _plotter->createGraph("GLOBAL_POSITION_INT", "ralt", "ralt");
-        _plotter->setData("GLOBAL_POSITION_INT", "ralt", "ralt",
-                          QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.relative_alt)});
-        _plotter->createPlot("GLOBAL_POSITION_INT", "vx", "t", "vx");
-        _plotter->createGraph("GLOBAL_POSITION_INT", "vx", "vx");
-        _plotter->setData("GLOBAL_POSITION_INT", "vx", "vx",
-                          QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.vx)});
-        _plotter->createPlot("GLOBAL_POSITION_INT", "vy", "t", "vy");
-        _plotter->createGraph("GLOBAL_POSITION_INT", "vy", "vy");
-        _plotter->setData("GLOBAL_POSITION_INT", "vy", "vy",
-                          QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.vy)});
-        _plotter->createPlot("GLOBAL_POSITION_INT", "vz", "t", "vz");
-        _plotter->createGraph("GLOBAL_POSITION_INT", "vz", "vz");
-        _plotter->setData("GLOBAL_POSITION_INT", "vz", "vz",
-                          QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.vz)});
+        plot = group->createPlot("hdg", "t", "hdg");
+        plot->createGraph("hdg");
+        plot->setData("hdg", QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.hdg)});
+
+        plot = group->createPlot("lat", "t", "lat");
+        plot->createGraph("lat");
+        plot->setData("lat", QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.lat)});
+
+        plot = group->createPlot("lon", "t", "lon");
+        plot->createGraph("lon");
+        plot->setData("lon", QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.lon)});
+
+        plot = group->createPlot("ralt", "t", "ralt");
+        plot->createGraph("ralt");
+        plot->setData("ralt", QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.relative_alt)});
+
+        plot = group->createPlot("vx", "t", "vx");
+        plot->createGraph("vx");
+        plot->setData("vx", QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.vx)});
+
+        plot = group->createPlot("vy", "t", "vy");
+        plot->createGraph("vy");
+        plot->setData("vy", QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.vy)});
+
+        plot = group->createPlot("vz", "t", "vz");
+        plot->createGraph("vz");
+        plot->setData("vz", QVector<double>{static_cast<double>(msg.time_boot_ms)}, QVector<double>{static_cast<double>(msg.vz)});
 
         QHash<QString, TelemetryParam> params;
         params.emplace("alt",   TelemetryParam{"alt",   QVector<float>{static_cast<float>(msg.alt)}});
@@ -68,12 +77,12 @@ void TelemetryWindow::onGlobalPositionIntUpdated(const mavlink_global_position_i
         params.emplace("vy",    TelemetryParam{"vy",    QVector<float>{static_cast<float>(msg.vy)}});
         params.emplace("vz",    TelemetryParam{"vz",    QVector<float>{static_cast<float>(msg.vz)}});
 
-        TelemetryGroup group {
+        TelemetryGroup telemGroup {
             msg.time_boot_ms,
             "GLOBAL_POSITION_INT",
             params
         };
-        _telemetryMap.emplace("GLOBAL_POSITION_INT", group);
+        _telemetryMap.emplace("GLOBAL_POSITION_INT", telemGroup);
     } else {
         _plotter->addPoint("GLOBAL_POSITION_INT", "alt", "alt",
                           QPair<double, double>(static_cast<double>(msg.time_boot_ms), static_cast<double>(msg.alt)));
