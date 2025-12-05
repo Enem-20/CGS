@@ -2,7 +2,11 @@
 #define TELEMETRYWINDOW_H
 
 #include <QWidget>
+#include <QTreeWidget>
 #include <QVector>
+
+#include "plotgroup.h"
+#include "plot.h"
 
 struct __mavlink_global_position_int_t;
 typedef __mavlink_global_position_int_t mavlink_global_position_int_t;
@@ -46,12 +50,16 @@ class Plotter;
 struct TelemetryParam {
     QString name;
     QVector<float> values;
+    QTreeWidgetItem* treeItem;
+    Plot* plot;
 };
 
 struct TelemetryGroup {
     quint64 timestamp;
     QString groupName;
     QHash<QString, TelemetryParam> _params;
+    QTreeWidgetItem* treeItem;
+    PlotGroup* plotGroup;
 };
 
 class TelemetryWindow : public QWidget
@@ -63,7 +71,8 @@ private:
     QString _customTelemetry = "^(\\d+):\\s*([^:]+?)\\s*:\\s*([^:]+?)\\s*:\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?)";
     Ui::TelemetryWindow *ui;
 private:
-    void createGroup(const QString& name);
+    TelemetryGroup& createGroup(const QString& name, uint64_t timestamp);
+    void createParam(TelemetryGroup& group, const QString& name);
 public:
     explicit TelemetryWindow(QWidget *parent = nullptr);
     ~TelemetryWindow();
