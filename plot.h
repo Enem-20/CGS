@@ -65,6 +65,9 @@ public slots:
     void setXRange(std::pair<int64_t, int64_t> range);
     void setYRange(std::pair<int64_t, int64_t> range);
     void setRanges(std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange);
+
+    void setActiveScatterGraph(const QString& name, bool active);
+    void setActiveScatterPlot(bool active);
 };
 
 #endif // PLOT_H

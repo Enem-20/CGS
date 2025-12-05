@@ -2,6 +2,8 @@
 
 #include <random>
 
+#include <QOverload>
+
 #include "qcustomplot.h"
 
 double hsvDistance(const QColor& c1, const QColor& c2) {
@@ -226,6 +228,13 @@ Plot::Plot(const QString& name,
         updateTooltip(mouseX, mouseY);
     });
 
+    connect(_plot->xAxis, qOverload<const QCPRange&>(&QCPAxis::rangeChanged), this, [this](const QCPRange &newRange){
+        int32_t scatterScaleSkipCount = (newRange.upper - newRange.lower) / 3;
+        for(QCPGraph* graph : _graphs) {
+            graph->setScatterSkip(scatterScaleSkipCount);
+        }
+    });
+
     _plot->installEventFilter(this);
 }
 
@@ -320,4 +329,25 @@ void Plot::setYRange(std::pair<int64_t, int64_t> range) {
 
 void Plot::setRanges(std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
     setXRange(xRange); setXRange(yRange);
+}
+
+void Plot::setActiveScatterGraph(const QString& name, bool active) {
+    auto graphIt = _graphs.find(name);
+    if(graphIt != _graphs.end()) {
+        if(active)
+            graphIt.value()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssNone));
+        else
+            graphIt.value()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
+        return;
+    }
+    qWarning() << "Failed to set active for graph " << name << ": it's missing";
+}
+
+void Plot::setActiveScatterPlot(bool active) {
+    for(QCPGraph* graph : _graphs) {
+        if(active)
+            graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssNone));
+        else
+            graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
+    }
 }

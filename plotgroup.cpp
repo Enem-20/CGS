@@ -191,3 +191,27 @@ void PlotGroup::setRanges(std::pair<int64_t, int64_t> xRange, std::pair<int64_t,
         plot->setYRange(yRange);
     }
 }
+
+void PlotGroup::setActiveScatterGraph(const QString& plotName, const QString& name, bool active) {
+    auto plotIt = _plots.find(plotName);
+    if(plotIt != _plots.end()) {
+        plotIt.value()->setActiveScatterGraph(name, active);
+        return;
+    }
+    qWarning() << "Failed to set active for plot " << plotName << " and graph " << name << ": plot missing";
+}
+
+void PlotGroup::setActiveScatterPlot(const QString& plotName, bool active) {
+    auto plotIt = _plots.find(plotName);
+    if(plotIt != _plots.end()) {
+        plotIt.value()->setActiveScatterPlot(active);
+        return;
+    }
+    qWarning() << "Failed to set active for plot " << plotName << ": plot missing";
+}
+
+void PlotGroup::setActiveScatterGroup(bool active) {
+    for(Plot* plot : _plots) {
+        plot->setActiveScatterPlot(active);
+    }
+}
