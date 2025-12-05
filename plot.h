@@ -3,16 +3,27 @@
 
 #include <QObject>
 #include <QHash>
+#include <QSet>
+#include <QColor>
 
 class QCustomPlot;
 class QCPGraph;
+
+inline size_t qHash(const QColor &color, size_t seed = 0) noexcept
+{
+    return qHashMulti(seed, color.red(), color.green(), color.blue(), color.alpha());
+}
 
 class Plot : public QObject
 {
     Q_OBJECT
 private:
+    QSet<QColor> _usedColors;
     QHash<QString, QCPGraph*> _graphs;
     QCustomPlot* _plot;
+private:
+    bool colorContrastedWithOthers(const QColor& color);
+    QColor generateColor();
 public:
     explicit Plot(const QString& name,
                   const QString& horzAxisName, const QString& vertAxisName,
