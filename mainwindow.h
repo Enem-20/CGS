@@ -31,7 +31,6 @@ private:
     mavlink_message_t _heartBeatMsg;
     QJsonObject _existingModes;
     MavlinkPacketizer _packetizer;
-
 public:
     MavlinkContext();
     void sendHeartbeat();
@@ -67,6 +66,7 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class TelemetryWindow;
+class SerialScanner;
 
 class MainWindow : public QMainWindow
 {
@@ -78,6 +78,7 @@ private:
     TelemetryWindow* _telemetry;
     QThread _mavlinkThread;
     Ui::MainWindow *ui;
+    SerialScanner* _scanner;
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();

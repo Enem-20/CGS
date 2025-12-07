@@ -35,25 +35,39 @@ MavlinkDevice::MavlinkDevice(QIODevice* device, QObject *parent)
 
 MavlinkDevice::~MavlinkDevice() {
     delete _device;
+    delete _mavlinkStatus;
 }
 
 void MavlinkDevice::readBytes() {
+    _waitPacketTimer.stop();
+
     _inputBuffer += _device->readAll();
-    const uint8_t* bytedInputBuffer = reinterpret_cast<const uint8_t*>(_inputBuffer.constData());
 
-    _waitPacketTimer.start(200);
-
-    if(bytedInputBuffer[0] != MAVLINK_STX) return;
-    uint8_t expectedLen = bytedInputBuffer[1];
-    if(_inputBuffer < expectedLen + MAVLINK_NUM_NON_PAYLOAD_BYTES) return;
-
-    mavlink_status_t status;
-    mavlink_message_t result;
-    for(size_t i = 0; i < expectedLen; ++i) {
-        mavlink_parse_char(MAVLINK_COMM_0, bytedInputBuffer[i], &result, &status);
+    if (_inputBuffer.isEmpty()) {
+        return;
     }
 
-    emit messageReceived(result);
+    mavlink_message_t msg;
+    bool messageParsed = false;
+    size_t processedBytes = 0;
+
+    for (size_t i = 0; i < _inputBuffer.size(); ++i) {
+        uint8_t byte = static_cast<uint8_t>(_inputBuffer[i]);
+
+        if (mavlink_parse_char(MAVLINK_COMM_0, byte, &msg, _mavlinkStatus)) {
+            emit messageReceived(msg);
+            messageParsed = true;
+            processedBytes = i + 1;
+        }
+    }
+
+    if (processedBytes > 0) {
+        _inputBuffer.remove(0, processedBytes);
+    }
+
+    if (!_inputBuffer.isEmpty() && !messageParsed) {
+        _waitPacketTimer.start(200);
+    }
 }
 
 void MavlinkDevice::waitPacketTimeout() {
@@ -65,7 +79,7 @@ void MavlinkDevice::sendCommand(const mavlink_message_t& command) {
     uint16_t len = mavlink_msg_to_send_buffer(buffer, &command);
     QByteArray data(reinterpret_cast<char*>(buffer), len);
     if(_device)
-        _device->write(data);
+        sendRawCommand(data);
     else
         _messageQueue.push(data);
 }

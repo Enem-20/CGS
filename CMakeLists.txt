@@ -9,10 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets Network PrintSupport)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Network PrintSupport)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Network PrintSupport SerialPort)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Network PrintSupport SerialPort)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -44,6 +42,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         dataflashparser.h dataflashparser.cpp
         logplotwindow.h logplotwindow.cpp logplotwindow.ui
         logparameterswindow.h logparameterswindow.cpp logparameterswindow.ui
+        serialmavlinkdevice.h serialmavlinkdevice.cpp
+        serialscanner.h serialscanner.cpp serialscanner.ui
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET CGS APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -65,9 +65,10 @@ endif()
 
 target_include_directories(CGS PRIVATE ${CMAKE_SOURCE_DIR}/external/c_library_v2)
 
-target_link_libraries(CGS PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::PrintSupport)
-target_link_libraries(CGS PRIVATE Qt${QT_VERSION_MAJOR}::Core)
-target_link_libraries(CGS PRIVATE Qt${QT_VERSION_MAJOR}::Core)
+target_link_libraries(CGS PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::PrintSupport
+    Qt${QT_VERSION_MAJOR}::SerialPort
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

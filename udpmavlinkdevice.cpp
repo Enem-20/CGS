@@ -14,6 +14,11 @@ static QString checkIP4Addr(const QString& addr) {
     return addr;
 }
 
+void UDPMavlinkDevice::sendRawCommand(const QByteArray& data) {
+    if(_socket)
+        _socket->writeDatagram(data, QHostAddress(_autopilotAddr), _autopilotSocket);
+}
+
 UDPMavlinkDevice::UDPMavlinkDevice(quint16 port, const QString& address, QObject *parent)
     : MavlinkDevice(new QUdpSocket(parent), parent)
     , _selfPort(port)
@@ -57,15 +62,4 @@ void UDPMavlinkDevice::readBytes() {
             }
         }
     }
-}
-
-void UDPMavlinkDevice::sendCommand(const mavlink_message_t& command) {
-    uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
-    uint16_t len = mavlink_msg_to_send_buffer(buffer, &command);
-    QByteArray data(reinterpret_cast<char*>(buffer), len);
-    if(_socket) {
-        _socket->writeDatagram(data, QHostAddress(_autopilotAddr), _autopilotSocket);
-    }
-    else
-        _messageQueue.push(data);
 }

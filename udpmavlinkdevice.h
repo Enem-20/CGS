@@ -14,13 +14,13 @@ private:
     QString _autopilotAddr;
     quint16 _autopilotSocket;
     QUdpSocket* _socket;
+private:
+    void sendRawCommand(const QByteArray& data) override;
 public:
     explicit UDPMavlinkDevice(quint16 port = 14550, const QString& address = "127.0.0.1", QObject *parent = nullptr);
     QThread* getSocketThread();
 protected slots:
     virtual void readBytes() override;
-public slots:
-    void sendCommand(const mavlink_message_t& command);
 };
 
 #endif // UDPMAVLINKDEVICE_H

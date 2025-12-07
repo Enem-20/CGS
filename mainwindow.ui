@@ -23,7 +23,7 @@
      </widget>
     </item>
     <item row="0" column="0">
-     <widget class="QFrame" name="frame">
+     <widget class="QFrame" name="statusPanel">
       <property name="frameShape">
        <enum>QFrame::Shape::NoFrame</enum>
       </property>

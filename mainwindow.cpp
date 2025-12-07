@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 #include <QFile>
 #include "telemetrywindow.h"
+#include "serialscanner.h"
 
 MavlinkContext::MavlinkContext()
     : _localDefaultDevice(14550, "0.0.0.0", this)
@@ -183,6 +184,8 @@ MainWindow::MainWindow(QWidget *parent)
     , _mavlinkContext(new MavlinkContext())
 {
     ui->setupUi(this);
+    _scanner = new SerialScanner(this);
+    ui->statusPanel->layout()->addWidget(_scanner);
     _telemetry = new TelemetryWindow(nullptr);
     _parameterList.setWindowTitle("Parameters list");
     _logsWindow.setMavlinkContext(_mavlinkContext);
