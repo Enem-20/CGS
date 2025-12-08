@@ -51,7 +51,7 @@ void TelemetryWindow::createParam(TelemetryGroup& group, const QString& name, bo
 
     Plot* plot = nullptr;
     if (active) {
-        plot = group.plotGroup->createPlot(name, "t", name, {group.timestamp, group.timestamp + 10});
+        plot = group.plotGroup->createPlot(name, "time(ms)", name, {group.timestamp, group.timestamp + 10});
         plot->createGraph(name);
     }
 
@@ -83,7 +83,7 @@ void TelemetryWindow::plotValue(const QString& groupName, const QString& paramNa
         if (startIndex == 0) {
             break;
         }
-        if (static_cast<double>(group.timeValues[startIndex]) < (t - _timeRangeMicros)) {
+        if (static_cast<double>(group.timeValues[startIndex]) < (t - _timeRangeMillis)) {
             break;
         }
         startIndex--;
@@ -114,7 +114,7 @@ void TelemetryWindow::plotValue(const QString& groupName, const QString& paramNa
 
     Plot* plot = param.plot;
     plot->addPoint(paramName, QPair<double, double>(t, value));
-    plot->setXRange(QPair<double, double>{t - _timeRangeMicros, t});
+    plot->setXRange(QPair<double, double>{t - _timeRangeMillis, t});
     plot->setYRange(QPair<double, double>{static_cast<double>(min) - padding, static_cast<double>(max) + padding});
     plot->replot();
 }
@@ -166,18 +166,18 @@ void TelemetryWindow::onGlobalPositionIntUpdated(const mavlink_global_position_i
         createParam(group, "vz");
     }
 
-    TelemetryGroup& _telemetryGroup = _telemetryMap.find(groupName).value();
-    _telemetryGroup._params["alt"].values += static_cast<float>(msg.alt);
-    _telemetryGroup._params["hdg"].values += static_cast<float>(msg.hdg);
-    _telemetryGroup._params["lat"].values += static_cast<float>(msg.lat);
-    _telemetryGroup._params["lon"].values += static_cast<float>(msg.lon);
-    _telemetryGroup._params["ralt"].values += static_cast<float>(msg.relative_alt);
-    _telemetryGroup._params["vx"].values += static_cast<float>(msg.vx);
-    _telemetryGroup._params["vy"].values += static_cast<float>(msg.vy);
-    _telemetryGroup._params["vz"].values += static_cast<float>(msg.vz);
+    TelemetryGroup& group = _telemetryMap.find(groupName).value();
+    group._params["alt"].values += static_cast<float>(msg.alt);
+    group._params["hdg"].values += static_cast<float>(msg.hdg);
+    group._params["lat"].values += static_cast<float>(msg.lat);
+    group._params["lon"].values += static_cast<float>(msg.lon);
+    group._params["ralt"].values += static_cast<float>(msg.relative_alt);
+    group._params["vx"].values += static_cast<float>(msg.vx);
+    group._params["vy"].values += static_cast<float>(msg.vy);
+    group._params["vz"].values += static_cast<float>(msg.vz);
 
-    const double t = static_cast<double>(msg.time_boot_ms);
-    _telemetryGroup.timeValues.push_back(static_cast<float>(t));
+    const double t = static_cast<double>(static_cast<uint64_t>(msg.time_boot_ms) - group.timestamp);
+    group.timeValues.push_back(static_cast<float>(t));
     plotValue(groupName, "alt", t, static_cast<double>(msg.alt));
     plotValue(groupName, "hdg", t, static_cast<double>(msg.hdg));
     plotValue(groupName, "lat", t, static_cast<double>(msg.lat));

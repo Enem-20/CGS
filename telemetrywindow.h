@@ -71,7 +71,7 @@ private:
     QHash<QString, TelemetryGroup> _telemetryMap;
     QString _customTelemetry = "^(\\d+):\\s*([^:]+?)\\s*:\\s*([^:]+?)\\s*:\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?)";
     Ui::TelemetryWindow *ui;
-    double _timeRangeMicros = 10000.0;
+    double _timeRangeMillis = 30000.0;
     double _rangeYPadding = 0.05;
 
 private:

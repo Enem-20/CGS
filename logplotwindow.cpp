@@ -18,7 +18,7 @@ LogPlotWindow::LogPlotWindow(QWidget *parent)
     _plotter->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
 
     _plotter->createPlotGroup("LogReview");
-    _plotter->createPlot("LogReview", "FLME", "time", "value", {0, 120}, {-100, 100});
+    _plotter->createPlot("LogReview", "LogPlot", "time(s)", "value", {0, 120}, {-100, 100});
 
     connect(ui->dataTree, &QTreeWidget::itemChanged, this, &LogPlotWindow::handleDataSelectionChanged);
 }
@@ -193,14 +193,14 @@ void LogPlotWindow::handleDataSelectionChanged(QTreeWidgetItem *item, int column
 
                 _activeGraphs.push_back(ActiveGraphHandle{i, j, timeIndex, item});
 
-                _plotter->createGraph("LogReview", "FLME", label);
-                _plotter->setData("LogReview", "FLME", label, data[i].values[timeIndex], data[i].values[j]);
+                _plotter->createGraph("LogReview", "LogPlot", label);
+                _plotter->setData("LogReview", "LogPlot", label, data[i].values[timeIndex], data[i].values[j]);
             }
             else {
                 _activeGraphs.removeIf([item](const ActiveGraphHandle& handle){
                     return handle.treeItem ==  item;
                 });
-                _plotter->removeGraph("LogReview", "FLME", label);
+                _plotter->removeGraph("LogReview", "LogPlot", label);
             }
 
             break;
