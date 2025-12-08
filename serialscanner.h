@@ -14,7 +14,11 @@ class SerialScanner : public QWidget
     Q_OBJECT
 private:
     QTimer _portsWatchdog;
+    static QString _defaultPortMatchPattern;
     QList<QSerialPortInfo> _serialInfos;
+private:
+    size_t fitToUpdated(const QList<QSerialPortInfo>& compSet);
+    void filterNewInfos(QList<QSerialPortInfo>& serialInfos);
 public:
     explicit SerialScanner(QWidget *parent = nullptr);
     ~SerialScanner();
