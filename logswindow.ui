@@ -69,35 +69,35 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QPushButton" name="pushButton">
+        <widget class="QPushButton" name="buttonRefresh">
          <property name="text">
           <string>Refresh</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_2">
+        <widget class="QPushButton" name="buttonDownloadSelected">
          <property name="text">
           <string>Download Selected</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_3">
+        <widget class="QPushButton" name="buttonDownloadLast">
          <property name="text">
           <string>Download Last</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_4">
+        <widget class="QPushButton" name="buttonClearLogs">
          <property name="text">
           <string>Clear All Logs</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_6">
+        <widget class="QPushButton" name="buttonAnalyzeLog">
          <property name="text">
           <string>Analyze</string>
          </property>
@@ -117,7 +117,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButton_5">
+        <widget class="QPushButton" name="buttonCancelDownload">
          <property name="text">
           <string>Cancel Log Download</string>
          </property>
@@ -143,6 +143,13 @@
       <enum>QFrame::Shadow::Raised</enum>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="downloadTime">
+        <property name="text">
+         <string>0 s (0 byes/s)</string>
+        </property>
+       </widget>
+      </item>
       <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">

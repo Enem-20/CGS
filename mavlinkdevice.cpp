@@ -10,6 +10,7 @@ MavlinkDevice::MavlinkDevice(QIODevice* device, QObject *parent)
     , _waitPacketTimer(parent)
 {
     _device = device;
+    _mavlinkStatus = new mavlink_status_t;
     //if(_device)
     //    _device->open(QIODevice::ReadWrite);
 

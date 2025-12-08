@@ -5,6 +5,7 @@
 #include <QDataStream>
 #include <QByteArray>
 #include <QTimer>
+#include <QDateTime>
 
 #include <QWidget>
 
@@ -55,25 +56,22 @@ private:
     uint8_t _sysId = 0;
     uint8_t _compId = 0;
     MavlinkContext* _mavlinkContext = nullptr;
+    QDateTime _downloadStartTimestamp;
 
 public:
     explicit LogsWindow(QWidget *parent = nullptr);
     ~LogsWindow();
 
     void setMavlinkContext(MavlinkContext* mavlinkContext);
-
+signals:
+    void sendCommand(const mavlink_message_t& msg);
 private slots:
-    void on_pushButton_clicked();
-
-    void on_pushButton_2_clicked();
-
-    void on_pushButton_3_clicked();
-
-    void on_pushButton_4_clicked();
-
-    void on_pushButton_5_clicked();
-
-    void on_pushButton_6_clicked();
+    void on_buttonRefresh_clicked();
+    void on_buttonDownloadSelected_clicked();
+    void on_buttonDownloadLast_clicked();
+    void on_buttonClearLogs_clicked();
+    void on_buttonAnalyzeLog_clicked();
+    void on_buttonCancelDownload_clicked();
 
 public slots:
     void onAutopilotHeartbeat(const mavlink_message_t& msg);

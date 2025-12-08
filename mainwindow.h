@@ -4,60 +4,11 @@
 #include <QMainWindow>
 #include <QThread>
 #include <QTimer>
-#include <QJsonObject>
 
-#include <common/mavlink.h>
-
-#include "udpmavlinkdevice.h"
-#include "attitude.h"
-#include "localpositionned.h"
-#include "globalpositionint.h"
-#include "statustext.h"
 #include "mavlinkpacketizer.h"
-
+#include "mavlinkcontext.h"
 #include "parameterlist.h"
 #include "logswindow.h"
-
-class MavlinkContext : public QObject {
-    Q_OBJECT
-private:
-
-    UDPMavlinkDevice _localDefaultDevice;
-    Attitude _attitude;
-    LocalPositionNED _lPositionNED;
-    GlobalPositionInt _globalPositionInt;
-    StatusText _statusText;
-    QTimer _heartBeatTimer;
-    mavlink_message_t _heartBeatMsg;
-    QJsonObject _existingModes;
-    MavlinkPacketizer _packetizer;
-public:
-    MavlinkContext();
-    void sendHeartbeat();
-private:
-    void updateMode(uint8_t autopilot, uint8_t type, uint32_t customMode);
-signals:
-    void globalPositionIntUpdated(const mavlink_global_position_int_t& msg);
-    void heartbeatMessageReceived(const mavlink_message_t& heartbeat);
-    void heartbeatUpdated(const mavlink_heartbeat_t& heartbeat);
-    void modeUpdated(const QString& mode);
-    void armedUpdated(const QString& armed);
-    void attitudeUpdated(const QString& rollPitchYaw);
-    void speedsUpdated(const QString& speeds);
-    void altitudeUpdated(const QString& altitude);
-    void logUpdated(const QString& msg, const QString& severity, QColor color);
-
-    void paramUpdated(const mavlink_param_value_t& param);
-    void paramExtUpdated(const mavlink_param_ext_value_t& param);
-    void logEntryRecieved(const mavlink_log_entry_t& logEntry);
-    void logDataRecieved(const mavlink_log_data_t& logData, const mavlink_message_t& msg);
-    void paramAckRecieved(const mavlink_param_ext_ack_t& paramAck);
-private slots:
-    void handleMavlinkMessage(mavlink_message_t msg);
-public slots:
-    void loadModes();
-    void sendCommand(const mavlink_message_t& msg);
-};
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -68,9 +19,9 @@ QT_END_NAMESPACE
 class TelemetryWindow;
 class SerialScanner;
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
+
 private:
     MavlinkContext* _mavlinkContext;
     ParameterList _parameterList;
@@ -78,13 +29,15 @@ private:
     TelemetryWindow* _telemetry;
     QThread _mavlinkThread;
     Ui::MainWindow *ui;
-    SerialScanner* _scanner;
+
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
 signals:
     void paramsRequest(const mavlink_message_t& msg);
     void setParamRequest(const mavlink_message_t& msg);
+
 private slots:
     void on_actionParameters_set_triggered();
     void on_actionRefresh_configs_triggered();
@@ -93,7 +46,9 @@ private slots:
 
     void paramsRequested(const mavlink_message_t& msg);
     void setParamRequested(const mavlink_message_t& msg);
-    void on_actionLogs_triggered();
-    void on_actionTelemetry_triggered();
+
+    void on_actionOpen_Telemetry_triggered();
+    void on_actionDownload_Log_triggered();
+    void on_actionReview_Log_triggered();
 };
 #endif // MAINWINDOW_H

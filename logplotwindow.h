@@ -27,7 +27,7 @@ public:
     explicit LogPlotWindow(QWidget *parent = nullptr);
     ~LogPlotWindow();
 
-    static void showFileContents(const QString& filePath, const QString& title = "");
+    static void openFileToReview(const QString& title = "");
 
 private:
     Ui::LogPlotWindow *ui;

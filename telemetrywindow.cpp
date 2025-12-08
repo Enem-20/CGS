@@ -124,7 +124,7 @@ void TelemetryWindow::handleTelemetrySelectionChanged(QTreeWidgetItem *item, int
     QString groupName = item->parent()->text(column);
 
     if (item->checkState(column)) {
-        _telemetryMap[groupName]._params[paramName].plot = _plotter->createPlot(groupName, paramName, "t", paramName);
+        _telemetryMap[groupName]._params[paramName].plot = _plotter->createPlot(groupName, paramName, "time(ms)", paramName);
         _telemetryMap[groupName]._params[paramName].plot->createGraph(paramName);
     }
     else {

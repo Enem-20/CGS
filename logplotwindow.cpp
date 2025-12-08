@@ -27,13 +27,18 @@ LogPlotWindow::~LogPlotWindow() {
     delete ui;
 }
 
-void LogPlotWindow::showFileContents(const QString& filePath, const QString& title) {
+void LogPlotWindow::openFileToReview(const QString& title) {
+    QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+    QString path = QFileDialog::getOpenFileName(nullptr, "Select log file to review", downloadsPath);
+    if (path == "") {
+        return;
+    }
     LogPlotWindow* tempWindow = new LogPlotWindow();
     if (title != "") {
         tempWindow->setWindowTitle(title);
     }
     tempWindow->setAttribute(Qt::WA_DeleteOnClose);
-    tempWindow->parseFile(filePath);
+    tempWindow->parseFile(path);
     tempWindow->show();
 }
 

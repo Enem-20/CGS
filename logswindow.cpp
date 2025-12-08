@@ -16,6 +16,8 @@ LogsWindow::LogsWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    qRegisterMetaType<mavlink_message_t>("mavlink_message_t");
+
     connect(&_logsTimeout, &QTimer::timeout, this, &LogsWindow::requestMissingLogPackets);
 }
 
@@ -24,50 +26,11 @@ LogsWindow::~LogsWindow() {
 }
 
 void LogsWindow::setMavlinkContext(MavlinkContext* mavlinkContext) {
+    if(_mavlinkContext)
+        disconnect(this, &LogsWindow::sendCommand, _mavlinkContext, &MavlinkContext::sendCommand);
     _mavlinkContext = mavlinkContext;
-}
-
-void LogsWindow::on_pushButton_clicked() {
-    refreshLogs();
-}
-
-void LogsWindow::on_pushButton_2_clicked() {
-    QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
-    if (selectedItems.size() == 0) return;
-    int32_t id = selectedItems[0]->row() + 1;
-    downloadLog(id);
-}
-
-void LogsWindow::on_pushButton_3_clicked() {
-    downloadLog(_logEntries.size());
-}
-
-void LogsWindow::on_pushButton_4_clicked() {
-    QMessageBox::StandardButton pressed = QMessageBox::warning(
-        nullptr, "Accept clear", "Would you like to clear all logs from the vehicle?",
-        QMessageBox::Ok | QMessageBox::Cancel);
-
-    switch (pressed) {
-    case QMessageBox::Ok:
-        clearLogs();
-        break;
-    case QMessageBox::Cancel:
-        break;
-    default:
-        break;
-    }
-}
-
-void LogsWindow::on_pushButton_5_clicked() {
-    stopLogTransfer();
-    ui->progressBar->setValue(0);
-    ui->recievedBytes->setText(QString("Download stopped"));
-}
-
-void LogsWindow::on_pushButton_6_clicked() {
-    QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-    QString path = QFileDialog::getOpenFileName(nullptr, "Select log file to review", downloadsPath);
-    LogPlotWindow::showFileContents(path);
+    if(_mavlinkContext)
+        connect(this, &LogsWindow::sendCommand, _mavlinkContext, &MavlinkContext::sendCommand);
 }
 
 void LogsWindow::onAutopilotHeartbeat(const mavlink_message_t& msg) {
@@ -121,6 +84,12 @@ void LogsWindow::handleMavlink(const mavlink_log_data_t& logData, const mavlink_
     ui->progressBar->setValue(((float)_dataReceivedBytes * 100.0f) / (float)_logDataBuffer.size());
     ui->recievedBytes->setText(QString::number(_dataReceivedBytes) +"/" + QString::number(_logDataBuffer.size()) + " bytes");
 
+    QDateTime currentTime = QDateTime::currentDateTime();
+    double downloadTime = static_cast<double>(_downloadStartTimestamp.msecsTo(currentTime)) / 1000.0;
+    QString timeText = QString::number(downloadTime, 'f', 1);
+    QString rateText = this->locale().formattedDataSize(static_cast<double>(_dataReceivedBytes) / downloadTime);
+    ui->downloadTime->setText(timeText + " s (" + rateText + "/s)");
+
     _logsTimeout.start(5000);
 
     if (_dataReceivedBytes > _logDataBuffer.size()) {
@@ -167,7 +136,7 @@ void LogsWindow::refreshLogs() {
         0xffff
     );
 
-    _mavlinkContext->sendCommand(command);
+    emit sendCommand(command);
 }
 
 void LogsWindow::downloadLog(uint32_t id) {
@@ -177,11 +146,11 @@ void LogsWindow::downloadLog(uint32_t id) {
 
     if (id < 1 || id > _logEntries.size()) return;
 
-    ui->pushButton->setDisabled(true);
-    ui->pushButton_2->setDisabled(true);
-    ui->pushButton_3->setDisabled(true);
-    ui->pushButton_4->setDisabled(true);
-    ui->pushButton_6->setDisabled(true);
+    ui->buttonRefresh->setDisabled(true);
+    ui->buttonDownloadSelected->setDisabled(true);
+    ui->buttonDownloadLast->setDisabled(true);
+    ui->buttonClearLogs->setDisabled(true);
+    ui->buttonAnalyzeLog->setDisabled(true);
 
     //_logsDataMask = new std::bitset<LOGS_MASK_SIZE>;
 
@@ -201,9 +170,11 @@ void LogsWindow::downloadLog(uint32_t id) {
         _logEntries[id - 1].size
         );
 
-    _mavlinkContext->sendCommand(command);
+    emit sendCommand(command);
 
     _logsTimeout.start(2000);
+
+    _downloadStartTimestamp = QDateTime::currentDateTime();
 }
 
 void LogsWindow::clearLogs() {
@@ -221,7 +192,7 @@ void LogsWindow::clearLogs() {
         _compId
     );
 
-    _mavlinkContext->sendCommand(command);
+    emit sendCommand(command);
 }
 
 void LogsWindow::stopLogTransfer() {    
@@ -241,13 +212,13 @@ void LogsWindow::stopLogTransfer() {
         _compId
     );
 
-    _mavlinkContext->sendCommand(command);
+    emit sendCommand(command);
 
-    ui->pushButton->setDisabled(false);
-    ui->pushButton_2->setDisabled(false);
-    ui->pushButton_3->setDisabled(false);
-    ui->pushButton_4->setDisabled(false);
-    ui->pushButton_6->setDisabled(false);
+    ui->buttonRefresh->setDisabled(false);
+    ui->buttonDownloadSelected->setDisabled(false);
+    ui->buttonDownloadLast->setDisabled(false);
+    ui->buttonClearLogs->setDisabled(false);
+    ui->buttonAnalyzeLog->setDisabled(false);
 }
 
 void LogsWindow::requestMissingLogPackets() {
@@ -275,6 +246,47 @@ void LogsWindow::requestMissingLogPackets() {
             segmentEnd - segmentStart
         );
 
-        _mavlinkContext->sendCommand(command);
+        emit sendCommand(command);
     }
+}
+
+void LogsWindow::on_buttonRefresh_clicked() {
+    refreshLogs();
+}
+
+void LogsWindow::on_buttonDownloadSelected_clicked() {
+    QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
+    if (selectedItems.size() == 0) return;
+    int32_t id = selectedItems[0]->row() + 1;
+    downloadLog(id);
+}
+
+void LogsWindow::on_buttonDownloadLast_clicked() {
+    downloadLog(_logEntries.size());
+}
+
+void LogsWindow::on_buttonClearLogs_clicked() {
+    QMessageBox::StandardButton pressed = QMessageBox::warning(
+        nullptr, "Accept clear", "Would you like to clear all logs from the vehicle?",
+        QMessageBox::Ok | QMessageBox::Cancel);
+
+    switch (pressed) {
+    case QMessageBox::Ok:
+        clearLogs();
+        break;
+    case QMessageBox::Cancel:
+        break;
+    default:
+        break;
+    }
+}
+
+void LogsWindow::on_buttonAnalyzeLog_clicked() {
+    LogPlotWindow::openFileToReview();
+}
+
+void LogsWindow::on_buttonCancelDownload_clicked() {
+    stopLogTransfer();
+    ui->progressBar->setValue(0);
+    ui->recievedBytes->setText(QString("Download stopped"));
 }

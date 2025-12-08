@@ -15,6 +15,65 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QFrame" name="frame_2">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Shape::NoFrame</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <item>
+        <widget class="QLabel" name="attitude">
+         <property name="text">
+          <string>R: 0.0°, P: 0.0°, Y: 0.0°</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="speeds">
+         <property name="text">
+          <string>FS: 0.0 m/s, LS: 0.0 m/s, VS: 0.0 m/s</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="altitude">
+         <property name="text">
+          <string>Alt: 0 m</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="logAutoScroll">
+         <property name="text">
+          <string>Log auto scroll</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter">
       <property name="sizePolicy">
@@ -103,76 +162,17 @@
        <property name="widgetResizable">
         <bool>true</bool>
        </property>
-       <widget class="QWidget" name="scrollAreaWidgetContents">
+       <widget class="SerialScanner" name="serialScanner">
         <property name="geometry">
          <rect>
           <x>0</x>
           <y>0</y>
           <width>68</width>
-          <height>564</height>
+          <height>559</height>
          </rect>
         </property>
        </widget>
       </widget>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QFrame" name="frame_2">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::Shape::NoFrame</enum>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_3">
-       <item>
-        <widget class="QLabel" name="attitude">
-         <property name="text">
-          <string>R: 0.0°, P: 0.0°, Y: 0.0°</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="speeds">
-         <property name="text">
-          <string>FS: 0.0 m/s, LS: 0.0 m/s, VS: 0.0 m/s</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="altitude">
-         <property name="text">
-          <string>Alt: 0 m</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer_2">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="logAutoScroll">
-         <property name="text">
-          <string>Log auto scroll</string>
-         </property>
-         <property name="checked">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
      </widget>
     </item>
    </layout>
@@ -183,7 +183,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuParameters_set">
@@ -192,10 +192,23 @@
     </property>
     <addaction name="actionParameters_set"/>
     <addaction name="actionRefresh_configs"/>
-    <addaction name="actionLogs"/>
-    <addaction name="actionTelemetry"/>
+   </widget>
+   <widget class="QMenu" name="menuLogs">
+    <property name="title">
+     <string>Logs</string>
+    </property>
+    <addaction name="actionDownload_Log"/>
+    <addaction name="actionReview_Log"/>
+   </widget>
+   <widget class="QMenu" name="menuTelemetry">
+    <property name="title">
+     <string>Telemetry</string>
+    </property>
+    <addaction name="actionOpen_Telemetry"/>
    </widget>
    <addaction name="menuParameters_set"/>
+   <addaction name="menuTelemetry"/>
+   <addaction name="menuLogs"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionParameters_set">
@@ -208,17 +221,30 @@
     <string>Refresh configs</string>
    </property>
   </action>
-  <action name="actionLogs">
+  <action name="actionDownload_Log">
    <property name="text">
-    <string>Logs</string>
+    <string>Download Log</string>
    </property>
   </action>
-  <action name="actionTelemetry">
+  <action name="actionReview_Log">
    <property name="text">
-    <string>Telemetry</string>
+    <string>Review Log</string>
+   </property>
+  </action>
+  <action name="actionOpen_Telemetry">
+   <property name="text">
+    <string>Open Telemetry</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>SerialScanner</class>
+   <extends>QWidget</extends>
+   <header>serialscanner.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
