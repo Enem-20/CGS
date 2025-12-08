@@ -46,9 +46,12 @@ SerialScanner::SerialScanner(QWidget *parent)
         filterNewInfos(portInfos);
         size_t fitCount = fitToUpdated(portInfos);
         if(fitCount) {
-            ui->serial->clear();
+            ui->devices->clear();
             for(auto& portInfo : _serialInfos) {
-                ui->serial->addItem(portInfo.portName() + " " + portInfo.description(), QVariant::fromValue(portInfo));
+                QListWidgetItem* item = new QListWidgetItem(
+                    (!portInfo.description().isEmpty()) ? portInfo.portName() + " " + portInfo.description() : portInfo.portName());
+
+                ui->devices->addItem(item);
             }
         }
     });
@@ -64,5 +67,11 @@ SerialScanner::~SerialScanner()
 void SerialScanner::on_serial_currentIndexChanged(int index)
 {
 
+}
+
+
+void SerialScanner::on_devices_itemDoubleClicked(QListWidgetItem *item)
+{
+    item->setBackground(QColor::fromRgb(0,255,0));
 }
 

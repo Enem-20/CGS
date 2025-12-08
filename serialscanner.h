@@ -9,6 +9,8 @@ namespace Ui {
 class SerialScanner;
 }
 
+class QListWidgetItem;
+
 class SerialScanner : public QWidget
 {
     Q_OBJECT
@@ -25,6 +27,8 @@ public:
 
 private slots:
     void on_serial_currentIndexChanged(int index);
+    void on_devices_itemDoubleClicked(QListWidgetItem *item);
+
 private:
     Ui::SerialScanner *ui;
 };

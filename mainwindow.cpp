@@ -184,8 +184,8 @@ MainWindow::MainWindow(QWidget *parent)
     , _mavlinkContext(new MavlinkContext())
 {
     ui->setupUi(this);
-    _scanner = new SerialScanner(this);
-    ui->statusPanel->layout()->addWidget(_scanner);
+    _scanner = new SerialScanner(ui->scrollArea);
+    ui->scrollAreaWidgetContents = _scanner;
     _telemetry = new TelemetryWindow(nullptr);
     _parameterList.setWindowTitle("Parameters list");
     _logsWindow.setMavlinkContext(_mavlinkContext);
