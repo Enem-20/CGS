@@ -13,8 +13,8 @@ LogPlotWindow::LogPlotWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    _plotter = new Plotter(ui->plotFrame);
-    ui->plotFrame->layout()->addWidget(_plotter);
+    _plotter = new Plotter(ui->splitterMain);
+    ui->splitterMain->insertWidget(0, _plotter);
     _plotter->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Expanding);
 
     _plotter->createPlotGroup("LogReview");
