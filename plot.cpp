@@ -221,6 +221,7 @@ Plot::Plot(const QString& name,
     _plot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     _plot->legend->setVisible(true);
     _plot->autoAddPlottableToLegend();
+
     connect(_plot, &QCustomPlot::mouseMove, this, [this](QMouseEvent* event){
         double mouseX = _plot->xAxis->pixelToCoord(event->pos().x());
         double mouseY = _plot->yAxis->pixelToCoord(event->pos().y());
@@ -235,7 +236,31 @@ Plot::Plot(const QString& name,
         }
     });
 
+    connect(_plot, &QCustomPlot::mousePress, this, [this](QMouseEvent* event) {
+        if (event->button() == Qt::MouseButton::RightButton) {
+            _plot->setSelectionRectMode(QCP::srmSelect);
+            _selectingArea = true;
+        }
+        else {
+            _plot->setSelectionRectMode(QCP::srmNone);
+            _selectingArea = false;
+        }
+    });
+
+    connect(_plot, &QCustomPlot::mouseRelease, this, [this](QMouseEvent* event) {
+        if (_selectingArea) {
+            if (!_plot->selectionRect()) {
+                return;
+            }
+            QCPRange xRange = _plot->selectionRect()->range( _plot->xAxis);
+            QCPRange yRange = _plot->selectionRect()->range( _plot->yAxis);
+            setXRange(QPair<double, double>{xRange.lower, xRange.upper});
+            setYRange(QPair<double, double>{yRange.lower, yRange.upper});
+        }
+    });
+
     _plot->installEventFilter(this);
+
 }
 
 Plot::~Plot() {

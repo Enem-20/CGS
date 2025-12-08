@@ -28,6 +28,7 @@ private:
     QCPItemStraightLine* _tooltipVLine = nullptr;
     QCPItemStraightLine* _tooltipHLine = nullptr;
     bool _tooltipEnabled = false;
+    bool _selectingArea = false;
 
     QSet<QColor> _usedColors;
     QHash<QString, QCPGraph*> _graphs;
