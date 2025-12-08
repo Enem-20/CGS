@@ -76,7 +76,7 @@ private:
     bool parameterExists(const QString& groupName, const QString& paramName);
     bool parameterExists(const TelemetryGroup& group, const QString& paramName);
     TelemetryGroup& createGroup(const QString& name, uint64_t timestamp);
-    void createParam(TelemetryGroup& group, const QString& name);
+    void createParam(TelemetryGroup& group, const QString& name, bool active = false);
     void plotValue(const QString& groupName, const QString& paramName, double t, double value);
     void handleTelemetrySelectionChanged(QTreeWidgetItem *item, int column);
 

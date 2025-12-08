@@ -43,14 +43,17 @@ TelemetryGroup& TelemetryWindow::createGroup(const QString& groupName, uint64_t 
     return _telemetryMap[groupName];
 }
 
-void TelemetryWindow::createParam(TelemetryGroup& group, const QString& name) {
+void TelemetryWindow::createParam(TelemetryGroup& group, const QString& name, bool active) {
     QTreeWidgetItem* treeItem = new QTreeWidgetItem();
     treeItem->setText(0, name);
     treeItem->setFlags(treeItem->flags() | Qt::ItemIsUserCheckable);
-    treeItem->setCheckState(0, Qt::Checked);
+    treeItem->setCheckState(0, active ? Qt::Checked : Qt::Unchecked);
 
-    Plot* plot = group.plotGroup->createPlot(name, "t", name, {group.timestamp, group.timestamp + 10});
-    plot->createGraph(name);
+    Plot* plot = nullptr;
+    if (active) {
+        plot = group.plotGroup->createPlot(name, "t", name, {group.timestamp, group.timestamp + 10});
+        plot->createGraph(name);
+    }
 
     group.treeItem->addChild(treeItem);
 
@@ -71,7 +74,14 @@ void TelemetryWindow::plotValue(const QString& groupName, const QString& paramNa
     if (_telemetryMap[groupName]._params[paramName].plot == nullptr) {
         return;
     }
-    _plotter->addPoint(groupName, paramName, paramName, QPair<double, double>(t, value));
+
+    uint64_t _t = static_cast<uint64_t>(t);
+    uint64_t _value = static_cast<uint64_t>(value);
+
+    Plot* plot = _telemetryMap[groupName]._params[paramName].plot;
+    plot->addPoint(paramName, QPair<double, double>(t, value));
+    plot->setXRange({_t - 10000, _t});
+    plot->replot();
 }
 
 void TelemetryWindow::handleTelemetrySelectionChanged(QTreeWidgetItem *item, int column) {
@@ -140,8 +150,6 @@ void TelemetryWindow::onGlobalPositionIntUpdated(const mavlink_global_position_i
     plotValue(groupName, "vx", t, static_cast<double>(msg.vx));
     plotValue(groupName, "vy", t, static_cast<double>(msg.vy));
     plotValue(groupName, "vz", t, static_cast<double>(msg.vz));
-
-    _plotter->replot();
 }
 
 void TelemetryWindow::onLocalPositionNEDUpdated(const mavlink_local_position_ned_t& msg) {

@@ -53,18 +53,35 @@ void LogPlotWindow::parseFile(const QString& path) {
 
     const QList<LogFormatData>& data = _parser.getData();
 
+    _rangesCacheX.resize(data.size());
+    _rangesCacheY.resize(data.size());
+
     ui->dataTree->clear();
     for (qsizetype groupIndex = 0; groupIndex < data.size(); groupIndex++) {
-        if (!data[groupIndex].columns.contains("TimeUS")) {
+        qsizetype timeIndex = data[groupIndex].columns.indexOf("TimeUS");
+        if (timeIndex == -1) {
             continue;
         }
+
+        if (data[groupIndex].values[timeIndex].size() == 0) {
+            continue;
+        }
+
+        QPair<double, double> rangeX = getRange(data[groupIndex].values[timeIndex]);
 
         QTreeWidgetItem* topItem = new QTreeWidgetItem();
         topItem->setText(0, data[groupIndex].name);
 
+        _rangesCacheX[groupIndex].resize(data[groupIndex].columns.size());
+        _rangesCacheY[groupIndex].resize(data[groupIndex].columns.size());
+
         for (qsizetype columnIndex = 0; columnIndex < data[groupIndex].columns.size(); columnIndex++) {
-            if (data[groupIndex].columns[columnIndex] == "TimeUS") continue;
-            if (data[groupIndex].values[columnIndex].size() == 0) continue;
+            if (columnIndex == timeIndex || data[groupIndex].values[columnIndex].size() == 0) {
+                continue;
+            }
+
+            _rangesCacheX[groupIndex][columnIndex] = rangeX;
+            _rangesCacheY[groupIndex][columnIndex] = getRange(data[groupIndex].values[columnIndex]);
 
             QTreeWidgetItem* item = new QTreeWidgetItem();
             item->setText(0, data[groupIndex].columns[columnIndex]);
@@ -86,17 +103,10 @@ void LogPlotWindow::resetXRange() {
     double min = std::numeric_limits<double>::max();
     double max = std::numeric_limits<double>::min();
 
-    const QList<LogFormatData>& data = _parser.getData();
-
     for (const ActiveGraphHandle& handle : _activeGraphs) {
-        QVector<double> values = data[handle.groupIndex].values[handle.timeIndex];
-        std::sort(values.begin(), values.end());
-        min = std::min(min, values[0]);
-        max = std::max(max, values.back());
+        min = std::min(min, _rangesCacheX[handle.groupIndex][handle.paramIndex].first);
+        max = std::max(max, _rangesCacheX[handle.groupIndex][handle.paramIndex].second);
     }
-
-    min *= (1.0 / 1.05);
-    max *= 1.05;
 
     if (min >= max) {
         min = 0.0;
@@ -110,20 +120,10 @@ void LogPlotWindow::resetYRange() {
     double min = std::numeric_limits<double>::max();
     double max = std::numeric_limits<double>::min();
 
-    const QList<LogFormatData>& data = _parser.getData();
-
     for (const ActiveGraphHandle& handle : _activeGraphs) {
-        QVector<double> values = data[handle.groupIndex].values[handle.paramIndex];
-        std::sort(values.begin(), values.end());
-        min = std::min(min, values[0]);
-        max = std::max(max, values.back());
+        min = std::min(min, _rangesCacheY[handle.groupIndex][handle.paramIndex].first);
+        max = std::max(max, _rangesCacheY[handle.groupIndex][handle.paramIndex].second);
     }
-
-    min *= (1.0 / 1.05);
-    max *= 1.05;
-
-    min = std::max(min, -100000.0);
-    max = std::min(max, 100000.0);
 
     if (min >= max) {
         min = -1.0;
@@ -131,6 +131,29 @@ void LogPlotWindow::resetYRange() {
     }
 
     _plotter->setYRanges({min, max});
+}
+
+QPair<double, double> LogPlotWindow::getRange(const QVector<double>& _values, double _padding) {
+    double min = std::numeric_limits<double>::max();
+    double max = std::numeric_limits<double>::min();
+
+    QVector<double> values = _values;
+    std::sort(values.begin(), values.end());
+    min = std::min(min, values[0]);
+    max = std::max(max, values.back());
+
+    double range = max - min;
+    double padding = range * _padding;
+
+    min -= padding;
+    max += padding;
+
+    if (min >= max) {
+        min = -1.0;
+        max = 1.0;
+    }
+
+    return QPair<double, double>{min, max};
 }
 
 void LogPlotWindow::on_resetViewButton_clicked() {

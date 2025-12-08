@@ -34,10 +34,14 @@ private:
     Plotter* _plotter;
     DataFlashParser _parser;
     QList<ActiveGraphHandle> _activeGraphs;
+    QVector<QVector<QPair<double, double>>> _rangesCacheX;
+    QVector<QVector<QPair<double, double>>> _rangesCacheY;
 
     void parseFile(const QString& path);
     void resetXRange();
     void resetYRange();
+
+    QPair<double, double> getRange(const QVector<double>& values, double padding = 0.05);
 
 public slots:
     void wrapShow();
