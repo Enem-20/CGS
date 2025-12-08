@@ -323,11 +323,23 @@ void Plot::setXRange(std::pair<int64_t, int64_t> range) {
     _plot->xAxis->setRange(range.first, range.second);
 }
 
+void Plot::setXRange(std::pair<double, double> range) {
+    _plot->xAxis->setRange(range.first, range.second);
+}
+
 void Plot::setYRange(std::pair<int64_t, int64_t> range) {
     _plot->yAxis->setRange(range.first, range.second);
 }
 
+void Plot::setYRange(std::pair<double, double> range) {
+    _plot->yAxis->setRange(range.first, range.second);
+}
+
 void Plot::setRanges(std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange) {
+    setXRange(xRange); setXRange(yRange);
+}
+
+void Plot::setRanges(std::pair<double, double> xRange, std::pair<double, double> yRange) {
     setXRange(xRange); setXRange(yRange);
 }
 

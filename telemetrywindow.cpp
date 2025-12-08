@@ -71,16 +71,51 @@ void TelemetryWindow::plotValue(const QString& groupName, const QString& paramNa
     if (!parameterExists(groupName, paramName)) {
         return;
     }
-    if (_telemetryMap[groupName]._params[paramName].plot == nullptr) {
+    TelemetryGroup& group = _telemetryMap[groupName];
+    TelemetryParam& param = group._params[paramName];
+
+    if (group.timeValues.size() == 0 || param.plot == nullptr) {
         return;
     }
 
-    uint64_t _t = static_cast<uint64_t>(t);
-    uint64_t _value = static_cast<uint64_t>(value);
+    qsizetype startIndex = group.timeValues.size() - 1;
+    while (true) {
+        if (startIndex == 0) {
+            break;
+        }
+        if (static_cast<double>(group.timeValues[startIndex]) < (t - _timeRangeMicros)) {
+            break;
+        }
+        startIndex--;
+    }
 
-    Plot* plot = _telemetryMap[groupName]._params[paramName].plot;
+    float min = std::numeric_limits<float>::infinity();
+    float max = -std::numeric_limits<float>::infinity();
+
+    for (qsizetype i = startIndex; i < param.values.size(); i++) {
+        min = std::min(min, param.values[i]);
+        max = std::max(max, param.values[i]);
+    }
+
+    if (min > max) {
+        min = -1.0f;
+        max = 1.0f;
+    }
+
+    const double minRange = 0.001;
+    double range = static_cast<double>(max) - static_cast<double>(min);
+    if (range < minRange) {
+        double change = minRange - range;
+        range = minRange;
+        min -= change / 2.0;
+        max += change / 2.0;
+    }
+    double padding = static_cast<double>(range) * _rangeYPadding;
+
+    Plot* plot = param.plot;
     plot->addPoint(paramName, QPair<double, double>(t, value));
-    plot->setXRange({_t - 10000, _t});
+    plot->setXRange(QPair<double, double>{t - _timeRangeMicros, t});
+    plot->setYRange(QPair<double, double>{static_cast<double>(min) - padding, static_cast<double>(max) + padding});
     plot->replot();
 }
 
@@ -142,6 +177,7 @@ void TelemetryWindow::onGlobalPositionIntUpdated(const mavlink_global_position_i
     _telemetryGroup._params["vz"].values += static_cast<float>(msg.vz);
 
     const double t = static_cast<double>(msg.time_boot_ms);
+    _telemetryGroup.timeValues.push_back(static_cast<float>(t));
     plotValue(groupName, "alt", t, static_cast<double>(msg.alt));
     plotValue(groupName, "hdg", t, static_cast<double>(msg.hdg));
     plotValue(groupName, "lat", t, static_cast<double>(msg.lat));

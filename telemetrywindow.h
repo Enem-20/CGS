@@ -60,6 +60,7 @@ struct TelemetryGroup {
     QHash<QString, TelemetryParam> _params;
     QTreeWidgetItem* treeItem;
     PlotGroup* plotGroup;
+    QVector<float> timeValues;
 };
 
 class TelemetryWindow : public QWidget
@@ -70,6 +71,8 @@ private:
     QHash<QString, TelemetryGroup> _telemetryMap;
     QString _customTelemetry = "^(\\d+):\\s*([^:]+?)\\s*:\\s*([^:]+?)\\s*:\\s*([-+]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:[eE][-+]?\\d+)?)";
     Ui::TelemetryWindow *ui;
+    double _timeRangeMicros = 10000.0;
+    double _rangeYPadding = 0.05;
 
 private:
     bool groupExists(const QString& groupName);
@@ -79,8 +82,6 @@ private:
     void createParam(TelemetryGroup& group, const QString& name, bool active = false);
     void plotValue(const QString& groupName, const QString& paramName, double t, double value);
     void handleTelemetrySelectionChanged(QTreeWidgetItem *item, int column);
-
-
 
 public:
     explicit TelemetryWindow(QWidget *parent = nullptr);

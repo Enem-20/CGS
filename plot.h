@@ -63,8 +63,11 @@ public slots:
     void addPoint(const QString& graphName,
                   const QPair<double, double>& point);
     void setXRange(std::pair<int64_t, int64_t> range);
+    void setXRange(std::pair<double, double> range);
     void setYRange(std::pair<int64_t, int64_t> range);
+    void setYRange(std::pair<double, double> range);
     void setRanges(std::pair<int64_t, int64_t> xRange, std::pair<int64_t, int64_t> yRange);
+    void setRanges(std::pair<double, double> xRange, std::pair<double, double> yRange);
 
     void setActiveScatterGraph(const QString& name, bool active);
     void setActiveScatterPlot(bool active);
