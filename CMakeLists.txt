@@ -46,6 +46,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         serialmavlinkdevice.h serialmavlinkdevice.cpp
         serialscanner.h serialscanner.cpp serialscanner.ui
         mavlinkcontext.h mavlinkcontext.cpp
+        devicestable.h devicestable.cpp devicestable.ui
+
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET CGS APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

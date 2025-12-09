@@ -19,8 +19,8 @@ void UDPMavlinkDevice::sendRawCommand(const QByteArray& data) {
         _socket->writeDatagram(data, QHostAddress(_autopilotAddr), _autopilotSocket);
 }
 
-UDPMavlinkDevice::UDPMavlinkDevice(quint16 port, const QString& address, QObject *parent)
-    : MavlinkDevice(new QUdpSocket(parent), parent)
+UDPMavlinkDevice::UDPMavlinkDevice(QString name, quint16 port, const QString& address, QObject *parent)
+    : MavlinkDevice(name, new QUdpSocket(parent), parent)
     , _selfPort(port)
     , _serverAddr(checkIP4Addr(address))
 {
@@ -35,6 +35,10 @@ QThread* UDPMavlinkDevice::getSocketThread() {
     return _socket->thread();
 }
 
+QString UDPMavlinkDevice::getType() const {
+    return "UDP";
+}
+
 void UDPMavlinkDevice::readBytes() {
     _waitPacketTimer.stop();
     while(_socket->hasPendingDatagrams()) {
@@ -46,14 +50,19 @@ void UDPMavlinkDevice::readBytes() {
         qint64 bytesRead = _socket->readDatagram(datagram.data(), datagram.size(), &sender, &senderPort);
         _autopilotAddr = sender.toString();
         _autopilotSocket = senderPort;
-        if(bytesRead > 0) {
+        if (bytesRead > 0) {
             mavlink_message_t msg;
             mavlink_status_t status;
             bool isSuccessfulyParsed = false;
-            for(size_t i = 0; i < datagram.size(); ++i) {
+            for (size_t i = 0; i < datagram.size(); ++i) {
                 uint8_t byte = static_cast<uint8_t>(datagram[i]);
                 isSuccessfulyParsed = mavlink_parse_char(MAVLINK_COMM_0, byte, &msg, &status);
-                if(isSuccessfulyParsed) {
+                if (isSuccessfulyParsed) {
+                    if (_sysid != 255 && (_sysid != msg.sysid || _compid != msg.compid)) {
+                        qDebug() << "Sysid or Compid changed in device: " << getName();
+                    }
+                    _sysid = msg.sysid;
+                    _compid = msg.compid;
                     emit messageReceived(msg);
                 }
             }

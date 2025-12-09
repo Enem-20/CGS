@@ -2,7 +2,7 @@
 #define MAVLINKDEVICE_H
 
 #include <queue>
-#include <QObject>
+#include <QThread>
 #include <QTimer>
 
 struct __mavlink_message;
@@ -13,30 +13,54 @@ typedef __mavlink_status mavlink_status_t;
 
 class QIODevice;
 
-class MavlinkDevice : public QObject
-{
+enum class PortState : uint8_t {
+    Uninitialized,
+    Initialized,
+    Opened
+};
+
+class MavlinkDevice : public QThread {
     Q_OBJECT
+
 private:
     QTimer _queueSendTimer;
     QTimer _connectionWatchdog;
     bool _packageisValid = true;
+
 protected:
     std::queue<QByteArray> _messageQueue;
     QByteArray _inputBuffer;
     QTimer _waitPacketTimer;
     QIODevice* _device;
     mavlink_status_t* _mavlinkStatus;
+    QString _name;
+    uint8_t _sysid = 255;
+    uint8_t _compid = 255;
+
 protected:
     virtual void sendRawCommand(const QByteArray& data) = 0;
+
 public:
-    explicit MavlinkDevice(QIODevice* device, QObject *parent = nullptr);
+    explicit MavlinkDevice(QString name, QIODevice* device, QObject *parent = nullptr);
     virtual ~MavlinkDevice();
+
+    uint8_t getSysId() const;
+    uint8_t getCompId() const;
+    QString getName() const;
+    virtual QString getType() const = 0;
 
 signals:
     void messageReceived(mavlink_message_t message);
+    void portStateChanged(PortState state);
+    void portCreated();
+    void portInitialized();
+    void portOpened();
+    void portClosed();
+
 protected slots:
     virtual void readBytes() = 0;
     virtual void waitPacketTimeout();
+
 public slots:
     virtual void sendCommand(const mavlink_message_t& command);
 };

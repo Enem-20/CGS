@@ -69,6 +69,10 @@ MainWindow::MainWindow(QWidget *parent)
     _mavlinkThread.start(QThread::LowPriority);
 
     connect(ui->serialScanner, &SerialScanner::connectSerialDevice, _mavlinkContext, &MavlinkContext::onConnectSerialDevice);
+
+    connect(_mavlinkContext, &MavlinkContext::deviceConnected, ui->devicesTable, &DevicesTable::onDeviceConnected);
+    connect(_mavlinkContext, &MavlinkContext::deviceDisconnected, ui->devicesTable, &DevicesTable::onDeviceDisconnected);
+    connect(_mavlinkContext, &MavlinkContext::deviceStateChanged, ui->devicesTable, &DevicesTable::onDeviceStateChanged);
 }
 
 MainWindow::~MainWindow()

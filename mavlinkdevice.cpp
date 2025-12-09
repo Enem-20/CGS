@@ -3,11 +3,12 @@
 #include <QIODevice>
 #include <common/mavlink.h>
 
-MavlinkDevice::MavlinkDevice(QIODevice* device, QObject *parent)
-    : QObject(parent)
+MavlinkDevice::MavlinkDevice(QString name, QIODevice* device, QObject *parent)
+    : QThread(parent)
     , _queueSendTimer(parent)
     , _connectionWatchdog(parent)
     , _waitPacketTimer(parent)
+    , _name(name)
 {
     _device = device;
     _mavlinkStatus = new mavlink_status_t;
@@ -35,8 +36,19 @@ MavlinkDevice::MavlinkDevice(QIODevice* device, QObject *parent)
 }
 
 MavlinkDevice::~MavlinkDevice() {
-    delete _device;
     delete _mavlinkStatus;
+}
+
+uint8_t MavlinkDevice::getSysId() const {
+    return _sysid;
+}
+
+uint8_t MavlinkDevice::getCompId() const {
+    return _compid;
+}
+
+QString MavlinkDevice::getName() const {
+    return _name;
 }
 
 void MavlinkDevice::readBytes() {

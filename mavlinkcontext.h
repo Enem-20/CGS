@@ -13,13 +13,14 @@
 #include "globalpositionint.h"
 #include "statustext.h"
 #include "mavlinkpacketizer.h"
-
-class MavlinkDevice;
+#include <mavlinkdevice.h>
 
 class MavlinkContext : public QObject {
     Q_OBJECT
 private:
-    MavlinkDevice* _activeDevice;
+    MavlinkDevice* _activeDevice = nullptr;
+    MavlinkDevice* _defaultDevice;
+    QVector<MavlinkDevice*> _connectedDevices;
     Attitude _attitude;
     LocalPositionNED _lPositionNED;
     GlobalPositionInt _globalPositionInt;
@@ -54,13 +55,19 @@ signals:
     void logDataRecieved(const mavlink_log_data_t& logData, const mavlink_message_t& msg);
     void paramAckRecieved(const mavlink_param_ext_ack_t& paramAck);
 
+    void deviceConnected(MavlinkDevice* device);
+    void deviceDisconnected(MavlinkDevice* device);
+    void deviceStateChanged(MavlinkDevice* device, PortState state);
+
 private slots:
     void handleMavlinkMessage(mavlink_message_t msg);
 
 public slots:
     void loadModes();
     void sendCommand(const mavlink_message_t& msg);
+    void onConnectUDPDevice(quint16 port, const QString& address, QObject *parent);
     void onConnectSerialDevice(QSerialPortInfo portInfo);
+    void onMakeDeviceActive(MavlinkDevice* device);
 };
 
 #endif // MAVLINKCONTEXT_H

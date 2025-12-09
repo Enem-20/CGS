@@ -4,16 +4,16 @@
 #include <QColor>
 #include <QJsonDocument>
 
+#include "mavlinkdevice.h"
 #include "udpmavlinkdevice.h"
 #include "serialmavlinkdevice.h"
 
 MavlinkContext::MavlinkContext()
-    : _activeDevice(new UDPMavlinkDevice(14550, "0.0.0.0", this))
-    , _heartBeatTimer(this)
+    : _heartBeatTimer(this)
 {
     _heartBeatTimer.start(1000);
     connect(&_heartBeatTimer, &QTimer::timeout, this, [this](){
-        //if (_activeDevice.getSocketThread() != );
+        //if (_defaultDevice.getSocketThread() != );
     });
 
     connect(&_attitude, &Attitude::orientationUpdated, this, [this](const QVector3D& orientation) {
@@ -67,17 +67,26 @@ MavlinkContext::MavlinkContext()
         emit logUpdated(msg, severity, resultColor);
     });
 
-    if (UDPMavlinkDevice* udpDevice = dynamic_cast<UDPMavlinkDevice*>(_activeDevice)) {
-        connect(udpDevice, &UDPMavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
-        //connect(&udpDevice, &UDPMavlinkDevice::messageReceived, &_packetizer, &MavlinkPacketizer::mavlinkMsgReceived);
-    }
+    _defaultDevice = new UDPMavlinkDevice("0.0.0.0:14550", 14550, "0.0.0.0");
+    _defaultDevice->start();
+    onMakeDeviceActive(_defaultDevice);
+    QTimer::singleShot(0, this, [this] {
+        emit deviceConnected(_defaultDevice);
+    });
+    connect(_defaultDevice, &MavlinkDevice::portStateChanged, this, [this](PortState state) {
+        emit deviceStateChanged(_defaultDevice, state);
+    });
 }
 
 MavlinkContext::~MavlinkContext() {
-    delete _activeDevice;
+    _defaultDevice->deleteLater();
+    for (MavlinkDevice* device : _connectedDevices) {
+        device->deleteLater();
+    }
 }
 
 void MavlinkContext::sendHeartbeat() {
+    if (!_activeDevice) return;
     mavlink_msg_heartbeat_pack(
         255,
         MAV_COMP_ID_MISSIONPLANNER,
@@ -88,14 +97,15 @@ void MavlinkContext::sendHeartbeat() {
         0,
         MAV_STATE_ACTIVE
         );
-    _activeDevice->sendCommand(_heartBeatMsg);
+
+    sendCommand(_heartBeatMsg);
 }
 
 void MavlinkContext::updateMode(uint8_t autopilot, uint8_t type, uint32_t customMode) {
     switch(autopilot) {
     case MAV_AUTOPILOT_ARDUPILOTMEGA:
         QString stringifiedCustomMode = QString::number(customMode);
-        if(_existingModes.contains(stringifiedCustomMode))
+        if (_existingModes.contains(stringifiedCustomMode))
             emit modeUpdated(_existingModes[stringifiedCustomMode].toString());
         else
             emit modeUpdated("UNKNOWN");
@@ -165,7 +175,7 @@ void MavlinkContext::handleMavlinkMessage(mavlink_message_t msg) {
 
 void MavlinkContext::loadModes() {
     QFile file("modes.json");
-    if(!file.open(QIODevice::ReadOnly)) {
+    if (!file.open(QIODevice::ReadOnly)) {
         qWarning() << "Unable to open file: " << "modes.json";
         return;
     }
@@ -173,7 +183,7 @@ void MavlinkContext::loadModes() {
     file.close();
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(data, &error);
-    if(error.error != QJsonParseError::NoError) {
+    if (error.error != QJsonParseError::NoError) {
         qWarning() << "modes.json parse error: " << error.errorString();
         return;
     }
@@ -182,13 +192,52 @@ void MavlinkContext::loadModes() {
 }
 
 void MavlinkContext::sendCommand(const mavlink_message_t& msg) {
-    _activeDevice->sendCommand(msg);
+    if (!_activeDevice) return;
+
+    QMetaObject::invokeMethod(_activeDevice, "sendCommand", Qt::QueuedConnection,
+                              Q_ARG(const mavlink_message_t&, msg));
+    //_activeDevice->sendCommand(msg);
+}
+
+void MavlinkContext::onConnectUDPDevice(quint16 port, const QString& address, QObject *parent) {
+    const QString name = address + ":" + QString::number(port);
+    for (MavlinkDevice* device : _connectedDevices) {
+        if (device->getName() == name) return;
+    }
+
+    UDPMavlinkDevice* device = new UDPMavlinkDevice(name, port, address);
+    device->start();
+    _connectedDevices.push_back(device);
+    emit deviceConnected(device);
+
+    connect(device, &MavlinkDevice::portStateChanged, this, [this, device](PortState state) {
+        emit deviceStateChanged(device, state);
+    });
 }
 
 void MavlinkContext::onConnectSerialDevice(QSerialPortInfo portInfo) {
-    disconnect(_activeDevice, &UDPMavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
-    delete _activeDevice;
-    _activeDevice = new SerialMavlinkDevice(portInfo, this);
-    connect(_activeDevice, &SerialMavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+    const QString name = portInfo.portName();
+    for (MavlinkDevice* device : _connectedDevices) {
+        if (device->getName() == name) return;
+    }
 
+    SerialMavlinkDevice* device = new SerialMavlinkDevice(name, portInfo);
+    device->start();
+    _connectedDevices.push_back(device);
+    emit deviceConnected(device);
+
+    connect(device, &MavlinkDevice::portStateChanged, this, [this, device](PortState state) {
+        emit deviceStateChanged(device, state);
+    });
+
+    onMakeDeviceActive(device);
+}
+
+void MavlinkContext::onMakeDeviceActive(MavlinkDevice* device) {
+    if (!_activeDevice || device == _activeDevice) return;
+    disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+    _activeDevice = device;
+    connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+
+    //connect(&udpDevice, &UDPMavlinkDevice::messageReceived, &_packetizer, &MavlinkPacketizer::mavlinkMsgReceived);
 }
