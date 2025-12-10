@@ -20,7 +20,7 @@ void UDPMavlinkDevice::sendRawCommand(const QByteArray& data) {
 }
 
 UDPMavlinkDevice::UDPMavlinkDevice(QString name, quint16 port, const QString& address, QObject *parent)
-    : MavlinkDevice(name, new QUdpSocket(parent), parent)
+    : MavlinkDevice(name, "UDP", new QUdpSocket(parent), parent)
     , _selfPort(port)
     , _serverAddr(checkIP4Addr(address))
 {
@@ -33,10 +33,6 @@ UDPMavlinkDevice::UDPMavlinkDevice(QString name, quint16 port, const QString& ad
 
 QThread* UDPMavlinkDevice::getSocketThread() {
     return _socket->thread();
-}
-
-QString UDPMavlinkDevice::getType() const {
-    return "UDP";
 }
 
 void UDPMavlinkDevice::readBytes() {

@@ -135,6 +135,7 @@ public slots:
     void handleMavlink(const mavlink_param_ext_ack_t& msg);
 
     void getSingleParamaterRequested(size_t rowIndex);
+    void getSingleParamaterByIdRequested(size_t paramId);
     void setSingleParameterRequested(size_t rowIndex);
     void setSingleParameterRequestedACK(size_t rowIndex);
     void setAllParametersRequested();
@@ -159,6 +160,8 @@ public slots:
     //void onParameterPulled(const mavlink_param_value_t& msg);
     void onParametersPullingCompleted();
     void onHeartbeatReceived();
+
+    void onActiveDeviceChanged(QStringView deviceName);
 };
 
 #endif // PARAMETERLIST_H

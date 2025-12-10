@@ -69,5 +69,10 @@ void SerialScanner::on_serial_currentIndexChanged(int index) {
 
 void SerialScanner::on_devices_itemDoubleClicked(QListWidgetItem *item) {
     item->setBackground(QColor::fromRgb(0,255,0));
-    emit connectSerialDevice(_serialInfos[ui->devices->row(item)]);
+    int32_t baudRate = ui->baudrate->text().toInt();
+    uint8_t dataBits = ui->dataBits->currentText().toUInt();
+    uint8_t stopBits = ui->stopBits->currentText().toUInt();
+    uint8_t parity = ui->parity->currentText().toUInt();
+    uint8_t flowControl = ui->flowControl->currentText().toUInt();
+    emit connectSerialDevice(_serialInfos[ui->devices->row(item)], baudRate, dataBits, stopBits, parity, flowControl);
 }

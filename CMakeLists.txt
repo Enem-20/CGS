@@ -47,6 +47,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         serialscanner.h serialscanner.cpp serialscanner.ui
         mavlinkcontext.h mavlinkcontext.cpp
         devicestable.h devicestable.cpp devicestable.ui
+        defaultdevicewidget.h defaultdevicewidget.cpp defaultdevicewidget.ui
 
 
     )

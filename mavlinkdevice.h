@@ -19,6 +19,13 @@ enum class PortState : uint8_t {
     Opened
 };
 
+struct MavlinkDeviceInfo {
+    QString name;
+    QString type;
+};
+
+static const QString DEFAULT_DEVICE_NAME = "DefaultDevice";
+
 class MavlinkDevice : public QThread {
     Q_OBJECT
 
@@ -34,6 +41,7 @@ protected:
     QIODevice* _device;
     mavlink_status_t* _mavlinkStatus;
     QString _name;
+    QString _type;
     uint8_t _sysid = 255;
     uint8_t _compid = 255;
 
@@ -41,13 +49,13 @@ protected:
     virtual void sendRawCommand(const QByteArray& data) = 0;
 
 public:
-    explicit MavlinkDevice(QString name, QIODevice* device, QObject *parent = nullptr);
+    explicit MavlinkDevice(const QString& name, const QString& type, QIODevice* device, QObject *parent = nullptr);
     virtual ~MavlinkDevice();
 
     uint8_t getSysId() const;
     uint8_t getCompId() const;
-    QString getName() const;
-    virtual QString getType() const = 0;
+    QStringView getName() const;
+    QStringView getType() const;
 
 signals:
     void messageReceived(mavlink_message_t message);

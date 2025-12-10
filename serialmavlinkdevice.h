@@ -24,8 +24,6 @@ protected:
 public:
     explicit SerialMavlinkDevice(QString name, const QSerialPortInfo& portInfo, QObject *parent = nullptr);
 
-    virtual QString getType() const  override;
-
 public slots:
     void openSerial();
     void onDisconnected();

@@ -16,40 +16,50 @@ DevicesTable::~DevicesTable() {
     delete ui;
 }
 
-void DevicesTable::onDeviceConnected(MavlinkDevice* device) {
-    QList<QTableWidgetItem*> items = ui->tableWidget->findItems(device->getName(), Qt::MatchExactly);
+void DevicesTable::onDeviceConnected(QStringView name, QStringView type) {
+    QList<QTableWidgetItem*> items = ui->table->findItems(name.toString(), Qt::MatchExactly);
     if (items.size() > 0) {
         qDebug() << "Device is already added";
         return;
     }
-    ui->tableWidget->insertRow(ui->tableWidget->rowCount());
-    ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 0, new QTableWidgetItem(device->getName()));
-    ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 1, new QTableWidgetItem(device->getType()));
-    ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 2, new QTableWidgetItem("Conecting..."));
+    ui->table->insertRow(ui->table->rowCount());
+    ui->table->setItem(ui->table->rowCount()-1, 0, new QTableWidgetItem(name.toString()));
+    ui->table->setItem(ui->table->rowCount()-1, 1, new QTableWidgetItem(type.toString()));
+    ui->table->setItem(ui->table->rowCount()-1, 2, new QTableWidgetItem("Conecting..."));
 }
 
-void DevicesTable::onDeviceDisconnected(MavlinkDevice* device) {
-
+void DevicesTable::onDeviceDisconnected(QStringView name) {
+    QList<QTableWidgetItem*> items = ui->table->findItems(name.toString(), Qt::MatchExactly);
+    if (items.size() > 0) {
+        qDebug() << "Device doesn't exist";
+        return;
+    }
+    ui->table->removeRow(items[0]->row());
 }
 
-void DevicesTable::onDeviceStateChanged(MavlinkDevice* device, PortState state) {
-    QList<QTableWidgetItem*> items = ui->tableWidget->findItems(device->getName(), Qt::MatchExactly);
+void DevicesTable::onDeviceStateChanged(QStringView name, PortState state) {
+    QList<QTableWidgetItem*> items = ui->table->findItems(name.toString(), Qt::MatchExactly);
     if (items.size() == 0) {
-        qDebug() << "Device soesn't exist";
+        qDebug() << "Device doesn't exist";
         return;
     }
     int32_t row = items[0]->row();
     switch (state) {
     case PortState::Uninitialized:
-        ui->tableWidget->setItem(row, 2, new QTableWidgetItem("Uninitialized"));
+        ui->table->item(row, 2)->setText("Uninitialized");
         break;
     case PortState::Initialized:
-        ui->tableWidget->setItem(row, 2, new QTableWidgetItem("Initialized"));
+        ui->table->item(row, 2)->setText("Initialized");
         break;
     case PortState::Opened:
-        ui->tableWidget->setItem(row, 2, new QTableWidgetItem("Opened"));
+        ui->table->item(row, 2)->setText("Opened");
         break;
     default:
-        ui->tableWidget->setItem(row, 2, new QTableWidgetItem("Error"));
+        ui->table->item(row, 2)->setText("Error");
     }
 }
+
+void DevicesTable::on_table_itemDoubleClicked(QTableWidgetItem *item) {
+    emit makeDeviceActive(ui->table->item(item->row(), 0)->text());
+}
+

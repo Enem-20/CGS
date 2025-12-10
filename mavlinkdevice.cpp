@@ -3,12 +3,13 @@
 #include <QIODevice>
 #include <common/mavlink.h>
 
-MavlinkDevice::MavlinkDevice(QString name, QIODevice* device, QObject *parent)
+MavlinkDevice::MavlinkDevice(const QString& name, const QString& type, QIODevice* device, QObject *parent)
     : QThread(parent)
     , _queueSendTimer(parent)
     , _connectionWatchdog(parent)
     , _waitPacketTimer(parent)
     , _name(name)
+    , _type(type)
 {
     _device = device;
     _mavlinkStatus = new mavlink_status_t;
@@ -47,8 +48,12 @@ uint8_t MavlinkDevice::getCompId() const {
     return _compid;
 }
 
-QString MavlinkDevice::getName() const {
+QStringView MavlinkDevice::getName() const {
     return _name;
+}
+
+QStringView MavlinkDevice::getType() const {
+    return _type;
 }
 
 void MavlinkDevice::readBytes() {

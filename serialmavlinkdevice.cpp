@@ -12,7 +12,7 @@ void SerialMavlinkDevice::sendRawCommand(const QByteArray& data) {
 }
 
 SerialMavlinkDevice::SerialMavlinkDevice(QString name, const QSerialPortInfo& portInfo, QObject *parent)
-    : MavlinkDevice(name, new QSerialPort(portInfo, parent), parent)
+    : MavlinkDevice(name, "Serial", new QSerialPort(portInfo, parent), parent)
     , _connectivityWatchdog(this)
     , _portInfo(portInfo)
 {
@@ -27,14 +27,11 @@ SerialMavlinkDevice::SerialMavlinkDevice(QString name, const QSerialPortInfo& po
     emit portStateChanged(PortState::Uninitialized);
 }
 
-QString SerialMavlinkDevice::getType() const {
-    return "Serial";
-}
-
 void SerialMavlinkDevice::openSerial() {
     _connectivityWatchdog.start(5000);
     if (_port && !_port->isOpen()) {
         qDebug() << "Serial port " << _port->portName() << "isn't open. Reopening...";
+        qDebug() << "Serial port opening with baudrate: " << _port->baudRate();
         emit portClosed();
         emit portStateChanged(PortState::Uninitialized);
         _port->open(QIODevice::ReadWrite);
@@ -65,14 +62,14 @@ void SerialMavlinkDevice::setupPort(const QSerialPortInfo& portInfo, int32_t bau
         _port->setDataBits(QSerialPort::Data8);
     }
 
-    if ((stopBits == 0) && (stopBits < 4))
+    if ((stopBits > 0) && (stopBits < 4))
         _port->setStopBits(static_cast<QSerialPort::StopBits>(stopBits));
     else {
         qWarning() << "[SerialMavlinkDevice;" << objectName() << "], can't setup port with " << stopBits << " stopBits. Using 1 as default";
         _port->setStopBits(QSerialPort::OneStop);
     }
 
-    if ((parity != 1) && (parity > 5)) {
+    if ((parity != 1) && (parity < 6)) {
         _port->setParity(static_cast<QSerialPort::Parity>(parity));
     }
     else {

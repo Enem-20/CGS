@@ -67,20 +67,18 @@ MavlinkContext::MavlinkContext()
         emit logUpdated(msg, severity, resultColor);
     });
 
-    _defaultDevice = new UDPMavlinkDevice("0.0.0.0:14550", 14550, "0.0.0.0");
+    _defaultDevice = new UDPMavlinkDevice(DEFAULT_DEVICE_NAME, 14550, "0.0.0.0");
     _defaultDevice->start();
-    onMakeDeviceActive(_defaultDevice);
+    _activeDevice = _defaultDevice;
+    connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
     QTimer::singleShot(0, this, [this] {
-        emit deviceConnected(_defaultDevice);
-    });
-    connect(_defaultDevice, &MavlinkDevice::portStateChanged, this, [this](PortState state) {
-        emit deviceStateChanged(_defaultDevice, state);
+        emit activeDeviceChanged(DEFAULT_DEVICE_NAME);
     });
 }
 
 MavlinkContext::~MavlinkContext() {
     _defaultDevice->deleteLater();
-    for (MavlinkDevice* device : _connectedDevices) {
+    for (MavlinkDevice* device : _connectedDevices.values()) {
         device->deleteLater();
     }
 }
@@ -201,43 +199,76 @@ void MavlinkContext::sendCommand(const mavlink_message_t& msg) {
 
 void MavlinkContext::onConnectUDPDevice(quint16 port, const QString& address, QObject *parent) {
     const QString name = address + ":" + QString::number(port);
-    for (MavlinkDevice* device : _connectedDevices) {
-        if (device->getName() == name) return;
+    if (_connectedDevices.contains(name)) {
+        return;
     }
 
     UDPMavlinkDevice* device = new UDPMavlinkDevice(name, port, address);
     device->start();
-    _connectedDevices.push_back(device);
-    emit deviceConnected(device);
+    _connectedDevices.insert(device->getName().toString(), device);
+    emit deviceConnected(device->getName(), device->getType());
 
     connect(device, &MavlinkDevice::portStateChanged, this, [this, device](PortState state) {
-        emit deviceStateChanged(device, state);
+        emit deviceStateChanged(device->getName(), state);
     });
 }
 
 void MavlinkContext::onConnectSerialDevice(QSerialPortInfo portInfo) {
     const QString name = portInfo.portName();
-    for (MavlinkDevice* device : _connectedDevices) {
-        if (device->getName() == name) return;
+    if (_connectedDevices.contains(name)) {
+        return;
     }
 
     SerialMavlinkDevice* device = new SerialMavlinkDevice(name, portInfo);
     device->start();
-    _connectedDevices.push_back(device);
-    emit deviceConnected(device);
+    _connectedDevices.insert(device->getName().toString(), device);
+    emit deviceConnected(device->getName(), device->getType());
 
     connect(device, &MavlinkDevice::portStateChanged, this, [this, device](PortState state) {
-        emit deviceStateChanged(device, state);
+        emit deviceStateChanged(device->getName(), state);
     });
 
-    onMakeDeviceActive(device);
+    onMakeDeviceActive(device->getName());
 }
 
-void MavlinkContext::onMakeDeviceActive(MavlinkDevice* device) {
-    if (!_activeDevice || device == _activeDevice) return;
-    disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
-    _activeDevice = device;
-    connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+void MavlinkContext::onConnectSerialDevice(QSerialPortInfo portInfo, int32_t baudRate, uint8_t dataBits, uint8_t stopBits, uint8_t parity, uint8_t flowControl) {
+    const QString name = portInfo.portName();
+    if (_connectedDevices.contains(name)) {
+        return;
+    }
 
+    SerialMavlinkDevice* device = new SerialMavlinkDevice(name, portInfo);
+    device->start();
+    device->setupPort(portInfo, baudRate, dataBits, stopBits, parity, flowControl);
+    _connectedDevices.insert(device->getName().toString(), device);
+    emit deviceConnected(device->getName(), device->getType());
+
+    connect(device, &MavlinkDevice::portStateChanged, this, [this, device](PortState state) {
+        emit deviceStateChanged(device->getName(), state);
+    });
+
+    onMakeDeviceActive(device->getName());
+}
+
+void MavlinkContext::onMakeDeviceActive(QStringView name) {
+    if (name == DEFAULT_DEVICE_NAME) {
+        disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+        _activeDevice = _defaultDevice;
+        connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+        emit activeDeviceChanged(name);
+        return;
+    }
+
+    if (auto it = _connectedDevices.find(name); it != _connectedDevices.end()) {
+        MavlinkDevice* device = it.value();
+        if (device == _activeDevice) return;
+        disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+        _activeDevice = device;
+        connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+        emit activeDeviceChanged(name);
+        return;
+    }
+
+    qDebug() << "Failed to make device active: " << name;
     //connect(&udpDevice, &UDPMavlinkDevice::messageReceived, &_packetizer, &MavlinkPacketizer::mavlinkMsgReceived);
 }

@@ -271,6 +271,17 @@ void ParameterList::getSingleParamaterRequested(size_t rowIndex) {
     }
 }
 
+void ParameterList::getSingleParamaterByIdRequested(size_t paramId) {
+    mavlink_param_request_read_t paramRead = {0};
+    paramRead.target_system = _sysId;
+    paramRead.target_component = _compId;
+    paramRead.param_index = static_cast<int16_t>(paramId);
+    mavlink_message_t msg;
+    mavlink_msg_param_request_read_encode(255, MAV_COMP_ID_MISSIONPLANNER, &msg, &paramRead);
+
+    emit singleParameterRequest(msg);
+}
+
 void ParameterList::setSingleParameterRequested(size_t rowIndex) {
     QTableWidgetItem* paramNameItem = ui->parameterList->item(rowIndex, 0);
     QTableWidgetItem* paramValueItem = ui->parameterList->item(rowIndex, 1);
@@ -336,7 +347,7 @@ void ParameterList::setAllParametersRequested() {
     _segmentMap.reset();
     _pullParameterTimeout.start(1500);
     connect(&_pullParameterTimeout, &QTimer::timeout, this, &ParameterList::repeatParamSetRequest);
-    for(size_t i = 0; i < ui->parameterList->rowCount(); ++i) {
+    for (size_t i = 0; i < ui->parameterList->rowCount(); ++i) {
         setSingleParameterRequested(i);
         //QThread::usleep(1000);
     }
@@ -363,18 +374,29 @@ void ParameterList::repeatParamSetRequest() {
 void ParameterList::repeatParametersRequest() {
     qDebug() << "repeating request parameters";
     QList<size_t> missingSegments = _segmentMap.getMissingSegments();
-    if(!missingSegments.size()) {
+    if (!missingSegments.size()) {
+        qDebug() << "Finished loading parameters from vehilce";
         emit parametersPullingCompleted();
     }
 
-    for(size_t i = 0; i < missingSegments.size(); ++i) {
+    for (size_t i = 0; i < missingSegments.size(); ++i) {
         QList<QTableWidgetItem*> items = ui->parameterList->findItems(QString::number(missingSegments[i]), Qt::MatchExactly);
-        if(items.size()) {
-            QTableWidgetItem* foundItem = items[0];
-            getSingleParamaterRequested(foundItem->row());
-        }
-    }
+        getSingleParamaterByIdRequested(missingSegments[i]);
+        //if (items.size()) {
+        //    QTableWidgetItem* foundItem = items[0];
+        //    getSingleParamaterRequested(foundItem->row());
+        //}
+        //else {
 
+        //}
+        // else {
+        //     mavlink_message_t msg;
+        //     mavlink_msg_param_request_list_pack(255, MAV_COMP_ID_MISSIONPLANNER, &msg, _sysId, MAV_COMP_ID_AUTOPILOT1);
+        //     qDebug() << "Missing some parameter names. Repeating request for all.";
+        //     emit parametersRequest(msg);
+        //     break;
+        // }
+    }
 }
 
 QString ParameterList::serializeParameter(size_t rowIndex) {
@@ -480,14 +502,13 @@ void ParameterList::onHeartbeatReceived() {
     }
 }
 
-void ParameterList::on_syncVehicleWithUs_clicked()
-{
+void ParameterList::on_syncVehicleWithUs_clicked() {
     setAllParametersRequested();
 }
 
 
-void ParameterList::on_syncUsWithVehicle_clicked()
-{
+void ParameterList::on_syncUsWithVehicle_clicked() {
+    ui->parameterList->setRowCount(0);
     _segmentMap.reset();
     connect(&_pullParameterTimeout, &QTimer::timeout, this, &ParameterList::repeatParametersRequest);
     mavlink_message_t msg;
@@ -495,29 +516,27 @@ void ParameterList::on_syncUsWithVehicle_clicked()
     emit parametersRequest(msg);
 }
 
-void ParameterList::on_saveToFileButton_clicked()
-{
+void ParameterList::on_saveToFileButton_clicked() {
     ui->parameterList->sortItems(0);
     saveToFile("/home/szamaro/Projects/CGS/parameterSet.param");
 }
 
 
-void ParameterList::on_loadFromFileButton_clicked()
-{
+void ParameterList::on_loadFromFileButton_clicked() {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), "/home/jana", tr("Image Files (*.parm *.param)"));
     QFile file(fileName);
     file.open(QIODevice::ReadOnly);
-    if(file.isOpen()) {
+    if (file.isOpen()) {
         ui->parameterList->blockSignals(true);
-        while(file.isReadable()) {
+        while (file.isReadable()) {
             QString line = file.readLine();
             line = line.trimmed();
-            if(line.size() < 1) break;
+            if (line.size() < 1) break;
             QStringList list = line.split(QRegularExpression("[\\s,]+"));
 
             Parameter parameter(list[0], list[1]);
             QList<QTableWidgetItem*> items = ui->parameterList->findItems(parameter.name, Qt::MatchExactly);
-            if(!items.empty()) {
+            if (!items.empty()) {
                 ui->parameterList->item(items[0]->row(), 1)->setText(parameter.value);
             }
             else {
@@ -531,14 +550,19 @@ void ParameterList::on_loadFromFileButton_clicked()
     }
 }
 
-
-void ParameterList::on_lineEdit_textChanged(const QString &arg1)
-{
-    if(arg1 == "") { showAll(); return; }
+void ParameterList::on_lineEdit_textChanged(const QString &arg1) {
+    if (arg1 == "") { showAll(); return; }
     hideAll();
     QList<QTableWidgetItem*> matches = ui->parameterList->findItems(arg1, Qt::MatchRegularExpression);
-    for(size_t i = 0; i < matches.size(); ++i) {
+    for (size_t i = 0; i < matches.size(); ++i) {
         ui->parameterList->showRow(matches[i]->row());
     }
 }
 
+void ParameterList::onActiveDeviceChanged(QStringView deviceName) {
+    ui->parameterList->setRowCount(0);
+    _segmentMap.reset();
+    mavlink_message_t msg;
+    mavlink_msg_param_request_list_pack(255, MAV_COMP_ID_MISSIONPLANNER, &msg, _sysId, MAV_COMP_ID_AUTOPILOT1);
+    emit parametersRequest(msg);
+}

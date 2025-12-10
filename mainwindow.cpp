@@ -53,12 +53,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_mavlinkContext, &MavlinkContext::paramAckRecieved, &_parameterList,
         QOverload<const mavlink_param_ext_ack_t&>::of(&ParameterList::handleMavlink)
     );
-    connect(_mavlinkContext, &MavlinkContext::logEntryRecieved, this, [this](const mavlink_log_entry_t& logEntry){
-        _logsWindow.handleMavlink(logEntry);
-    });
-    connect(_mavlinkContext, &MavlinkContext::logDataRecieved, this, [this](const mavlink_log_data_t& logData, const mavlink_message_t& msg){
-        _logsWindow.handleMavlink(logData, msg);
-    });
+    connect(_mavlinkContext, &MavlinkContext::logEntryRecieved, &_logsWindow,
+        QOverload<const mavlink_log_entry_t&>::of(&LogsWindow::handleMavlink)
+    );
+    connect(_mavlinkContext, &MavlinkContext::logDataRecieved, &_logsWindow,
+        QOverload<const mavlink_log_data_t&>::of(&LogsWindow::handleMavlink)
+    );
 
     connect(&_parameterList, &ParameterList::setParameterRequest, this, &MainWindow::setParamRequested);
     connect(this, &MainWindow::setParamRequest, _mavlinkContext, &MavlinkContext::sendCommand);
@@ -68,11 +68,26 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&_mavlinkThread, &QThread::finished, _mavlinkContext, &QObject::deleteLater);
     _mavlinkThread.start(QThread::LowPriority);
 
-    connect(ui->serialScanner, &SerialScanner::connectSerialDevice, _mavlinkContext, &MavlinkContext::onConnectSerialDevice);
+    connect(ui->serialScanner, QOverload<QSerialPortInfo>::of(&SerialScanner::connectSerialDevice), _mavlinkContext,
+            QOverload<QSerialPortInfo>::of(&MavlinkContext::onConnectSerialDevice)
+        );
+
+    connect(ui->serialScanner, QOverload<QSerialPortInfo, int32_t, uint8_t, uint8_t, uint8_t, uint8_t>::of(&SerialScanner::connectSerialDevice), _mavlinkContext,
+            QOverload<QSerialPortInfo, int32_t, uint8_t, uint8_t, uint8_t, uint8_t>::of(&MavlinkContext::onConnectSerialDevice)
+            );
 
     connect(_mavlinkContext, &MavlinkContext::deviceConnected, ui->devicesTable, &DevicesTable::onDeviceConnected);
     connect(_mavlinkContext, &MavlinkContext::deviceDisconnected, ui->devicesTable, &DevicesTable::onDeviceDisconnected);
     connect(_mavlinkContext, &MavlinkContext::deviceStateChanged, ui->devicesTable, &DevicesTable::onDeviceStateChanged);
+
+    ui->devicesContainer->layout()->addWidget(&_defaultDeviceWidget);
+    connect(&_defaultDeviceWidget, &DefaultDeviceWidget::makeDefaultDeviceActive, _mavlinkContext, &MavlinkContext::onMakeDeviceActive);
+    connect(_mavlinkContext, &MavlinkContext::activeDeviceChanged, &_defaultDeviceWidget, &DefaultDeviceWidget::onActiveDeviceChanged);
+
+    connect(ui->devicesTable, &DevicesTable::makeDeviceActive, _mavlinkContext, &MavlinkContext::onMakeDeviceActive);
+
+    connect(_mavlinkContext, &MavlinkContext::activeDeviceChanged, &_logsWindow, &LogsWindow::onActiveDeviceChanged);
+    connect(_mavlinkContext, &MavlinkContext::activeDeviceChanged, &_parameterList, &ParameterList::onActiveDeviceChanged);
 }
 
 MainWindow::~MainWindow()

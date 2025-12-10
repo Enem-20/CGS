@@ -5,6 +5,7 @@
 #include <QTimer>
 #include <QJsonObject>
 #include <QSerialPortInfo>
+#include <QHash>
 
 #include <common/mavlink.h>
 
@@ -20,7 +21,7 @@ class MavlinkContext : public QObject {
 private:
     MavlinkDevice* _activeDevice = nullptr;
     MavlinkDevice* _defaultDevice;
-    QVector<MavlinkDevice*> _connectedDevices;
+    QHash<QString, MavlinkDevice*> _connectedDevices;
     Attitude _attitude;
     LocalPositionNED _lPositionNED;
     GlobalPositionInt _globalPositionInt;
@@ -55,9 +56,10 @@ signals:
     void logDataRecieved(const mavlink_log_data_t& logData, const mavlink_message_t& msg);
     void paramAckRecieved(const mavlink_param_ext_ack_t& paramAck);
 
-    void deviceConnected(MavlinkDevice* device);
-    void deviceDisconnected(MavlinkDevice* device);
-    void deviceStateChanged(MavlinkDevice* device, PortState state);
+    void deviceConnected(QStringView name, QStringView type);
+    void deviceDisconnected(QStringView name);
+    void deviceStateChanged(QStringView name, PortState state);
+    void activeDeviceChanged(QStringView name);
 
 private slots:
     void handleMavlinkMessage(mavlink_message_t msg);
@@ -67,7 +69,8 @@ public slots:
     void sendCommand(const mavlink_message_t& msg);
     void onConnectUDPDevice(quint16 port, const QString& address, QObject *parent);
     void onConnectSerialDevice(QSerialPortInfo portInfo);
-    void onMakeDeviceActive(MavlinkDevice* device);
+    void onConnectSerialDevice(QSerialPortInfo portInfo, int32_t baudRate, uint8_t dataBits, uint8_t stopBits, uint8_t parity, uint8_t flowControl);
+    void onMakeDeviceActive(QStringView name);
 };
 
 #endif // MAVLINKCONTEXT_H

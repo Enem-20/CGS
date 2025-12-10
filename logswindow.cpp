@@ -26,11 +26,13 @@ LogsWindow::~LogsWindow() {
 }
 
 void LogsWindow::setMavlinkContext(MavlinkContext* mavlinkContext) {
-    if(_mavlinkContext)
+    if (_mavlinkContext) {
         disconnect(this, &LogsWindow::sendCommand, _mavlinkContext, &MavlinkContext::sendCommand);
+    }
     _mavlinkContext = mavlinkContext;
-    if(_mavlinkContext)
+    if (_mavlinkContext) {
         connect(this, &LogsWindow::sendCommand, _mavlinkContext, &MavlinkContext::sendCommand);
+    }
 }
 
 void LogsWindow::onAutopilotHeartbeat(const mavlink_message_t& msg) {
@@ -55,9 +57,10 @@ void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
         QString dateTime = timestamp.toString();
 
         QTableWidgetItem* parameterItemName = items[0];
-        ui->tableWidget->setItem(parameterItemName->row(), 0, new QTableWidgetItem(QString::number(msg.id)));
-        ui->tableWidget->setItem(parameterItemName->row(), 1, new QTableWidgetItem(dateTime));
-        ui->tableWidget->setItem(parameterItemName->row(), 2, new QTableWidgetItem(locale.formattedDataSize(msg.size)));
+        int32_t row = parameterItemName->row();
+        ui->tableWidget->setItem(row, 0, new QTableWidgetItem(QString::number(msg.id)));
+        ui->tableWidget->setItem(row, 1, new QTableWidgetItem(dateTime));
+        ui->tableWidget->setItem(row, 2, new QTableWidgetItem(locale.formattedDataSize(msg.size)));
     }
     else {
         QDateTime timestamp;
@@ -71,7 +74,7 @@ void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
     }
 }
 
-void LogsWindow::handleMavlink(const mavlink_log_data_t& logData, const mavlink_message_t& msg) {
+void LogsWindow::handleMavlink(const mavlink_log_data_t& logData) {
     if (_receivingDataId == 0xffffffff || _receivingDataId != logData.id) return;
 
     _logDataBuffer.replace(logData.ofs, logData.count, (const char*)logData.data, logData.count);
@@ -117,6 +120,12 @@ void LogsWindow::handleMavlink(const mavlink_log_data_t& logData, const mavlink_
 
         return;
     }
+}
+
+void LogsWindow::onActiveDeviceChanged(QStringView deviceName) {
+    _logsTimeout.stop();
+    ui->progressBar->setValue(0);
+    ui->recievedBytes->setText(QString("Download stopped"));
 }
 
 void LogsWindow::refreshLogs() {

@@ -33,6 +33,8 @@ private slots:
 
 signals:
     void connectSerialDevice(QSerialPortInfo portInfo);
+    void connectSerialDevice(QSerialPortInfo portInfo, int32_t baudRate, uint8_t dataBits, uint8_t stopBits, uint8_t parity, uint8_t flowControl);
+
 private:
     Ui::SerialScanner *ui;
 };

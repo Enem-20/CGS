@@ -22,8 +22,6 @@ public:
     explicit UDPMavlinkDevice(QString name, quint16 port = 14550, const QString& address = "127.0.0.1", QObject *parent = nullptr);
     QThread* getSocketThread();
 
-    virtual QString getType() const override;
-
 protected slots:
     virtual void readBytes() override;
 };

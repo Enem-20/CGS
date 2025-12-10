@@ -9,6 +9,7 @@
 #include "mavlinkcontext.h"
 #include "parameterlist.h"
 #include "logswindow.h"
+#include "defaultdevicewidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -26,6 +27,7 @@ private:
     MavlinkContext* _mavlinkContext;
     ParameterList _parameterList;
     LogsWindow _logsWindow;
+    DefaultDeviceWidget _defaultDeviceWidget;
     TelemetryWindow* _telemetry;
     QThread _mavlinkThread;
     Ui::MainWindow *ui;

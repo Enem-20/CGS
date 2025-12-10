@@ -2,6 +2,7 @@
 #define DEVICESTABLE_H
 
 #include <QWidget>
+#include <QTableWidget>
 
 #include "mavlinkdevice.h"
 
@@ -9,8 +10,7 @@ namespace Ui {
 class DevicesTable;
 }
 
-class DevicesTable : public QWidget
-{
+class DevicesTable : public QWidget {
     Q_OBJECT
 
 public:
@@ -20,10 +20,16 @@ public:
 private:
     Ui::DevicesTable *ui;
 
+signals:
+    void makeDeviceActive(QStringView deviceName);
+
 public slots:
-    void onDeviceConnected(MavlinkDevice* device);
-    void onDeviceDisconnected(MavlinkDevice* device);
-    void onDeviceStateChanged(MavlinkDevice* device, PortState state);
+    void onDeviceConnected(QStringView name, QStringView type);
+    void onDeviceDisconnected(QStringView name);
+    void onDeviceStateChanged(QStringView name, PortState state);
+
+private slots:
+    void on_table_itemDoubleClicked(QTableWidgetItem *item);
 };
 
 #endif // DEVICESTABLE_H

@@ -63,8 +63,10 @@ public:
     ~LogsWindow();
 
     void setMavlinkContext(MavlinkContext* mavlinkContext);
+
 signals:
     void sendCommand(const mavlink_message_t& msg);
+
 private slots:
     void on_buttonRefresh_clicked();
     void on_buttonDownloadSelected_clicked();
@@ -76,7 +78,8 @@ private slots:
 public slots:
     void onAutopilotHeartbeat(const mavlink_message_t& msg);
     void handleMavlink(const mavlink_log_entry_t& msg);
-    void handleMavlink(const mavlink_log_data_t& logData, const mavlink_message_t& msg);
+    void handleMavlink(const mavlink_log_data_t& logData);
+    void onActiveDeviceChanged(QStringView deviceName);
 
 private:
     Ui::LogsWindow *ui;
@@ -87,8 +90,6 @@ private:
     static constexpr size_t LOGS_MASK_SIZE = 1024 * 1024 * 1024;
     static std::bitset<LOGS_MASK_SIZE> _logsDataMask;
     QTimer _logsTimeout;
-
-    LogPlotWindow _logPlotWindow;
 
     void refreshLogs();
     void downloadLog(uint32_t id);
