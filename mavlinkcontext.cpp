@@ -12,9 +12,7 @@ MavlinkContext::MavlinkContext()
     : _heartBeatTimer(this)
 {
     _heartBeatTimer.start(1000);
-    connect(&_heartBeatTimer, &QTimer::timeout, this, [this](){
-        //if (_defaultDevice.getSocketThread() != );
-    });
+    connect(&_heartBeatTimer, &QTimer::timeout, this, &MavlinkContext::sendHeartbeat);
 
     connect(&_attitude, &Attitude::orientationUpdated, this, [this](const QVector3D& orientation) {
         QString result("R: %1°, P: %2°, Y: %3°");
@@ -171,6 +169,29 @@ void MavlinkContext::handleMavlinkMessage(mavlink_message_t msg) {
     }
 }
 
+void MavlinkContext::requestTelemetry() {
+    if (!_activeDevice) return;
+
+    mavlink_message_t msg;
+
+    mavlink_msg_request_data_stream_pack(
+        255,
+        MAV_COMP_ID_MISSIONPLANNER,
+        &msg,
+        1,
+        0,
+        MAV_DATA_STREAM_ALL,
+        4,
+        1
+    );
+
+    sendCommand(msg);
+}
+
+void MavlinkContext::onParameterListDownloadCompleted() {
+    emit parameterListDownloadCompleted();
+}
+
 void MavlinkContext::loadModes() {
     QFile file("modes.json");
     if (!file.open(QIODevice::ReadOnly)) {
@@ -255,6 +276,7 @@ void MavlinkContext::onMakeDeviceActive(QStringView name) {
         disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
         _activeDevice = _defaultDevice;
         connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+        QTimer::singleShot(0, this, &MavlinkContext::requestTelemetry);
         emit activeDeviceChanged(name);
         return;
     }
@@ -265,6 +287,14 @@ void MavlinkContext::onMakeDeviceActive(QStringView name) {
         disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
         _activeDevice = device;
         connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+
+        connect(_activeDevice, &MavlinkDevice::portOpened, this, [this](){
+            _parameterListDownloadedConnection = connect(this, &MavlinkContext::parameterListDownloadCompleted, this, [this](){
+                //onParameterListDownloadCompleted();
+                requestTelemetry();
+                disconnect(_parameterListDownloadedConnection);
+            });
+        });
         emit activeDeviceChanged(name);
         return;
     }

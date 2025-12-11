@@ -30,7 +30,7 @@ private:
     mavlink_message_t _heartBeatMsg;
     QJsonObject _existingModes;
     MavlinkPacketizer _packetizer;
-
+    QMetaObject::Connection _parameterListDownloadedConnection;
 public:
     MavlinkContext();
     ~MavlinkContext();
@@ -40,6 +40,7 @@ private:
     void updateMode(uint8_t autopilot, uint8_t type, uint32_t customMode);
 
 signals:
+    void parameterListDownloadCompleted();
     void globalPositionIntUpdated(const mavlink_global_position_int_t& msg);
     void heartbeatMessageReceived(const mavlink_message_t& heartbeat);
     void heartbeatUpdated(const mavlink_heartbeat_t& heartbeat);
@@ -63,8 +64,9 @@ signals:
 
 private slots:
     void handleMavlinkMessage(mavlink_message_t msg);
-
+    void requestTelemetry();
 public slots:
+    void onParameterListDownloadCompleted();
     void loadModes();
     void sendCommand(const mavlink_message_t& msg);
     void onConnectUDPDevice(quint16 port, const QString& address, QObject *parent);

@@ -380,22 +380,7 @@ void ParameterList::repeatParametersRequest() {
     }
 
     for (size_t i = 0; i < missingSegments.size(); ++i) {
-        QList<QTableWidgetItem*> items = ui->parameterList->findItems(QString::number(missingSegments[i]), Qt::MatchExactly);
         getSingleParamaterByIdRequested(missingSegments[i]);
-        //if (items.size()) {
-        //    QTableWidgetItem* foundItem = items[0];
-        //    getSingleParamaterRequested(foundItem->row());
-        //}
-        //else {
-
-        //}
-        // else {
-        //     mavlink_message_t msg;
-        //     mavlink_msg_param_request_list_pack(255, MAV_COMP_ID_MISSIONPLANNER, &msg, _sysId, MAV_COMP_ID_AUTOPILOT1);
-        //     qDebug() << "Missing some parameter names. Repeating request for all.";
-        //     emit parametersRequest(msg);
-        //     break;
-        // }
     }
 }
 

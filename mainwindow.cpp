@@ -88,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(_mavlinkContext, &MavlinkContext::activeDeviceChanged, &_logsWindow, &LogsWindow::onActiveDeviceChanged);
     connect(_mavlinkContext, &MavlinkContext::activeDeviceChanged, &_parameterList, &ParameterList::onActiveDeviceChanged);
+    connect(&_parameterList, &ParameterList::parametersPullingCompleted, _mavlinkContext, &MavlinkContext::onParameterListDownloadCompleted);
 }
 
 MainWindow::~MainWindow()
