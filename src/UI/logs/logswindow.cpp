@@ -94,6 +94,7 @@ void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
     }
 
     if (_logEntries.size() == msg.num_logs) {
+        ui->tableWidget->sortItems(0);
         _logEntriesTimeout.stop();
         changeState(State::Idle);
         qDebug() << "Finished recieving log entries: " << _logEntries.size();
