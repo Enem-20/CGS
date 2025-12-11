@@ -17,7 +17,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     _telemetry = new TelemetryWindow(nullptr);
     _parameterList.setWindowTitle("Parameters list");
-    _logsWindow.setMavlinkContext(_mavlinkContext);
     _mavlinkContext->moveToThread(&_mavlinkThread);
     connect(&_mavlinkThread, &QThread::started, _mavlinkContext, &MavlinkContext::loadModes);
     connect(_mavlinkContext, &MavlinkContext::modeUpdated, ui->modeValue, &QLabel::setText);
@@ -89,6 +88,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_mavlinkContext, &MavlinkContext::activeDeviceChanged, &_logsWindow, &LogsWindow::onActiveDeviceChanged);
     connect(_mavlinkContext, &MavlinkContext::activeDeviceChanged, &_parameterList, &ParameterList::onActiveDeviceChanged);
     connect(&_parameterList, &ParameterList::parametersPullingCompleted, _mavlinkContext, &MavlinkContext::onParameterListDownloadCompleted);
+
+    connect(&_logsWindow, &LogsWindow::sendCommand, _mavlinkContext, &MavlinkContext::sendCommand);
 }
 
 MainWindow::~MainWindow()

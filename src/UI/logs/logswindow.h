@@ -1,17 +1,15 @@
 #ifndef LOGSWINDOW_H
 #define LOGSWINDOW_H
 
+#include <QWidget>
+
 #include <QFile>
 #include <QDataStream>
 #include <QByteArray>
 #include <QTimer>
 #include <QDateTime>
 
-#include <QWidget>
-
 #include <bitset>
-
-#include "logplotwindow.h"
 
 namespace Ui {
 class LogsWindow;
@@ -49,20 +47,16 @@ struct LogEntry {
     uint32_t size;
 };
 
-class LogsWindow : public QWidget
-{
+class LogsWindow : public QWidget {
     Q_OBJECT
 private:
     uint8_t _sysId = 0;
     uint8_t _compId = 0;
-    MavlinkContext* _mavlinkContext = nullptr;
     QDateTime _downloadStartTimestamp;
 
 public:
     explicit LogsWindow(QWidget *parent = nullptr);
     ~LogsWindow();
-
-    void setMavlinkContext(MavlinkContext* mavlinkContext);
 
 signals:
     void sendCommand(const mavlink_message_t& msg);
@@ -90,6 +84,10 @@ private:
     static constexpr size_t LOGS_MASK_SIZE = 1024 * 1024 * 1024;
     static std::bitset<LOGS_MASK_SIZE> _logsDataMask;
     QTimer _logsTimeout;
+    static const uint32_t _logsTimeoutMillis = 2000;
+    QTimer _logEntriesTimeout;
+    static const uint32_t _logEntriesTimeoutMillis = 2000;
+    bool _downloadingLog = false;
 
     void refreshLogs();
     void downloadLog(uint32_t id);

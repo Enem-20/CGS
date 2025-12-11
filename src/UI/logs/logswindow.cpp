@@ -1,12 +1,13 @@
 #include "logswindow.h"
 #include "ui_logswindow.h"
-#include "UI/mainwindow.h"
 
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QFileDialog>
 
 #include <common/mavlink.h>
+
+#include "logplotwindow.h"
 
 std::bitset<LogsWindow::LOGS_MASK_SIZE> LogsWindow::_logsDataMask;
 
@@ -25,23 +26,19 @@ LogsWindow::~LogsWindow() {
     delete ui;
 }
 
-void LogsWindow::setMavlinkContext(MavlinkContext* mavlinkContext) {
-    if (_mavlinkContext) {
-        disconnect(this, &LogsWindow::sendCommand, _mavlinkContext, &MavlinkContext::sendCommand);
-    }
-    _mavlinkContext = mavlinkContext;
-    if (_mavlinkContext) {
-        connect(this, &LogsWindow::sendCommand, _mavlinkContext, &MavlinkContext::sendCommand);
-    }
-}
-
 void LogsWindow::onAutopilotHeartbeat(const mavlink_message_t& msg) {
     _sysId = msg.sysid;
     _compId = msg.compid;
 }
 
 void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
-    if (msg.id == 0) return;
+    if (msg.id == 0) {
+        _logEntriesTimeout.stop();
+        qDebug() << "Vihecle has no logs";
+        return;
+    }
+
+    _logEntriesTimeout.start(2000);
 
     LogEntry entry;
     entry.id = msg.id;
@@ -71,6 +68,10 @@ void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
         ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 0, new QTableWidgetItem(QString::number(msg.id)));
         ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 1, new QTableWidgetItem(dateTime));
         ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 2, new QTableWidgetItem(locale.formattedDataSize(msg.size)));
+    }
+
+    if (_logEntries.size()) {
+
     }
 }
 
@@ -132,8 +133,6 @@ void LogsWindow::refreshLogs() {
     ui->tableWidget->setRowCount(0);
     _logEntries.clear();
 
-    if (!_mavlinkContext) return;
-
     mavlink_message_t command;
     mavlink_msg_log_request_list_pack(
         255,
@@ -149,11 +148,29 @@ void LogsWindow::refreshLogs() {
 }
 
 void LogsWindow::downloadLog(uint32_t id) {
-    if (!_mavlinkContext) return;
+    if (id < 1 || id > _logEntries.size()) {
+        qWarning() << "Requested log download outside of valid range.";
+        return;
+    }
 
-    if (_logDataBuffer.size() > 0) return;
+    if (_downloadingLog) {
+        qWarning() << "Download log requested before last one has finished.";
+        return;
+    }
 
-    if (id < 1 || id > _logEntries.size()) return;
+    LogEntry* entry = nullptr;
+    for (qsizetype entryIndex = 0; entryIndex < _logEntries.size(); entryIndex++) {
+        if (_logEntries[entryIndex].id == id) {
+
+            break;
+        }
+    }
+    if (!entry) {
+        qWarning() << "Failed to find log entry with specified id: " << id;
+        return;
+    }
+
+    _downloadingLog = true;
 
     ui->buttonRefresh->setDisabled(true);
     ui->buttonDownloadSelected->setDisabled(true);
@@ -161,11 +178,9 @@ void LogsWindow::downloadLog(uint32_t id) {
     ui->buttonClearLogs->setDisabled(true);
     ui->buttonAnalyzeLog->setDisabled(true);
 
-    //_logsDataMask = new std::bitset<LOGS_MASK_SIZE>;
-
     _receivingDataId = id;
     _dataReceivedBytes = 0;
-    _logDataBuffer.resize(_logEntries[id - 1].size);
+    _logDataBuffer.resize(entry->size);
 
     mavlink_message_t command;
     mavlink_msg_log_request_data_pack(
@@ -176,7 +191,7 @@ void LogsWindow::downloadLog(uint32_t id) {
         _compId,
         id,
         0,
-        _logEntries[id - 1].size
+        entry->size
         );
 
     emit sendCommand(command);
@@ -189,8 +204,6 @@ void LogsWindow::downloadLog(uint32_t id) {
 void LogsWindow::clearLogs() {
     ui->tableWidget->setRowCount(0);
     _logEntries.clear();
-
-    if (!_mavlinkContext) return;
 
     mavlink_message_t command;
     mavlink_msg_log_erase_pack(
@@ -210,8 +223,6 @@ void LogsWindow::stopLogTransfer() {
     _logDataBuffer.resize(0);
     _logsDataMask.reset();
 
-    if (!_mavlinkContext) return;
-
     mavlink_message_t command;
     mavlink_msg_log_request_end_pack(
         255,
@@ -228,6 +239,8 @@ void LogsWindow::stopLogTransfer() {
     ui->buttonDownloadLast->setDisabled(false);
     ui->buttonClearLogs->setDisabled(false);
     ui->buttonAnalyzeLog->setDisabled(false);
+
+    _downloadingLog = false;
 }
 
 void LogsWindow::requestMissingLogPackets() {

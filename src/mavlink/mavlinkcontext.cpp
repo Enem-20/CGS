@@ -178,7 +178,7 @@ void MavlinkContext::requestTelemetry() {
         255,
         MAV_COMP_ID_MISSIONPLANNER,
         &msg,
-        1,
+        _activeDevice->getSysId(),
         0,
         MAV_DATA_STREAM_ALL,
         4,
