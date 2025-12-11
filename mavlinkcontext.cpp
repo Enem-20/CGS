@@ -276,7 +276,13 @@ void MavlinkContext::onMakeDeviceActive(QStringView name) {
         disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
         _activeDevice = _defaultDevice;
         connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
-        QTimer::singleShot(0, this, &MavlinkContext::requestTelemetry);
+        connect(_activeDevice, &MavlinkDevice::portOpened, this, [this](){
+            _parameterListDownloadedConnection = connect(this, &MavlinkContext::parameterListDownloadCompleted, this, [this](){
+                //onParameterListDownloadCompleted();
+                requestTelemetry();
+                disconnect(_parameterListDownloadedConnection);
+            });
+        });
         emit activeDeviceChanged(name);
         return;
     }
