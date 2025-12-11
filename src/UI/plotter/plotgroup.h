@@ -56,6 +56,8 @@ public slots:
     void setActiveScatterGraph(const QString& plotName, const QString& name, bool active);
     void setActiveScatterPlot(const QString& plotName, bool active);
     void setActiveScatterGroup(bool active);
+
+    void showModeAreas(const QString& plotName, const QVector<double>& values, const QVector<double>& times);
 };
 
 #endif // PLOTGROUP_H

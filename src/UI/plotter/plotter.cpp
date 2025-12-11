@@ -291,3 +291,12 @@ void Plotter::setActiveScatterPlotter(bool active) {
         group->setActiveScatterGroup(active);
     }
 }
+
+void Plotter::showModeAreas(const QString& groupName, const QString& plotName, const QVector<double>& values, const QVector<double>& times) {
+    auto groupIt = _plotGroups.find(groupName);
+    if(groupIt != _plotGroups.end()) {
+        groupIt.value()->showModeAreas(plotName, values, times);
+        return;
+    }
+    qWarning() << "Failed to show mode areas for group " << groupName << ", plot " << plotName << ": group missing";
+}

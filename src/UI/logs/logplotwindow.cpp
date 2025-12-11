@@ -102,6 +102,13 @@ void LogPlotWindow::parseFile(const QString& path) {
 
         ui->dataTree->addTopLevelItem(topItem);
     }
+
+    for (const LogFormatData& entry : data) {
+        if (entry.name == "MODE") {
+            _plotter->showModeAreas("LogReview", "LogPlot", entry.values[2], entry.values[0]);
+            break;
+        }
+    }
 }
 
 void LogPlotWindow::resetXRange() {

@@ -22,6 +22,11 @@ struct LogParameterData {
     float defaultValue;
 };
 
+struct LogModesData {
+    QString name;
+    float time;
+};
+
 class DataFlashParser : public QObject {
     Q_OBJECT
 
@@ -60,6 +65,13 @@ class DataFlashParser : public QObject {
         float defaultValue;
     };
 
+    struct __attribute__((packed)) LogMode {
+        uint64_t timeUs;
+        char name[16];
+        float value;
+        float defaultValue;
+    };
+
 #pragma pack(pop)
 
     enum class DataFlashMessage {
@@ -80,6 +92,7 @@ protected:
     uint32_t _cursor;
     QList<LogFormatData> _logData;
     QList<LogParameterData> _logParameters;
+    double _maxTimeValueSeconds;
 
     void processFileContent();
 

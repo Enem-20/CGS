@@ -20,6 +20,7 @@ void DataFlashParser::parseFile(QString path) {
 
 void DataFlashParser::processFileContent() {
     _cursor = 0;
+    _maxTimeValueSeconds = 0.0;
     _logData.clear();
     _logParameters.clear();
 
@@ -174,6 +175,10 @@ void DataFlashParser::processFileContent() {
                     }
 
                     data.values[valueIndex].push_back(value);
+
+                    if (data.units.size() > 0 && data.units[valueIndex] == "s" && data.columns[valueIndex] == "TimeUS") {
+                        _maxTimeValueSeconds = std::max(_maxTimeValueSeconds, value);
+                    }
                 }
             }
         }
@@ -182,6 +187,16 @@ void DataFlashParser::processFileContent() {
 
         if (_cursor > _logFileContent.size()) {
             qDebug() << "Cursor went further then it should.";
+            break;
+        }
+    }
+
+    for (LogFormatData& entry : _logData) {
+        if (entry.name == "MODE") {
+            entry.values[0].push_back(_maxTimeValueSeconds);
+            entry.values[1].push_back(0.0);
+            entry.values[2].push_back(0.0);
+            entry.values[3].push_back(0.0);
             break;
         }
     }
@@ -238,7 +253,7 @@ double DataFlashParser::parseTypeAsDouble(char typeChar) {
 
 double DataFlashParser::getMultiplier(char multiplierChar) const {
     switch (multiplierChar) {
-        case '-': return 0.0;
+        case '-': return 1.0;
         case '?': return 1.0;
         case '2': return 1e2;
         case '1': return 1e1;

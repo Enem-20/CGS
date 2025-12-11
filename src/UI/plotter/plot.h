@@ -34,6 +34,10 @@ private:
     QSet<QColor> _usedColors;
     QHash<QString, QCPGraph*> _graphs;
     QCustomPlot* _plot;
+
+    QVector<QCPItemRect*> _modeAreas;
+    QHash<uint8_t, QColor> _modeColorMap;
+
 private:
     void setupTooltip();
     void updateTooltip(double mouseX, double mouseY);
@@ -73,6 +77,8 @@ public slots:
 
     void setActiveScatterGraph(const QString& name, bool active);
     void setActiveScatterPlot(bool active);
+
+    void showModeAreas(const QVector<double>& values, const QVector<double>& times);
 };
 
 #endif // PLOT_H

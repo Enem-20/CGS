@@ -388,3 +388,20 @@ void Plot::setActiveScatterPlot(bool active) {
             graph->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 6));
     }
 }
+
+void Plot::showModeAreas(const QVector<double>& values, const QVector<double>& times) {
+    for (qsizetype i = 0; i < times.size() - 1; i++) {
+        QCPItemRect* rect = new QCPItemRect(_plot);
+        rect->topLeft->setCoords({times[i], 10000000.0});
+        rect->bottomRight->setCoords({times[i + 1], -10000000.0});
+        uint8_t mode = static_cast<uint8_t>(values[i]);
+        if (!_modeColorMap.contains(mode)) {
+            QColor newColor = generateColor();
+            newColor.setAlpha(20);
+            _modeColorMap.insert(mode, newColor);
+        }
+        QColor fillColor = _modeColorMap.find(mode).value();
+        rect->setBrush(fillColor);
+        rect->setPen(Qt::NoPen);
+    }
+}

@@ -67,6 +67,9 @@ public slots:
     void setActiveScatterPlot(const QString& groupName, const QString& plotName, bool active);
     void setActiveScatterGroup(const QString& groupName, bool active);
     void setActiveScatterPlotter(bool active);
+
+    void showModeAreas(const QString& groupName, const QString& plotName, const QVector<double>& values, const QVector<double>& times);
+
 };
 
 #endif // PLOTTER_H
