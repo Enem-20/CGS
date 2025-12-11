@@ -8,6 +8,7 @@
 
 #include "telemetry/telemetrywindow.h"
 #include "deviceManagement/serialscanner.h"
+#include "UI/logs/logplotwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

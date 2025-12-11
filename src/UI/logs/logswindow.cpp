@@ -5,6 +5,8 @@
 #include <QStandardPaths>
 #include <QFileDialog>
 
+#include <algorithm>
+
 #include <common/mavlink.h>
 
 #include "logplotwindow.h"
@@ -19,7 +21,8 @@ LogsWindow::LogsWindow(QWidget *parent)
 
     qRegisterMetaType<mavlink_message_t>("mavlink_message_t");
 
-    connect(&_logsTimeout, &QTimer::timeout, this, &LogsWindow::requestMissingLogPackets);
+    connect(&_logEntriesTimeout, &QTimer::timeout, this, &LogsWindow::requestMissingLogEntries);
+    connect(&_logDataTimeout, &QTimer::timeout, this, &LogsWindow::requestMissingLogPackets);
 }
 
 LogsWindow::~LogsWindow() {
@@ -32,19 +35,33 @@ void LogsWindow::onAutopilotHeartbeat(const mavlink_message_t& msg) {
 }
 
 void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
+    if (_state != State::FetchingLogsList) {
+        qDebug() << "Unexpected log entry recieved";
+        return;
+    }
+
     if (msg.id == 0) {
         _logEntriesTimeout.stop();
+        changeState(State::Idle);
         qDebug() << "Vihecle has no logs";
         return;
     }
 
-    _logEntriesTimeout.start(2000);
+    _logEntriesTimeout.start(_logEntriesTimeoutMillis);
 
     LogEntry entry;
     entry.id = msg.id;
     entry.timestamp = msg.time_utc;
     entry.size = msg.size;
-    _logEntries.push_back(entry);
+
+    if (auto it = std::find_if(_logEntries.begin(), _logEntries.end(), [msg](const LogEntry& entry) {
+            return msg.id == entry.id;
+        }); it != _logEntries.end()) {
+        *it = entry;
+    }
+    else {
+        _logEntries.push_back(entry);
+    }
 
     QLocale locale = this->locale();
     QList<QTableWidgetItem*> items = ui->tableWidget->findItems(QString(msg.id), Qt::MatchExactly);
@@ -53,11 +70,10 @@ void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
         timestamp.setSecsSinceEpoch(msg.time_utc);
         QString dateTime = timestamp.toString();
 
-        QTableWidgetItem* parameterItemName = items[0];
-        int32_t row = parameterItemName->row();
-        ui->tableWidget->setItem(row, 0, new QTableWidgetItem(QString::number(msg.id)));
-        ui->tableWidget->setItem(row, 1, new QTableWidgetItem(dateTime));
-        ui->tableWidget->setItem(row, 2, new QTableWidgetItem(locale.formattedDataSize(msg.size)));
+        int32_t row = items[0]->row();
+        ui->tableWidget->item(row, 0)->setText(QString::number(msg.id));
+        ui->tableWidget->item(row, 1)->setText(dateTime);
+        ui->tableWidget->item(row, 2)->setText(locale.formattedDataSize(msg.size));
     }
     else {
         QDateTime timestamp;
@@ -70,13 +86,37 @@ void LogsWindow::handleMavlink(const mavlink_log_entry_t& msg) {
         ui->tableWidget->setItem(ui->tableWidget->rowCount()-1, 2, new QTableWidgetItem(locale.formattedDataSize(msg.size)));
     }
 
-    if (_logEntries.size()) {
+    if (_logEntries.size() > msg.num_logs) {
+        _logEntriesTimeout.stop();
+        changeState(State::Idle);
+        qWarning() << "Log entry reports less logs then already recieved: " << _logEntries.size() << "/" << msg.num_logs;
+        return;
+    }
 
+    if (_logEntries.size() == msg.num_logs) {
+        _logEntriesTimeout.stop();
+        changeState(State::Idle);
+        qDebug() << "Finished recieving log entries: " << _logEntries.size();
     }
 }
 
 void LogsWindow::handleMavlink(const mavlink_log_data_t& logData) {
-    if (_receivingDataId == 0xffffffff || _receivingDataId != logData.id) return;
+    if (_state != State::DownloadingLog) {
+        qDebug() << "Unexpected log data recieved";
+        return;
+    }
+
+    if (logData.id == 0 || logData.id > _logEntries.size()) {
+        qDebug() << "Received invalid log data id: " << logData.id;
+        return;
+    }
+
+    if (_receivingLogId != logData.id) {
+        qDebug() << "Received log data with wrong id: " << logData.id;
+        return;
+    }
+
+    _logDataTimeout.start(_logDataTimeoutMillis);
 
     _logDataBuffer.replace(logData.ofs, logData.count, (const char*)logData.data, logData.count);
 
@@ -85,7 +125,7 @@ void LogsWindow::handleMavlink(const mavlink_log_data_t& logData) {
     }
 
     _dataReceivedBytes += logData.count;
-    ui->progressBar->setValue(((float)_dataReceivedBytes * 100.0f) / (float)_logDataBuffer.size());
+    ui->progressBar->setValue((static_cast<float>(_dataReceivedBytes) * 100.0f) / static_cast<float>(_logDataBuffer.size()));
     ui->recievedBytes->setText(QString::number(_dataReceivedBytes) +"/" + QString::number(_logDataBuffer.size()) + " bytes");
 
     QDateTime currentTime = QDateTime::currentDateTime();
@@ -94,19 +134,24 @@ void LogsWindow::handleMavlink(const mavlink_log_data_t& logData) {
     QString rateText = this->locale().formattedDataSize(static_cast<double>(_dataReceivedBytes) / downloadTime);
     ui->downloadTime->setText(timeText + " s (" + rateText + "/s)");
 
-    _logsTimeout.start(5000);
-
     if (_dataReceivedBytes > _logDataBuffer.size()) {
-        throw std::exception();
+        qWarning() << "Recieved more log data than expected";
     }
 
     if (logData.count == 0 || _dataReceivedBytes == _logDataBuffer.size()) {
-        _logsTimeout.stop();
+        _logDataTimeout.stop();
 
         ui->progressBar->setValue(100);
 
         QString downloadsPath = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-        QString filePath = downloadsPath + "/log_"+ QString::number(_logEntries[_receivingDataId - 1].timestamp) +".bin";
+        QString filePath = "";
+        if (LogEntry* entry = getLogEntry(_receivingLogId)) {
+            filePath = downloadsPath + "/log_"+ QString::number(entry->timestamp) +".bin";
+        }
+        else {
+            qWarning() << "Failed to get log entry with id: " << _receivingLogId;
+            filePath = downloadsPath + "/log_.bin";
+        }
 
         QFile file(filePath);
         if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
@@ -114,7 +159,7 @@ void LogsWindow::handleMavlink(const mavlink_log_data_t& logData) {
             file.close();
             qDebug() << "Successfully wrote" << bytesWritten << "bytes to" << filePath;
         } else {
-            qDebug() << "Error opening file:" << file.errorString();
+            qWarning() << "Failed to save log. Error opening file:" << file.errorString();
         }
 
         stopLogTransfer();
@@ -124,12 +169,26 @@ void LogsWindow::handleMavlink(const mavlink_log_data_t& logData) {
 }
 
 void LogsWindow::onActiveDeviceChanged(QStringView deviceName) {
-    _logsTimeout.stop();
+    _logEntriesTimeout.stop();
+    _logDataTimeout.stop();
+    if (_state == State::DownloadingLog) {
+        stopLogTransfer();
+    }
+    changeState(State::Idle);
     ui->progressBar->setValue(0);
     ui->recievedBytes->setText(QString("Download stopped"));
 }
 
 void LogsWindow::refreshLogs() {
+    if (_state != State::Idle) {
+        qWarning() << "Trying to refresh log while busy";
+        return;
+    }
+
+    qDebug() << "Logs list requested";
+
+    changeState(State::FetchingLogsList);
+
     ui->tableWidget->setRowCount(0);
     _logEntries.clear();
 
@@ -145,32 +204,30 @@ void LogsWindow::refreshLogs() {
     );
 
     emit sendCommand(command);
+
+    _logEntriesTimeout.start(_logEntriesTimeoutMillis);
 }
 
 void LogsWindow::downloadLog(uint32_t id) {
-    if (id < 1 || id > _logEntries.size()) {
-        qWarning() << "Requested log download outside of valid range.";
+    if (_state != State::Idle) {
+        qWarning() << "Can not download log, while not in idle state";
         return;
     }
 
-    if (_downloadingLog) {
-        qWarning() << "Download log requested before last one has finished.";
+    if (id == 0 || id > _logEntries.size()) {
+        qWarning() << "Requested log download for invalid id: " << id;
         return;
     }
 
-    LogEntry* entry = nullptr;
-    for (qsizetype entryIndex = 0; entryIndex < _logEntries.size(); entryIndex++) {
-        if (_logEntries[entryIndex].id == id) {
-
-            break;
-        }
-    }
+    LogEntry* entry = getLogEntry(id);
     if (!entry) {
         qWarning() << "Failed to find log entry with specified id: " << id;
         return;
     }
 
-    _downloadingLog = true;
+    qDebug() << "Requested log download: " << id;
+
+    changeState(State::DownloadingLog);
 
     ui->buttonRefresh->setDisabled(true);
     ui->buttonDownloadSelected->setDisabled(true);
@@ -178,7 +235,7 @@ void LogsWindow::downloadLog(uint32_t id) {
     ui->buttonClearLogs->setDisabled(true);
     ui->buttonAnalyzeLog->setDisabled(true);
 
-    _receivingDataId = id;
+    _receivingLogId = id;
     _dataReceivedBytes = 0;
     _logDataBuffer.resize(entry->size);
 
@@ -196,12 +253,17 @@ void LogsWindow::downloadLog(uint32_t id) {
 
     emit sendCommand(command);
 
-    _logsTimeout.start(2000);
+    _logDataTimeout.start(_logDataTimeoutMillis);
 
     _downloadStartTimestamp = QDateTime::currentDateTime();
 }
 
 void LogsWindow::clearLogs() {
+    if (_state != State::Idle) {
+        qWarning() << "Can not cleat logs, while not in idle state";
+        return;
+    }
+
     ui->tableWidget->setRowCount(0);
     _logEntries.clear();
 
@@ -217,9 +279,14 @@ void LogsWindow::clearLogs() {
     emit sendCommand(command);
 }
 
-void LogsWindow::stopLogTransfer() {    
-    _logsTimeout.stop();
-    _receivingDataId = 0xffffffff;
+void LogsWindow::stopLogTransfer() {
+    if (_state != State::DownloadingLog) {
+        qWarning() << "Not in log download state";
+        return;
+    }
+
+    _logDataTimeout.stop();
+    _receivingLogId = 0;
     _logDataBuffer.resize(0);
     _logsDataMask.reset();
 
@@ -240,11 +307,17 @@ void LogsWindow::stopLogTransfer() {
     ui->buttonClearLogs->setDisabled(false);
     ui->buttonAnalyzeLog->setDisabled(false);
 
-    _downloadingLog = false;
+    changeState(State::Idle);
 }
 
 void LogsWindow::requestMissingLogPackets() {
-    qDebug() << "Not all packets arrived.";
+    if (_state != State::DownloadingLog) {
+        qWarning() << "Trying to repeat log download request while not in log download state";
+        return;
+    }
+
+    qDebug() << "Log packets are missing.";
+
     for (size_t i = 0; i < _logDataBuffer.size();) {
         if (_logsDataMask.test(i)) {
             i++;
@@ -263,7 +336,7 @@ void LogsWindow::requestMissingLogPackets() {
             &command,
             _sysId,
             _compId,
-            _receivingDataId,
+            _receivingLogId,
             segmentStart,
             segmentEnd - segmentStart
         );
@@ -272,14 +345,44 @@ void LogsWindow::requestMissingLogPackets() {
     }
 }
 
+void LogsWindow::requestMissingLogEntries() {
+    if (_state != State::FetchingLogsList) {
+        qWarning() << "Trying to repeat log entries fetch while not in log fetching state";
+        return;
+    }
+
+    qDebug() << "Log entries are missing";
+
+    for (uint32_t i = 1; i < _expectedLogEntries; i++) {
+        if (!getLogEntry(i)) {
+            qDebug() << "Missing log entry with id: " << i;
+        }
+    }
+
+    mavlink_message_t command;
+    mavlink_msg_log_request_list_pack(
+        255,
+        MAV_COMP_ID_MISSIONPLANNER,
+        &command,
+        _sysId,
+        _compId,
+        0,
+        0xffff
+        );
+
+    emit sendCommand(command);
+}
+
 void LogsWindow::on_buttonRefresh_clicked() {
     refreshLogs();
 }
 
 void LogsWindow::on_buttonDownloadSelected_clicked() {
     QList<QTableWidgetItem*> selectedItems = ui->tableWidget->selectedItems();
-    if (selectedItems.size() == 0) return;
-    int32_t id = selectedItems[0]->row() + 1;
+    if (selectedItems.size() == 0) {
+        return;
+    }
+    uint32_t id = selectedItems[0]->text().toUInt();
     downloadLog(id);
 }
 
@@ -312,3 +415,30 @@ void LogsWindow::on_buttonCancelDownload_clicked() {
     ui->progressBar->setValue(0);
     ui->recievedBytes->setText(QString("Download stopped"));
 }
+
+bool LogsWindow::changeState(State state) {
+    if (state == _state) {
+        qWarning() << "LogsWindow changed state to the same: " << (uint32_t)_state;
+        return true;
+    }
+    else if (_state == State::Idle || state == State::Idle) {
+        _state = state;
+        return true;
+    }
+    else {
+        qWarning() << "LogsWindow is not allowed to change state from: " << (uint32_t)_state << " to " << (uint32_t)state;
+        return false;
+    }
+}
+
+LogEntry* LogsWindow::getLogEntry(uint32_t id) {
+    if (auto it = std::find_if(_logEntries.begin(), _logEntries.end(), [id](const LogEntry& entry) {
+            return id == entry.id;
+        }); it != _logEntries.end()) {
+        return &(*it);
+    }
+    else {
+        return nullptr;
+    }
+}
+

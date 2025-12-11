@@ -49,10 +49,12 @@ struct LogEntry {
 
 class LogsWindow : public QWidget {
     Q_OBJECT
-private:
-    uint8_t _sysId = 0;
-    uint8_t _compId = 0;
-    QDateTime _downloadStartTimestamp;
+
+    enum class State {
+        Idle = 0,
+        FetchingLogsList,
+        DownloadingLog
+    };
 
 public:
     explicit LogsWindow(QWidget *parent = nullptr);
@@ -77,23 +79,35 @@ public slots:
 
 private:
     Ui::LogsWindow *ui;
-    QList<LogEntry> _logEntries;
-    uint32_t _receivingDataId = 0xffffffff;
-    uint32_t _dataReceivedBytes = 0;
-    QByteArray _logDataBuffer;
+    uint8_t _sysId = 0;
+    uint8_t _compId = 0;
+    State _state = State::Idle;
+
     static constexpr size_t LOGS_MASK_SIZE = 1024 * 1024 * 1024;
     static std::bitset<LOGS_MASK_SIZE> _logsDataMask;
-    QTimer _logsTimeout;
-    static const uint32_t _logsTimeoutMillis = 2000;
+
+    QVector<LogEntry> _logEntries;
+    uint32_t _receivingLogId = 0;
+    QByteArray _logDataBuffer;
+    uint32_t _dataReceivedBytes = 0;
+    QDateTime _downloadStartTimestamp;
+    QTimer _logDataTimeout;
+    static const uint32_t _logDataTimeoutMillis = 2000;
+
+    uint32_t _expectedLogEntries = 0;
     QTimer _logEntriesTimeout;
     static const uint32_t _logEntriesTimeoutMillis = 2000;
-    bool _downloadingLog = false;
 
     void refreshLogs();
     void downloadLog(uint32_t id);
     void clearLogs();
     void stopLogTransfer();
+
     void requestMissingLogPackets();
+    void requestMissingLogEntries();
+
+    bool changeState(State state);
+    LogEntry* getLogEntry(uint32_t id);
 };
 
 #endif // LOGSWINDOW_H
