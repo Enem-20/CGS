@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QTableWidget>
 
-#include "mavlinkdevice.h"
+#include "mavlink/mavlinkdevice.h"
 
 namespace Ui {
 class DevicesTable;

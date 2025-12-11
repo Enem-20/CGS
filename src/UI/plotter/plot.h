@@ -5,6 +5,7 @@
 #include <QHash>
 #include <QSet>
 #include <QColor>
+#include <QHashFunctions>
 
 class QCustomPlot;
 class QCPGraph;

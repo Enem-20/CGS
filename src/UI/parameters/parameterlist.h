@@ -5,7 +5,7 @@
 
 #include <QWidget>
 #include <QTimer>
-#include "segmentmap.h"
+#include "memoryManagement/segmentmap.h"
 
 namespace Ui {
 class ParameterList;

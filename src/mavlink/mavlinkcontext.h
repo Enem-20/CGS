@@ -14,7 +14,7 @@
 #include "globalpositionint.h"
 #include "statustext.h"
 #include "mavlinkpacketizer.h"
-#include <mavlinkdevice.h>
+#include "mavlinkdevice.h"
 
 class MavlinkContext : public QObject {
     Q_OBJECT

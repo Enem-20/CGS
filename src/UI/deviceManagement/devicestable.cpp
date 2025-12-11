@@ -3,7 +3,7 @@
 
 #include <QTableWidget>
 
-#include "mavlinkdevice.h"
+#include "mavlink/mavlinkdevice.h"
 
 DevicesTable::DevicesTable(QWidget *parent)
     : QWidget(parent)

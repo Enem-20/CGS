@@ -1,6 +1,6 @@
 #include "logswindow.h"
 #include "ui_logswindow.h"
-#include "mainwindow.h"
+#include "UI/mainwindow.h"
 
 #include <QMessageBox>
 #include <QStandardPaths>

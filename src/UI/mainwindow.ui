@@ -23,9 +23,6 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="orientation">
-       <enum>Qt::Orientation::Horizontal</enum>
-      </property>
       <widget class="QFrame" name="frame_3">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -34,7 +31,7 @@
         </sizepolicy>
        </property>
        <property name="frameShape">
-        <enum>QFrame::Shape::NoFrame</enum>
+        <enum>QFrame::NoFrame</enum>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="1" column="0">
@@ -47,7 +44,7 @@
         <item row="0" column="0">
          <widget class="QFrame" name="statusPanel">
           <property name="frameShape">
-           <enum>QFrame::Shape::NoFrame</enum>
+           <enum>QFrame::NoFrame</enum>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
@@ -60,7 +57,7 @@
            <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
+              <enum>Qt::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -98,7 +95,7 @@
       </widget>
       <widget class="QSplitter" name="splitter">
        <property name="orientation">
-        <enum>Qt::Orientation::Vertical</enum>
+        <enum>Qt::Vertical</enum>
        </property>
        <widget class="QWidget" name="devicesContainer" native="true">
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -117,10 +114,7 @@
          <item>
           <widget class="QFrame" name="frame">
            <property name="frameShape">
-            <enum>QFrame::Shape::StyledPanel</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Shadow::Raised</enum>
+            <enum>QFrame::NoFrame</enum>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
@@ -140,7 +134,7 @@
        </widget>
        <widget class="QScrollArea" name="connectionsScroll">
         <property name="sizeAdjustPolicy">
-         <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustIgnored</enum>
+         <enum>QAbstractScrollArea::AdjustIgnored</enum>
         </property>
         <property name="widgetResizable">
          <bool>true</bool>
@@ -150,7 +144,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>387</width>
+           <width>780</width>
            <height>68</height>
           </rect>
          </property>
@@ -168,7 +162,7 @@
        </sizepolicy>
       </property>
       <property name="frameShape">
-       <enum>QFrame::Shape::NoFrame</enum>
+       <enum>QFrame::NoFrame</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
@@ -195,7 +189,7 @@
        <item>
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
+          <enum>Qt::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -226,7 +220,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuParameters_set">
@@ -284,13 +278,13 @@
   <customwidget>
    <class>SerialScanner</class>
    <extends>QWidget</extends>
-   <header>serialscanner.h</header>
+   <header>UI/deviceManagement/serialscanner.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>DevicesTable</class>
    <extends>QWidget</extends>
-   <header>devicestable.h</header>
+   <header>UI/deviceManagement/devicestable.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -1,7 +1,7 @@
 #include "defaultdevicewidget.h"
 #include "ui_defaultdevicewidget.h"
 
-#include "mavlinkdevice.h"
+#include "mavlink/mavlinkdevice.h"
 
 DefaultDeviceWidget::DefaultDeviceWidget(QWidget *parent)
     : QWidget(parent)

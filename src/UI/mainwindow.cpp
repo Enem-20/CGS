@@ -6,8 +6,8 @@
 #include <QFile>
 #include <QStandardPaths>
 
-#include "telemetrywindow.h"
-#include "serialscanner.h"
+#include "telemetry/telemetrywindow.h"
+#include "deviceManagement/serialscanner.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

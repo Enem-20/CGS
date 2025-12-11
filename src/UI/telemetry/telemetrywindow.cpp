@@ -3,12 +3,12 @@
 
 #include <QRegularExpression>
 #include <QPushButton>
-#include "plotgroup.h"
-#include "plot.h"
+#include "UI/plotter/plotgroup.h"
+#include "UI/plotter/plot.h"
 
 #include <common/mavlink.h>
 
-#include "plotter.h"
+#include "UI/plotter/plotter.h"
 
 bool TelemetryWindow::groupExists(const QString& groupName) {
     return _telemetryMap.contains(groupName);

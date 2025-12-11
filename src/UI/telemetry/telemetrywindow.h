@@ -5,8 +5,8 @@
 #include <QTreeWidget>
 #include <QVector>
 
-#include "plotgroup.h"
-#include "plot.h"
+#include "UI/plotter/plotgroup.h"
+#include "UI/plotter/plot.h"
 
 struct __mavlink_global_position_int_t;
 typedef __mavlink_global_position_int_t mavlink_global_position_int_t;

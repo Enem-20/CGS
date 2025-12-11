@@ -4,9 +4,9 @@
 #include <QWidget>
 #include <QTreeWidget>
 
-#include "plotter.h"
+#include "UI/plotter/plotter.h"
 
-#include "dataflashparser.h"
+#include "mavlink/dataflashparser.h"
 #include "logparameterswindow.h"
 
 namespace Ui {

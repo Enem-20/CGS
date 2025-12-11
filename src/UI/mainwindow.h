@@ -5,11 +5,11 @@
 #include <QThread>
 #include <QTimer>
 
-#include "mavlinkpacketizer.h"
-#include "mavlinkcontext.h"
-#include "parameterlist.h"
-#include "logswindow.h"
-#include "defaultdevicewidget.h"
+#include "mavlink/mavlinkpacketizer.h"
+#include "mavlink/mavlinkcontext.h"
+#include "parameters/parameterlist.h"
+#include "logs/logswindow.h"
+#include "deviceManagement/defaultdevicewidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

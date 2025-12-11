@@ -13,44 +13,29 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Network PrintSupp
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Network PrintSupport SerialPort)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core)
 
+set(CMAKE_AUTOUIC_SEARCH_PATHS src/UI src/UI/deviceManagement src/UI/logs src/UI/parameters src/UI/plotter src/UI/telemetry)
+
 set(PROJECT_SOURCES
-        main.cpp
-        mainwindow.cpp
-        mainwindow.h
-        mainwindow.ui
+        src/main.cpp
+        src/UI/mainwindow.cpp
+        src/UI/mainwindow.h
+        src/UI/mainwindow.ui
 )
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/resources/modes.json ${CMAKE_CURRENT_BINARY_DIR}/modes.json COPYONLY)
+file(GLOB_RECURSE HEADER_FILES src/*.h)
+file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
+file(GLOB_RECURSE UI_FILES src/*.ui)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(CGS
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        mavlinkdevice.h mavlinkdevice.cpp
-        udpmavlinkdevice.h udpmavlinkdevice.cpp
-        attitude.h attitude.cpp
-        localpositionned.h localpositionned.cpp
-        parameterlist.h parameterlist.cpp parameterlist.ui
-        statustext.h statustext.cpp
-        logswindow.h logswindow.cpp logswindow.ui
-        segmentationchecker.h segmentationchecker.cpp
-        segmentmap.h segmentmap.cpp
-        globalpositionint.h globalpositionint.cpp
-        mavlinkpacketizer.h mavlinkpacketizer.cpp
-        qcustomplot.h qcustomplot.cpp
-        telemetrywindow.h telemetrywindow.cpp telemetrywindow.ui
-        plotter.h plotter.cpp plotter.ui
-        plotgroup.h plotgroup.cpp plotgroup.ui
-        plot.h plot.cpp
-        dataflashparser.h dataflashparser.cpp
-        logplotwindow.h logplotwindow.cpp logplotwindow.ui
-        logparameterswindow.h logparameterswindow.cpp logparameterswindow.ui
-        serialmavlinkdevice.h serialmavlinkdevice.cpp
-        serialscanner.h serialscanner.cpp serialscanner.ui
-        mavlinkcontext.h mavlinkcontext.cpp
-        devicestable.h devicestable.cpp devicestable.ui
-        defaultdevicewidget.h defaultdevicewidget.cpp defaultdevicewidget.ui
-
-
+        ${HEADER_FILES}
+        ${SOURCE_FILES}
+        ${UI_FILES}
     )
+
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET CGS APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
 #                 ${CMAKE_CURRENT_SOURCE_DIR}/android)
@@ -71,7 +56,7 @@ endif()
 
 target_include_directories(CGS PRIVATE ${CMAKE_SOURCE_DIR}/external/c_library_v2)
 
-target_include_directories(CGS PRIVATE ${CMAKE_SOURCE_DIR})
+target_include_directories(CGS PRIVATE ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/src)
 
 target_link_libraries(CGS PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::PrintSupport

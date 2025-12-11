@@ -3,7 +3,7 @@
 
 #include <QWidget>
 
-#include "dataflashparser.h"
+#include "mavlink/dataflashparser.h"
 
 namespace Ui {
 class LogParametersWindow;
