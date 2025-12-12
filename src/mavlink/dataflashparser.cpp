@@ -9,12 +9,11 @@ DataFlashParser::DataFlashParser(QObject *parent)
 
 void DataFlashParser::parseFile(QString path) {
     QFile file(path);
-    if(!file.open(QIODevice::ReadOnly)) return;
-
+    if (!file.open(QIODevice::ReadOnly)) {
+        return;
+    }
     _logFileContent = file.readAll();
-
     processFileContent();
-
     _logFileContent.clear();
 }
 
@@ -27,8 +26,8 @@ void DataFlashParser::processFileContent() {
     while(true) {
         MessageHead messageHead = parseType<MessageHead>();
 
-        if (messageHead.head != 0x95a3) {
-            qDebug() << "Wrong message head: " << Qt::hex << Qt::showbase << messageHead.head;
+        if (messageHead.head != HEADER_MAGIC) {
+            qWarning() << "Wrong message head: " << Qt::hex << Qt::showbase << messageHead.head;
             break;
         }
 
@@ -144,7 +143,7 @@ void DataFlashParser::processFileContent() {
                 }
 
                 if (index == -1) {
-                    qDebug() << "Could not find description for id: " << Qt::dec << (uint32_t)messageHead.msgid;
+                    qWarning() << "Could not find description for id: " << Qt::dec << (uint32_t)messageHead.msgid;
                     _cursor = _logFileContent.size();
                     break;
                 }
@@ -152,7 +151,7 @@ void DataFlashParser::processFileContent() {
                 LogFormatData& data = _logData[index];
 
                 if (data.size < 3) {
-                    qDebug() << "Structure size is wrong: " << data.name;
+                    qWarning() << "Structure size is wrong: " << data.name;
                     _cursor = _logFileContent.size();
                     break;
                 }

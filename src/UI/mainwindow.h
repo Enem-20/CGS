@@ -5,11 +5,14 @@
 #include <QThread>
 #include <QTimer>
 
-#include "mavlink/mavlinkpacketizer.h"
 #include "mavlink/mavlinkcontext.h"
 #include "parameters/parameterlist.h"
 #include "logs/logswindow.h"
 #include "deviceManagement/defaultdevicewidget.h"
+#include "telemetry/telemetrywindow.h"
+
+#include "mavlink/vehicletelemetry.h"
+#include "mavlink/statustext.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -17,20 +20,24 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
-class TelemetryWindow;
 class SerialScanner;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
 private:
-    MavlinkContext* _mavlinkContext;
+    Ui::MainWindow *ui;
+
     ParameterList _parameterList;
     LogsWindow _logsWindow;
     DefaultDeviceWidget _defaultDeviceWidget;
-    TelemetryWindow* _telemetry;
+    TelemetryWindow _telemetry;
+
+    MavlinkContext* _mavlinkContext;
     QThread _mavlinkThread;
-    Ui::MainWindow *ui;
+
+    VehicleTelemetry _vehicleTelemetry;
+    StatusText _statusText;
 
 public:
     MainWindow(QWidget *parent = nullptr);

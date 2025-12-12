@@ -5,11 +5,7 @@
 #include <QThread>
 #include <QTimer>
 
-struct __mavlink_message;
-typedef __mavlink_message mavlink_message_t;
-
-struct __mavlink_status;
-typedef __mavlink_status mavlink_status_t;
+#include "mavlinktypes.h"
 
 class QIODevice;
 

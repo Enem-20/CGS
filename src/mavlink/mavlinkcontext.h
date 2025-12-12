@@ -9,37 +9,36 @@
 
 #include <common/mavlink.h>
 
-#include "attitude.h"
-#include "localpositionned.h"
-#include "globalpositionint.h"
-#include "statustext.h"
 #include "mavlinkpacketizer.h"
 #include "mavlinkdevice.h"
 
 class MavlinkContext : public QObject {
     Q_OBJECT
+
 private:
     MavlinkDevice* _activeDevice = nullptr;
     MavlinkDevice* _defaultDevice;
     QHash<QString, MavlinkDevice*> _connectedDevices;
-    Attitude _attitude;
-    LocalPositionNED _lPositionNED;
-    GlobalPositionInt _globalPositionInt;
-    StatusText _statusText;
     QTimer _heartBeatTimer;
     mavlink_message_t _heartBeatMsg;
     QJsonObject _existingModes;
     MavlinkPacketizer _packetizer;
     QMetaObject::Connection _parameterListDownloadedConnection;
+
 public:
     MavlinkContext();
     ~MavlinkContext();
-    void sendHeartbeat();
+
+    void subscribe(MavlinkSubscriber* subscriber);
+    void unsubscribe(MavlinkSubscriber* subscriber);
 
 private:
+    void sendHeartbeat();
     void updateMode(uint8_t autopilot, uint8_t type, uint32_t customMode);
 
 signals:
+    void messageReceived(const mavlink_message_t& message);
+
     void parameterListDownloadCompleted();
     void globalPositionIntUpdated(const mavlink_global_position_int_t& msg);
     void heartbeatMessageReceived(const mavlink_message_t& heartbeat);
@@ -63,12 +62,13 @@ signals:
     void activeDeviceChanged(QStringView name);
 
 private slots:
-    void handleMavlinkMessage(mavlink_message_t msg);
+    void onMessageReceived(const mavlink_message_t& message);
     void requestTelemetry();
+
 public slots:
     void onParameterListDownloadCompleted();
     void loadModes();
-    void sendCommand(const mavlink_message_t& msg);
+    void sendCommand(mavlink_message_t msg);
     void onConnectUDPDevice(quint16 port, const QString& address, QObject *parent);
     void onConnectSerialDevice(QSerialPortInfo portInfo);
     void onConnectSerialDevice(QSerialPortInfo portInfo, int32_t baudRate, uint8_t dataBits, uint8_t stopBits, uint8_t parity, uint8_t flowControl);

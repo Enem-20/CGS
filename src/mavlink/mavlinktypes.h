@@ -1,0 +1,40 @@
+#ifndef MAVLINKTYPES_H
+#define MAVLINKTYPES_H
+
+struct __mavlink_message;
+typedef __mavlink_message mavlink_message_t;
+
+struct __mavlink_heartbeat_t;
+typedef __mavlink_heartbeat_t mavlink_heartbeat_t;
+
+struct __mavlink_status;
+typedef __mavlink_status mavlink_status_t;
+
+struct __mavlink_statustext_t;
+typedef __mavlink_statustext_t mavlink_statustext_t;
+
+struct __mavlink_attitude_t;
+typedef __mavlink_attitude_t mavlink_attitude_t;
+
+struct __mavlink_global_position_int_t;
+typedef __mavlink_global_position_int_t mavlink_global_position_int_t;
+
+struct __mavlink_local_position_ned_t;
+typedef __mavlink_local_position_ned_t mavlink_local_position_ned_t;
+
+struct __mavlink_param_value_t;
+typedef __mavlink_param_value_t mavlink_param_value_t;
+
+struct __mavlink_param_ext_value_t;
+typedef __mavlink_param_ext_value_t mavlink_param_ext_value_t;
+
+struct __mavlink_param_ext_ack_t;
+typedef __mavlink_param_ext_ack_t mavlink_param_ext_ack_t;
+
+struct __mavlink_log_entry_t;
+typedef __mavlink_log_entry_t mavlink_log_entry_t;
+
+struct __mavlink_log_data_t;
+typedef __mavlink_log_data_t mavlink_log_data_t;
+
+#endif // MAVLINKTYPES_H

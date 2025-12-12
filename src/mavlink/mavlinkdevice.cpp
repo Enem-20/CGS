@@ -13,13 +13,10 @@ MavlinkDevice::MavlinkDevice(const QString& name, const QString& type, QIODevice
 {
     _device = device;
     _mavlinkStatus = new mavlink_status_t;
-    //if(_device)
-    //    _device->open(QIODevice::ReadWrite);
 
-    //_queueSendTimer.start(500);
     connect(&_queueSendTimer, &QTimer::timeout, this, [this](){
-        if(_device && _device->isOpen()) {
-            while(!_messageQueue.empty()) {
+        if (_device && _device->isOpen()) {
+            while (!_messageQueue.empty()) {
                 _device->write(_messageQueue.front());
                 _messageQueue.pop();
             }

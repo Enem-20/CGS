@@ -23,6 +23,9 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="orientation">
+       <enum>Qt::Orientation::Horizontal</enum>
+      </property>
       <widget class="QFrame" name="frame_3">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -31,7 +34,7 @@
         </sizepolicy>
        </property>
        <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
+        <enum>QFrame::Shape::NoFrame</enum>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="1" column="0">
@@ -44,7 +47,7 @@
         <item row="0" column="0">
          <widget class="QFrame" name="statusPanel">
           <property name="frameShape">
-           <enum>QFrame::NoFrame</enum>
+           <enum>QFrame::Shape::NoFrame</enum>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
@@ -57,7 +60,7 @@
            <item>
             <spacer name="horizontalSpacer">
              <property name="orientation">
-              <enum>Qt::Horizontal</enum>
+              <enum>Qt::Orientation::Horizontal</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -85,7 +88,7 @@
          </widget>
         </item>
         <item row="2" column="0">
-         <widget class="QListWidget" name="gcsLog">
+         <widget class="GCSLog" name="gcsLog">
           <property name="autoScroll">
            <bool>false</bool>
           </property>
@@ -95,7 +98,7 @@
       </widget>
       <widget class="QSplitter" name="splitter">
        <property name="orientation">
-        <enum>Qt::Vertical</enum>
+        <enum>Qt::Orientation::Vertical</enum>
        </property>
        <widget class="QWidget" name="devicesContainer" native="true">
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -114,7 +117,7 @@
          <item>
           <widget class="QFrame" name="frame">
            <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
+            <enum>QFrame::Shape::NoFrame</enum>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_3">
             <item>
@@ -134,7 +137,7 @@
        </widget>
        <widget class="QScrollArea" name="connectionsScroll">
         <property name="sizeAdjustPolicy">
-         <enum>QAbstractScrollArea::AdjustIgnored</enum>
+         <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustIgnored</enum>
         </property>
         <property name="widgetResizable">
          <bool>true</bool>
@@ -144,7 +147,7 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>780</width>
+           <width>68</width>
            <height>68</height>
           </rect>
          </property>
@@ -162,25 +165,25 @@
        </sizepolicy>
       </property>
       <property name="frameShape">
-       <enum>QFrame::NoFrame</enum>
+       <enum>QFrame::Shape::NoFrame</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
        <item>
-        <widget class="QLabel" name="attitude">
+        <widget class="AttitudeLabel" name="attitude">
          <property name="text">
           <string>R: 0.0°, P: 0.0°, Y: 0.0°</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="speeds">
+        <widget class="SpeedsLabel" name="speeds">
          <property name="text">
           <string>FS: 0.0 m/s, LS: 0.0 m/s, VS: 0.0 m/s</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="altitude">
+        <widget class="AltitudeLabel" name="altitude">
          <property name="text">
           <string>Alt: 0 m</string>
          </property>
@@ -189,7 +192,7 @@
        <item>
         <spacer name="horizontalSpacer_2">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -220,7 +223,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuParameters_set">
@@ -286,6 +289,26 @@
    <extends>QWidget</extends>
    <header>UI/deviceManagement/devicestable.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AttitudeLabel</class>
+   <extends>QLabel</extends>
+   <header>attitudelabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>AltitudeLabel</class>
+   <extends>QLabel</extends>
+   <header>altitudelabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>GCSLog</class>
+   <extends>QListWidget</extends>
+   <header>gcslog.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SpeedsLabel</class>
+   <extends>QLabel</extends>
+   <header>speedslabel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

@@ -12,63 +12,14 @@ MavlinkContext::MavlinkContext()
     : _heartBeatTimer(this)
 {
     _heartBeatTimer.start(1000);
+
     connect(&_heartBeatTimer, &QTimer::timeout, this, &MavlinkContext::sendHeartbeat);
-
-    connect(&_attitude, &Attitude::orientationUpdated, this, [this](const QVector3D& orientation) {
-        QString result("R: %1°, P: %2°, Y: %3°");
-        emit attitudeUpdated(result
-                                 .arg(QString::asprintf("%.2f", orientation.x()))
-                                 .arg(QString::asprintf("%.2f", orientation.y()))
-                                 .arg(QString::asprintf("%.2f", orientation.z())));
-    });
-
-    connect(&_lPositionNED, &LocalPositionNED::speedsUpdated, this, [this](const QVector3D speeds) {
-        QString result("FS: %1 m/s, LS: %2 m/s, VS: %3 m/s");
-        emit speedsUpdated(result
-                               .arg(QString::asprintf("%.2f", speeds.x()))
-                               .arg(QString::asprintf("%.2f", speeds.y()))
-                               .arg(QString::asprintf("%.2f", speeds.z()))
-                           );
-    });
-
-    connect(&_globalPositionInt, &GlobalPositionInt::altitudeUpdated, this, [this](int32_t altitude) {
-        QString result("Alt: %1 m");
-        emit altitudeUpdated(result.arg(altitude));
-    });
-
-    connect(&_statusText, &StatusText::logUpdated, this, [this](QString msg, QString severity) {
-        QColor resultColor;
-        if(severity == "EMERGENCY") {
-            resultColor = Qt::red;
-        }
-        else if(severity == "ALERT") {
-            resultColor = Qt::red;
-        }
-        else if(severity == "CRITICAL") {
-            resultColor = Qt::red;
-        }
-        else if (severity == "ERROR") {
-            resultColor = Qt::red;
-        }
-        else if (severity == "WARNING") {
-            resultColor = Qt::yellow;
-        }
-        else if (severity == "NOTICE") {
-            resultColor = Qt::green;
-        }
-        else if (severity == "INFO") {
-            resultColor = Qt::black;
-        }
-        else if (severity == "DEBUG") {
-            resultColor = Qt::blue;
-        }
-        emit logUpdated(msg, severity, resultColor);
-    });
 
     _defaultDevice = new UDPMavlinkDevice(DEFAULT_DEVICE_NAME, 14550, "0.0.0.0");
     _defaultDevice->start();
     _activeDevice = _defaultDevice;
-    connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
+    connect(_activeDevice, &MavlinkDevice::messageReceived, &_packetizer, &MavlinkPacketizer::onMessageReceived);
+    connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::onMessageReceived);
     QTimer::singleShot(0, this, [this] {
         emit activeDeviceChanged(DEFAULT_DEVICE_NAME);
     });
@@ -81,8 +32,20 @@ MavlinkContext::~MavlinkContext() {
     }
 }
 
+void MavlinkContext::subscribe(MavlinkSubscriber* subscriber) {
+    _packetizer.subscribe(subscriber);
+}
+
+void MavlinkContext::unsubscribe(MavlinkSubscriber* subscriber) {
+    _packetizer.unsubscribe(subscriber);
+}
+
 void MavlinkContext::sendHeartbeat() {
-    if (!_activeDevice) return;
+    if (!_activeDevice) {
+        qWarning() << "Trying to send heartbeat without active device";
+        return;
+    }
+
     mavlink_msg_heartbeat_pack(
         255,
         MAV_COMP_ID_MISSIONPLANNER,
@@ -109,7 +72,8 @@ void MavlinkContext::updateMode(uint8_t autopilot, uint8_t type, uint32_t custom
     }
 }
 
-void MavlinkContext::handleMavlinkMessage(mavlink_message_t msg) {
+void MavlinkContext::onMessageReceived(const mavlink_message_t& msg) {
+    // emit messageReceived(msg);
     switch(msg.msgid) {
     case MAVLINK_MSG_ID_HEARTBEAT:
         mavlink_heartbeat_t heartbeat;
@@ -118,27 +82,6 @@ void MavlinkContext::handleMavlinkMessage(mavlink_message_t msg) {
         heartbeatUpdated(heartbeat);
         updateMode(heartbeat.autopilot, heartbeat.type, heartbeat.custom_mode);
         armedUpdated((heartbeat.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) ? "ARMED" : "DISARMED");
-        break;
-    case MAVLINK_MSG_ID_ATTITUDE:
-        mavlink_attitude_t attitude;
-        mavlink_msg_attitude_decode(&msg, &attitude);
-        _attitude.handleMavlink(attitude);
-        break;
-    case MAVLINK_MSG_ID_LOCAL_POSITION_NED:
-        mavlink_local_position_ned_t localPositionNED;
-        mavlink_msg_local_position_ned_decode(&msg, &localPositionNED);
-        _lPositionNED.handleMavlink(localPositionNED);
-        break;
-    case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
-        mavlink_global_position_int_t globalPositionInt;
-        mavlink_msg_global_position_int_decode(&msg, &globalPositionInt);
-        _globalPositionInt.handleMavlink(globalPositionInt);
-        emit globalPositionIntUpdated(globalPositionInt);
-        break;
-    case MAVLINK_MSG_ID_STATUSTEXT:
-        mavlink_statustext_t statusText;
-        mavlink_msg_statustext_decode(&msg, &statusText);
-        _statusText.handleMavlink(statusText);
         break;
     case MAVLINK_MSG_ID_PARAM_VALUE:
         mavlink_param_value_t paramValue;
@@ -170,7 +113,10 @@ void MavlinkContext::handleMavlinkMessage(mavlink_message_t msg) {
 }
 
 void MavlinkContext::requestTelemetry() {
-    if (!_activeDevice) return;
+    if (!_activeDevice) {
+        qWarning() << "Requested telemetry while no device is active";
+        return;
+    }
 
     mavlink_message_t msg;
 
@@ -210,8 +156,11 @@ void MavlinkContext::loadModes() {
     _existingModes = doc.object();
 }
 
-void MavlinkContext::sendCommand(const mavlink_message_t& msg) {
-    if (!_activeDevice) return;
+void MavlinkContext::sendCommand(mavlink_message_t msg) {
+    if (!_activeDevice) {
+        qWarning() << "Tying to send command while no device is active";
+        return;
+    }
 
     QMetaObject::invokeMethod(_activeDevice, "sendCommand", Qt::QueuedConnection,
                               Q_ARG(const mavlink_message_t&, msg));
@@ -272,39 +221,36 @@ void MavlinkContext::onConnectSerialDevice(QSerialPortInfo portInfo, int32_t bau
 }
 
 void MavlinkContext::onMakeDeviceActive(QStringView name) {
+    MavlinkDevice* selectedDevice = nullptr;
     if (name == DEFAULT_DEVICE_NAME) {
-        disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
-        _activeDevice = _defaultDevice;
-        connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
-        connect(_activeDevice, &MavlinkDevice::portOpened, this, [this](){
-            _parameterListDownloadedConnection = connect(this, &MavlinkContext::parameterListDownloadCompleted, this, [this](){
-                //onParameterListDownloadCompleted();
-                requestTelemetry();
-                disconnect(_parameterListDownloadedConnection);
-            });
-        });
-        emit activeDeviceChanged(name);
+        selectedDevice = _defaultDevice;
+    }
+    else if (auto it = _connectedDevices.find(name); it != _connectedDevices.end()) {
+        selectedDevice = it.value();
+    }
+    else {
+        qWarning() << "Failed to make device active: " << name;
         return;
     }
 
-    if (auto it = _connectedDevices.find(name); it != _connectedDevices.end()) {
-        MavlinkDevice* device = it.value();
-        if (device == _activeDevice) return;
-        disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
-        _activeDevice = device;
-        connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::handleMavlinkMessage);
-
-        connect(_activeDevice, &MavlinkDevice::portOpened, this, [this](){
-            _parameterListDownloadedConnection = connect(this, &MavlinkContext::parameterListDownloadCompleted, this, [this](){
-                //onParameterListDownloadCompleted();
-                requestTelemetry();
-                disconnect(_parameterListDownloadedConnection);
-            });
-        });
-        emit activeDeviceChanged(name);
+    if (selectedDevice == _activeDevice) {
+        qDebug() << "Make device active called for active device";
         return;
     }
 
-    qDebug() << "Failed to make device active: " << name;
-    //connect(&udpDevice, &UDPMavlinkDevice::messageReceived, &_packetizer, &MavlinkPacketizer::mavlinkMsgReceived);
+    disconnect(_activeDevice, &MavlinkDevice::messageReceived, &_packetizer, &MavlinkPacketizer::onMessageReceived);
+    disconnect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::onMessageReceived);
+    _activeDevice = selectedDevice;
+    connect(_activeDevice, &MavlinkDevice::messageReceived, &_packetizer, &MavlinkPacketizer::onMessageReceived);
+    connect(_activeDevice, &MavlinkDevice::messageReceived, this, &MavlinkContext::onMessageReceived);
+
+    connect(_activeDevice, &MavlinkDevice::portOpened, this, [this](){
+        _parameterListDownloadedConnection = connect(this, &MavlinkContext::parameterListDownloadCompleted, this, [this](){
+            //onParameterListDownloadCompleted();
+            requestTelemetry();
+            disconnect(_parameterListDownloadedConnection);
+        });
+    });
+
+    emit activeDeviceChanged(name);
 }

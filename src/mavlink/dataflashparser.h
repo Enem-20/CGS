@@ -88,6 +88,7 @@ public:
     const QList<LogParameterData>& getParameters();
 
 protected:
+    const static uint16_t HEADER_MAGIC = 0x95a3;
     QByteArray _logFileContent;
     uint32_t _cursor;
     QList<LogFormatData> _logData;

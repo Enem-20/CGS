@@ -10,27 +10,36 @@
 #include "deviceManagement/serialscanner.h"
 #include "UI/logs/logplotwindow.h"
 
+#include "attitudelabel.h"
+#include "altitudelabel.h"
+#include "speedslabel.h"
+#include "gcslog.h"
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , _mavlinkContext(new MavlinkContext())
 {
     ui->setupUi(this);
-    _telemetry = new TelemetryWindow(nullptr);
-    _parameterList.setWindowTitle("Parameters list");
+
     _mavlinkContext->moveToThread(&_mavlinkThread);
+
+    _mavlinkContext->subscribe(&_vehicleTelemetry);
+    connect(&_vehicleTelemetry, &VehicleTelemetry::orientationUpdated, ui->attitude, &AttitudeLabel::onOrientationUpdated);
+    connect(&_vehicleTelemetry, &VehicleTelemetry::altitudeUpdated, ui->altitude, &AltitudeLabel::onAltitudeUpdated);
+    connect(&_vehicleTelemetry, &VehicleTelemetry::speedsUpdated, ui->speeds, &SpeedsLabel::onSpeedsUpdated);
+    // connect(&_vehicleTelemetry, &VehicleTelemetry::, _telemetry, &TelemetryWindow::onGlobalPositionIntUpdated);
+
+    _mavlinkContext->subscribe(&_statusText);
+    connect(&_statusText, &StatusText::logUpdated, ui->gcsLog, &GCSLog::onLogUpdated);
+
     connect(&_mavlinkThread, &QThread::started, _mavlinkContext, &MavlinkContext::loadModes);
     connect(_mavlinkContext, &MavlinkContext::modeUpdated, ui->modeValue, &QLabel::setText);
     connect(_mavlinkContext, &MavlinkContext::armedUpdated, ui->armedStatus, &QLabel::setText);
     connect(_mavlinkContext, &MavlinkContext::attitudeUpdated, ui->attitude, &QLabel::setText);
     connect(_mavlinkContext, &MavlinkContext::speedsUpdated, ui->speeds, &QLabel::setText);
     connect(_mavlinkContext, &MavlinkContext::altitudeUpdated, ui->altitude, &QLabel::setText);
-    connect(_mavlinkContext, &MavlinkContext::logUpdated, this, [this](QString msg, QString severity, QColor color) {
-        QListWidgetItem* item = new QListWidgetItem(QString("[%1] %2").arg(severity).arg(msg));
-        item->setForeground(color);
-        ui->gcsLog->addItem(item);
-        ui->gcsLog->scrollToItem(item);
-    });
+
     connect(ui->logAutoScroll, &QCheckBox::toggled, ui->gcsLog, [this](bool checked) {
         ui->gcsLog->setAutoScroll(checked);
     });
@@ -63,7 +72,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&_parameterList, &ParameterList::setParameterRequest, this, &MainWindow::setParamRequested);
     connect(this, &MainWindow::setParamRequest, _mavlinkContext, &MavlinkContext::sendCommand);
 
-    connect(_mavlinkContext, &MavlinkContext::globalPositionIntUpdated, _telemetry, &TelemetryWindow::onGlobalPositionIntUpdated);
 
     connect(&_mavlinkThread, &QThread::finished, _mavlinkContext, &QObject::deleteLater);
     _mavlinkThread.start(QThread::LowPriority);
@@ -93,23 +101,19 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&_logsWindow, &LogsWindow::sendCommand, _mavlinkContext, &MavlinkContext::sendCommand);
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     _mavlinkThread.quit();
     _mavlinkThread.wait();
-    _telemetry->deleteLater();
     delete ui;
 }
 
-void MainWindow::on_actionParameters_set_triggered()
-{
+void MainWindow::on_actionParameters_set_triggered() {
     if(_parameterList.isHidden())
         _parameterList.show();
 }
 
 
-void MainWindow::on_actionRefresh_configs_triggered()
-{
+void MainWindow::on_actionRefresh_configs_triggered() {
     _mavlinkContext->loadModes();
 }
 
@@ -130,8 +134,8 @@ void MainWindow::setParamRequested(const mavlink_message_t& msg) {
 }
 
 void MainWindow::on_actionOpen_Telemetry_triggered() {
-    if (_telemetry->isHidden()) {
-        _telemetry->show();
+    if (_telemetry.isHidden()) {
+        _telemetry.show();
     }
 }
 

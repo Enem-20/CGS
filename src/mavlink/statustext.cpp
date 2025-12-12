@@ -1,10 +1,30 @@
 #include "statustext.h"
 
+#include <QDebug>
+
 #include <common/mavlink.h>
 
 StatusText::StatusText(QObject *parent)
-    : QObject{parent}
+    : MavlinkSubscriber{parent}
 {}
+
+QVector<uint32_t> StatusText::getSubscribtionMessageIds() const {
+    return { MAVLINK_MSG_ID_STATUSTEXT };
+}
+
+void StatusText::onMessageReceived(const mavlink_message_t& message) {
+    switch (message.msgid) {
+    case MAVLINK_MSG_ID_STATUSTEXT: {
+        mavlink_statustext_t statusText;
+        mavlink_msg_statustext_decode(&message, &statusText);
+        handleMavlink(statusText);
+        break;
+    }
+    default:
+        qWarning() << "StatusText: Wrong message received: " << message.msgid;
+    }
+}
+
 
 void StatusText::handleMavlink(const mavlink_statustext_t& msg) {
     QString severity = "INFO";
