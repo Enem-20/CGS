@@ -21,12 +21,15 @@ class MainWindow;
 QT_END_NAMESPACE
 
 class SerialScanner;
+class Vehicle;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
 private:
     Ui::MainWindow *ui;
+
+    Vehicle* _vehicle = nullptr;
 
     ParameterList _parameterList;
     LogsWindow _logsWindow;

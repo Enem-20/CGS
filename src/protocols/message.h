@@ -8,8 +8,9 @@ struct Message
 {
     std::function<void*(void*)> _copier;
     std::function<void(void*)> _deleter;
-    void* _msg;
+    void* _msg = nullptr;
 
+    Message() = default;
     explicit Message(const std::function<void*(void*)> copier, const std::function<void(void*)> deleter, void* msg = nullptr);
     Message(const Message& other);
     //explicit Message(Message&& other) noexcept;

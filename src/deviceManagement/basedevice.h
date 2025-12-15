@@ -31,6 +31,7 @@ protected:
     BasePacketizer* _packetizer;
     QString _name;
     QString _type;
+
 protected:
     virtual void sendRawCommand(const QByteArray& data) = 0;
 

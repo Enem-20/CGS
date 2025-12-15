@@ -3,6 +3,7 @@
 
 struct __mavlink_message;
 typedef __mavlink_message mavlink_message_t;
+typedef mavlink_message_t MavlinkMessage;
 
 struct __mavlink_heartbeat_t;
 typedef __mavlink_heartbeat_t mavlink_heartbeat_t;
@@ -31,10 +32,23 @@ typedef __mavlink_param_ext_value_t mavlink_param_ext_value_t;
 struct __mavlink_param_ext_ack_t;
 typedef __mavlink_param_ext_ack_t mavlink_param_ext_ack_t;
 
+struct __mavlink_log_request_list_t;
+typedef __mavlink_log_request_list_t mavlink_log_request_list_t;
+
 struct __mavlink_log_entry_t;
 typedef __mavlink_log_entry_t mavlink_log_entry_t;
 
+struct __mavlink_log_request_data_t;
+typedef __mavlink_log_request_data_t mavlink_log_request_data_t;
+
 struct __mavlink_log_data_t;
 typedef __mavlink_log_data_t mavlink_log_data_t;
+
+struct __mavlink_log_erase_t;
+typedef __mavlink_log_erase_t mavlink_log_erase_t;
+
+struct __mavlink_log_request_end_t;
+typedef __mavlink_log_request_end_t mavlink_log_request_end_t;
+
 
 #endif // MAVLINKTYPES_H

@@ -93,16 +93,6 @@ void MavlinkContext::onMessageReceived(const mavlink_message_t& msg) {
         mavlink_msg_param_ext_value_decode(&msg, &paramExtValue);
         emit paramExtUpdated(paramExtValue);
         break;
-    case MAVLINK_MSG_ID_LOG_ENTRY:
-        mavlink_log_entry_t logEntry;
-        mavlink_msg_log_entry_decode(&msg, &logEntry);
-        emit logEntryRecieved(logEntry);
-        break;
-    case MAVLINK_MSG_ID_LOG_DATA:
-        mavlink_log_data_t logData;
-        mavlink_msg_log_data_decode(&msg, &logData);
-        emit logDataRecieved(logData, msg);
-        break;
     case MAVLINK_MSG_ID_PARAM_EXT_ACK:
         qDebug() << "got MAVLINK_MSG_ID_PARAM_EXT_ACK";
         mavlink_param_ext_ack_t paramAck;

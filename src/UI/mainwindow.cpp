@@ -10,10 +10,15 @@
 #include "deviceManagement/serialscanner.h"
 #include "UI/logs/logplotwindow.h"
 
+#include "vehicle/logs/vehiclelogs.h"
+#include "vehicle/mavlink/mavlinkvehicle.h"
+
 #include "attitudelabel.h"
 #include "altitudelabel.h"
 #include "speedslabel.h"
 #include "gcslog.h"
+
+#include "deviceManagement/udp/udpdevice.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -62,16 +67,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_mavlinkContext, &MavlinkContext::paramAckRecieved, &_parameterList,
         QOverload<const mavlink_param_ext_ack_t&>::of(&ParameterList::handleMavlink)
     );
-    connect(_mavlinkContext, &MavlinkContext::logEntryRecieved, &_logsWindow,
-        QOverload<const mavlink_log_entry_t&>::of(&LogsWindow::handleMavlink)
-    );
-    connect(_mavlinkContext, &MavlinkContext::logDataRecieved, &_logsWindow,
-        QOverload<const mavlink_log_data_t&>::of(&LogsWindow::handleMavlink)
-    );
 
     connect(&_parameterList, &ParameterList::setParameterRequest, this, &MainWindow::setParamRequested);
     connect(this, &MainWindow::setParamRequest, _mavlinkContext, &MavlinkContext::sendCommand);
-
 
     connect(&_mavlinkThread, &QThread::finished, _mavlinkContext, &QObject::deleteLater);
     _mavlinkThread.start(QThread::LowPriority);
@@ -98,7 +96,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(_mavlinkContext, &MavlinkContext::activeDeviceChanged, &_parameterList, &ParameterList::onActiveDeviceChanged);
     connect(&_parameterList, &ParameterList::parametersPullingCompleted, _mavlinkContext, &MavlinkContext::onParameterListDownloadCompleted);
 
-    connect(&_logsWindow, &LogsWindow::sendCommand, _mavlinkContext, &MavlinkContext::sendCommand);
+
+
+
+    _vehicle = new Vehicle();
+    connect(&_logsWindow, &LogsWindow::requestLogList, _vehicle->getLogs(), &VehicleLogs::onLogsListRequested);
+    connect(&_logsWindow, &LogsWindow::requestLogDownload, _vehicle->getLogs(), &VehicleLogs::onLogDownloadRequested);
+    connect(&_logsWindow, &LogsWindow::requestLogDownloadStop, _vehicle->getLogs(), &VehicleLogs::onLogDownloadStopRequested);
+    connect(&_logsWindow, &LogsWindow::requestLogErase, _vehicle->getLogs(), &VehicleLogs::onEraseLogsRequested);
+    connect(_vehicle->getLogs(), &VehicleLogs::logsListReceived, &_logsWindow, &LogsWindow::onLogListReceived);
+    connect(_vehicle->getLogs(), &VehicleLogs::logDownloadProgressUpdated, &_logsWindow, &LogsWindow::onLogDownloadProgressUpdated);
+    connect(_vehicle->getLogs(), &VehicleLogs::logFileDownloaded, &_logsWindow, &LogsWindow::onLogFileDownloaded);
+    connect(_vehicle->getLogs(), &VehicleLogs::stateChanged, &_logsWindow, &LogsWindow::onLogSystemStateChanged);
 }
 
 MainWindow::~MainWindow() {
@@ -108,7 +117,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_actionParameters_set_triggered() {
-    if(_parameterList.isHidden())
+    if (_parameterList.isHidden())
         _parameterList.show();
 }
 

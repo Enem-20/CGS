@@ -4,18 +4,22 @@
 #include <QObject>
 
 class BaseDevice;
+class VehicleLogs;
 
-class Vehicle : public QObject
-{
+class Vehicle : public QObject {
     Q_OBJECT
-    BaseDevice* _device;
+
+protected:
+    BaseDevice* _device = nullptr;
+    VehicleLogs* _logs = nullptr;
+
 public:
     explicit Vehicle(QObject *parent = nullptr);
+    virtual ~Vehicle();
 
-signals:
+    VehicleLogs* getLogs();
+
 public slots:
-    virtual void getLog(size_t index) = 0;
-    virtual void getLogs() = 0;
     void setDevice(BaseDevice* device);
 };
 

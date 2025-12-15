@@ -23,13 +23,17 @@ UDPDevice::UDPDevice(QString name, quint16 port, const QString& address, QObject
     _socket = qobject_cast<QUdpSocket*>(_device);
     connect(_socket, &QUdpSocket::readyRead, this, &UDPDevice::onReadBytes);
     _socket->bind(QHostAddress(address), port, QAbstractSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+}
 
-    onReadBytes();
+void UDPDevice::sendRawCommand(const QByteArray& data) {
+    if (_socket && _socket->isOpen() && _socket->isWritable()) {
+        _socket->write(data);
+    }
 }
 
 void UDPDevice::onReadBytes() {
     _waitPacketTimer.stop();
-    while(_socket->hasPendingDatagrams()) {
+    while (_socket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(_socket->pendingDatagramSize());
 
@@ -44,7 +48,7 @@ void UDPDevice::onReadBytes() {
                 uint8_t byte = static_cast<uint8_t>(datagram[i]);
                 isSuccessfulyParsed = _packetizer->onPushByte(byte);
             }
-            if(!isSuccessfulyParsed) {
+            if (!isSuccessfulyParsed) {
                 _waitPacketTimer.start(200);
             }
         }
