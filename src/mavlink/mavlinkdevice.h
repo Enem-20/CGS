@@ -9,7 +9,7 @@
 
 class QIODevice;
 
-enum class PortState : uint8_t {
+enum class PortState_ : uint8_t {
     Uninitialized,
     Initialized,
     Opened
@@ -55,7 +55,7 @@ public:
 
 signals:
     void messageReceived(mavlink_message_t message);
-    void portStateChanged(PortState state);
+    void portStateChanged(PortState_ state);
     void portCreated();
     void portInitialized();
     void portOpened();

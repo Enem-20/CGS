@@ -6,17 +6,17 @@
 
 #include "mavlinksubscriber.h"
 
-MavlinkPacketizer::MavlinkPacketizer(QObject *parent)
+MavlinkPacketizer_::MavlinkPacketizer_(QObject *parent)
     : QObject{parent} {}
 
-void MavlinkPacketizer::subscribe(MavlinkSubscriber* subscriber) {
+void MavlinkPacketizer_::subscribe(MavlinkSubscriber* subscriber) {
     int32_t subscriberIndex = _subscribers.indexOf(subscriber);
     if (subscriberIndex != -1) {
         qWarning() << "MavlinkPacketizer: subscriber is already subscribed";
         return;
     }
 
-    connect(subscriber, &MavlinkSubscriber::sendMessage, this, &MavlinkPacketizer::onMessageSendRequest);
+    connect(subscriber, &MavlinkSubscriber::sendMessage, this, &MavlinkPacketizer_::onMessageSendRequest);
     _subscribers.push_back(subscriber);
 
     QVector<uint32_t> messages = subscriber->getSubscribtionMessageIds();
@@ -28,13 +28,13 @@ void MavlinkPacketizer::subscribe(MavlinkSubscriber* subscriber) {
     }
 }
 
-void MavlinkPacketizer::unsubscribe(MavlinkSubscriber* subscriber) {
+void MavlinkPacketizer_::unsubscribe(MavlinkSubscriber* subscriber) {
     int32_t subscriberIndex = _subscribers.indexOf(subscriber);
     if (subscriberIndex == -1) {
         return;
     }
 
-    disconnect(subscriber, &MavlinkSubscriber::sendMessage, this, &MavlinkPacketizer::onMessageSendRequest);
+    disconnect(subscriber, &MavlinkSubscriber::sendMessage, this, &MavlinkPacketizer_::onMessageSendRequest);
     _subscribers.push_back(subscriber);
 
     QVector<uint32_t> messages = subscriber->getSubscribtionMessageIds();
@@ -50,7 +50,7 @@ void MavlinkPacketizer::unsubscribe(MavlinkSubscriber* subscriber) {
     }
 }
 
-void MavlinkPacketizer::onMessageReceived(const mavlink_message_t& message) {
+void MavlinkPacketizer_::onMessageReceived(const mavlink_message_t& message) {
     if (!_subscriptions.contains(message.msgid)) {
         return;
     }
@@ -115,6 +115,6 @@ void MavlinkPacketizer::onMessageReceived(const mavlink_message_t& message) {
     // }
 }
 
-void MavlinkPacketizer::onMessageSendRequest(const mavlink_message_t& message) {
+void MavlinkPacketizer_::onMessageSendRequest(const mavlink_message_t& message) {
     emit requestMessageSend(message);
 }

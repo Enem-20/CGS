@@ -10,11 +10,11 @@
 
 class MavlinkSubscriber;
 
-class MavlinkPacketizer : public QObject {
+class MavlinkPacketizer_ : public QObject {
     Q_OBJECT
 
 public:
-    explicit MavlinkPacketizer(QObject *parent = nullptr);
+    explicit MavlinkPacketizer_(QObject *parent = nullptr);
 
     void subscribe(MavlinkSubscriber* subscriber);
     void unsubscribe(MavlinkSubscriber* subscriber);
@@ -40,7 +40,6 @@ private:
 public slots:
     void onMessageReceived(const mavlink_message_t& message);
     void onMessageSendRequest(const mavlink_message_t& message);
-
 signals:
     void requestMessageSend(const mavlink_message_t& message);
 };

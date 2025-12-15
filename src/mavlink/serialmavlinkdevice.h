@@ -14,7 +14,7 @@ class SerialMavlinkDevice : public MavlinkDevice {
 private:
     QTimer _connectivityWatchdog;
     QTimer _keepAliveWatchdog;
-    PortState _state;
+    PortState_ _state;
     QSerialPortInfo _portInfo;
     QSerialPort* _port;
 

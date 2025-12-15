@@ -26,7 +26,7 @@ signals:
 public slots:
     void onDeviceConnected(QStringView name, QStringView type);
     void onDeviceDisconnected(QStringView name);
-    void onDeviceStateChanged(QStringView name, PortState state);
+    void onDeviceStateChanged(QStringView name, PortState_ state);
 
 private slots:
     void on_table_itemDoubleClicked(QTableWidgetItem *item);

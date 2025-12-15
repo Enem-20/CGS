@@ -22,7 +22,7 @@ private:
     QTimer _heartBeatTimer;
     mavlink_message_t _heartBeatMsg;
     QJsonObject _existingModes;
-    MavlinkPacketizer _packetizer;
+    MavlinkPacketizer_ _packetizer;
     QMetaObject::Connection _parameterListDownloadedConnection;
 
 public:
@@ -58,7 +58,7 @@ signals:
 
     void deviceConnected(QStringView name, QStringView type);
     void deviceDisconnected(QStringView name);
-    void deviceStateChanged(QStringView name, PortState state);
+    void deviceStateChanged(QStringView name, PortState_ state);
     void activeDeviceChanged(QStringView name);
 
 private slots:

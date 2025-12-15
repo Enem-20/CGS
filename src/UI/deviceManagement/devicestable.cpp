@@ -37,7 +37,7 @@ void DevicesTable::onDeviceDisconnected(QStringView name) {
     ui->table->removeRow(items[0]->row());
 }
 
-void DevicesTable::onDeviceStateChanged(QStringView name, PortState state) {
+void DevicesTable::onDeviceStateChanged(QStringView name, PortState_ state) {
     QList<QTableWidgetItem*> items = ui->table->findItems(name.toString(), Qt::MatchExactly);
     if (items.size() == 0) {
         qDebug() << "Device doesn't exist";
@@ -45,13 +45,13 @@ void DevicesTable::onDeviceStateChanged(QStringView name, PortState state) {
     }
     int32_t row = items[0]->row();
     switch (state) {
-    case PortState::Uninitialized:
+    case PortState_::Uninitialized:
         ui->table->item(row, 2)->setText("Uninitialized");
         break;
-    case PortState::Initialized:
+    case PortState_::Initialized:
         ui->table->item(row, 2)->setText("Initialized");
         break;
-    case PortState::Opened:
+    case PortState_::Opened:
         ui->table->item(row, 2)->setText("Opened");
         break;
     default:
