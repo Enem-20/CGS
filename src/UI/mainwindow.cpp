@@ -29,10 +29,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     _mavlinkContext->moveToThread(&_mavlinkThread);
 
-    _mavlinkContext->subscribe(&_vehicleTelemetry);
-    connect(&_vehicleTelemetry, &VehicleTelemetry::orientationUpdated, ui->attitude, &AttitudeLabel::onOrientationUpdated);
-    connect(&_vehicleTelemetry, &VehicleTelemetry::altitudeUpdated, ui->altitude, &AltitudeLabel::onAltitudeUpdated);
-    connect(&_vehicleTelemetry, &VehicleTelemetry::speedsUpdated, ui->speeds, &SpeedsLabel::onSpeedsUpdated);
+    // _mavlinkContext->subscribe(&_vehicleTelemetry);
+    // connect(&_vehicleTelemetry, &VehicleTelemetry::orientationUpdated, ui->attitude, &AttitudeLabel::onOrientationUpdated);
+    // connect(&_vehicleTelemetry, &VehicleTelemetry::altitudeUpdated, ui->altitude, &AltitudeLabel::onAltitudeUpdated);
+    // connect(&_vehicleTelemetry, &VehicleTelemetry::speedsUpdated, ui->speeds, &SpeedsLabel::onSpeedsUpdated);
     // connect(&_vehicleTelemetry, &VehicleTelemetry::, _telemetry, &TelemetryWindow::onGlobalPositionIntUpdated);
 
     _mavlinkContext->subscribe(&_statusText);

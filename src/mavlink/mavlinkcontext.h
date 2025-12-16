@@ -63,7 +63,6 @@ signals:
 
 private slots:
     void onMessageReceived(const mavlink_message_t& message);
-    void requestTelemetry();
 
 public slots:
     void onParameterListDownloadCompleted();

@@ -102,28 +102,6 @@ void MavlinkContext::onMessageReceived(const mavlink_message_t& msg) {
     }
 }
 
-void MavlinkContext::requestTelemetry() {
-    if (!_activeDevice) {
-        qWarning() << "Requested telemetry while no device is active";
-        return;
-    }
-
-    mavlink_message_t msg;
-
-    mavlink_msg_request_data_stream_pack(
-        255,
-        MAV_COMP_ID_MISSIONPLANNER,
-        &msg,
-        _activeDevice->getSysId(),
-        0,
-        MAV_DATA_STREAM_ALL,
-        4,
-        1
-    );
-
-    sendCommand(msg);
-}
-
 void MavlinkContext::onParameterListDownloadCompleted() {
     emit parameterListDownloadCompleted();
 }

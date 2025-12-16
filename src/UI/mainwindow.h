@@ -11,7 +11,6 @@
 #include "deviceManagement/defaultdevicewidget.h"
 #include "telemetry/telemetrywindow.h"
 
-#include "mavlink/vehicletelemetry.h"
 #include "mavlink/statustext.h"
 
 QT_BEGIN_NAMESPACE
@@ -38,8 +37,6 @@ private:
 
     MavlinkContext* _mavlinkContext;
     QThread _mavlinkThread;
-
-    VehicleTelemetry _vehicleTelemetry;
     StatusText _statusText;
 
 public:
