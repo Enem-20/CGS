@@ -4,6 +4,7 @@
 
 BaseDevice::BaseDevice(const QString& name, const QString& type, QIODevice* device, QObject *parent)
     : QThread(parent)
+    , _device(device)
     , _queueSendTimer(parent)
     , _connectionWatchdog(parent)
     , _waitPacketTimer(parent)

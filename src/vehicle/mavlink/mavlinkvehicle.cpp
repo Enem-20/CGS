@@ -13,7 +13,4 @@ MavlinkVehicle::MavlinkVehicle(QObject *parent)
     _telemetry = new MavlinkVehicleTelemetry();
     _statusLog = new MavlinkVehicleStatusLog();
     _parameters = new Parameters();
-
-    connect(_device, &BaseDevice::portOpened, _parameters, &Parameters::onConnect);
-    connect(_device, &BaseDevice::portClosed, _parameters, &Parameters::onDisconnect);
 }

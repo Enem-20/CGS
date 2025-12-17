@@ -46,11 +46,13 @@ MainWindow::MainWindow(QWidget *parent)
     //});
 
     _vehicle = new MavlinkVehicle();
-    UDPDevice* device = new UDPDevice("DefaultDevice", 14550, "127.0.0.1", nullptr);
+    UDPDevice* device = new UDPDevice("DefaultDevice", 14550, "127.0.0.1", this);
     _vehicle->setDevice(static_cast<BaseDevice*>(device));
     MavlinkPacketizer* packetizer = new MavlinkPacketizer();
     _vehicle->setPacketizer(packetizer);
-
+    device->start();
+    connect(device, &BaseDevice::portOpened, _vehicle->getParameters(), &Parameters::onConnect);
+    connect(device, &BaseDevice::portClosed, _vehicle->getParameters(), &Parameters::onDisconnect);
     // tconnect packetizer
     connect(packetizer, &BasePacketizer::messageReceived, _vehicle->getLogs(), &VehicleLogs::onMessage);
     connect(packetizer, &BasePacketizer::messageReceived, _vehicle->getTelemetry(), &VehicleTelemetry::onMessage);
