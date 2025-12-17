@@ -120,10 +120,11 @@ void ParameterList::onParameterUpdate(Parameter* parameter) {
         idItem = ui->parameterList->item(rowIndex, 2);
         typeItem = ui->parameterList->item(rowIndex, 3);
     }
-
+    ui->parameterList->blockSignals(true);
     ui->parameterList->insertRow(rowIndex);
     ui->parameterList->setItem(rowIndex, 0, nameItem);
     ui->parameterList->setItem(rowIndex, 1, valueItem);
     ui->parameterList->setItem(rowIndex, 2, idItem);
     ui->parameterList->setItem(rowIndex, 3, typeItem);
+    ui->parameterList->blockSignals(false);
 }
