@@ -26,6 +26,9 @@ void MavlinkPacketizer::onSendMessageRequest(Message msg) {
 bool MavlinkPacketizer::onPushByte(uint8_t byte) {
     bool isSuccessfulyParsed = mavlink_parse_char(MAVLINK_COMM_0, byte, _msg, _status);
     if (isSuccessfulyParsed) {
+        switch (_msg->msgid) {
+        
+        }
         Message msg;
         msg.write(_msg);
         emit messageReceived(msg);

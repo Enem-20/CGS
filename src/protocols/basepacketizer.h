@@ -12,6 +12,7 @@ public:
     explicit BasePacketizer(QObject *parent = nullptr);
 
 signals:
+    void paramValueReceived(Message msg);
     void messageReceived(Message msg);
     void messageTransmitRequest(Message msg);
 
