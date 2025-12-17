@@ -54,6 +54,7 @@ protected slots:
     virtual void onWaitPacketTimeout();
 public slots:
     virtual void onMessageTransmitRequest(Message msg) = 0;
+    virtual void setPacketizer(BasePacketizer* packetizer) = 0;
 };
 
 #endif // BASEDEVICE_H

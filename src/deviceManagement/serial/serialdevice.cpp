@@ -119,3 +119,7 @@ void SerialDevice::onMessageTransmitRequest(Message msg) {
         _messageQueue.push_back(msg);
     }
 }
+
+void SerialDevice::setPacketizer(BasePacketizer* packetizer) {
+    _packetizer = packetizer;
+}

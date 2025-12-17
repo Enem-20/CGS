@@ -51,6 +51,7 @@ MainWindow::MainWindow(QWidget *parent)
     MavlinkPacketizer* packetizer = new MavlinkPacketizer(device);
     packetizer->moveToThread(device);
     _vehicle->setPacketizer(packetizer);
+    device->setPacketizer(packetizer);
     device->start();
     connect(device, &BaseDevice::portOpened, _vehicle->getParameters(), &Parameters::onConnect);
     connect(device, &BaseDevice::portClosed, _vehicle->getParameters(), &Parameters::onDisconnect);

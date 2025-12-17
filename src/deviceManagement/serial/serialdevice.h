@@ -27,11 +27,12 @@ public slots:
     void onOpenSerial();
     void onDisconnected();
     void onSetupPort(const QSerialPortInfo& portInfo, int32_t baudRate, uint8_t dataBits, uint8_t stopBits, uint8_t parity, uint8_t flowControl);
-
+    void setPacketizer(BasePacketizer* packetizer) override;
 
 protected slots:
     virtual void onReadBytes() override;
     void onMessageTransmitRequest(Message msg) override;
+    
 };
 
 #endif // SERIALDEVICE_H

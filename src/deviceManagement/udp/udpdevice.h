@@ -20,10 +20,12 @@ public:
 
 protected:
     void sendRawCommand(const QByteArray& data) override;
-
+public slots:
+    void setPacketizer(BasePacketizer* packetizer) override;
 protected slots:
     virtual void onReadBytes() override;
     void onMessageTransmitRequest(Message msg) override;
+    
 };
 
 #endif // UDPDEVICE_H

@@ -64,3 +64,7 @@ void UDPDevice::onMessageTransmitRequest(Message msg) {
         _messageQueue.push_back(msg);
     }
 }
+
+void UDPDevice::setPacketizer(BasePacketizer* packetizer) {
+    _packetizer = packetizer;
+}
