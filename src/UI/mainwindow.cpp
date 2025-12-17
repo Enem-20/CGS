@@ -48,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
     _vehicle = new MavlinkVehicle();
     UDPDevice* device = new UDPDevice("DefaultDevice", 14550, "127.0.0.1", this);
     _vehicle->setDevice(static_cast<BaseDevice*>(device));
-    MavlinkPacketizer* packetizer = new MavlinkPacketizer();
+    MavlinkPacketizer* packetizer = new MavlinkPacketizer(device);
     packetizer->moveToThread(device);
     _vehicle->setPacketizer(packetizer);
     device->start();
