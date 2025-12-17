@@ -51,7 +51,7 @@
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
-            <widget class="QLabel" name="armedStatus">
+            <widget class="ArmLabel" name="armedStatus">
              <property name="text">
               <string>DISARMED</string>
              </property>
@@ -71,7 +71,7 @@
             </spacer>
            </item>
            <item>
-            <widget class="QLabel" name="label_8">
+            <widget class="ModeLabel" name="label_8">
              <property name="text">
               <string>Mode:</string>
              </property>
@@ -293,22 +293,32 @@
   <customwidget>
    <class>AttitudeLabel</class>
    <extends>QLabel</extends>
-   <header>attitudelabel.h</header>
+   <header>src/UI/widgets/attitudelabel.h</header>
   </customwidget>
   <customwidget>
    <class>AltitudeLabel</class>
    <extends>QLabel</extends>
-   <header>altitudelabel.h</header>
+   <header>src/UI/widgets/altitudelabel.h</header>
   </customwidget>
   <customwidget>
    <class>GCSLog</class>
    <extends>QListWidget</extends>
-   <header>gcslog.h</header>
+   <header>src/UI/widgets/gcslog.h</header>
   </customwidget>
   <customwidget>
    <class>SpeedsLabel</class>
    <extends>QLabel</extends>
-   <header>speedslabel.h</header>
+   <header>src/UI/widgets/speedslabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ModeLabel</class>
+   <extends>QLabel</extends>
+   <header>src/UI/widgets/modelabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>ArmLabel</class>
+   <extends>QLabel</extends>
+   <header>src/UI/widgets/armlabel.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

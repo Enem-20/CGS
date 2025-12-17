@@ -50,5 +50,4 @@ typedef __mavlink_log_erase_t mavlink_log_erase_t;
 struct __mavlink_log_request_end_t;
 typedef __mavlink_log_request_end_t mavlink_log_request_end_t;
 
-
 #endif // MAVLINKTYPES_H

@@ -6,6 +6,13 @@
 #include <common/mavlink.h>
 
 VehicleTelemetry::VehicleTelemetry(QObject *parent)
-    : QObject{parent}
+    : ProtocolSubscriber{parent}
 {}
 
+void VehicleTelemetry::onStartTelemetry(){
+    requestTelemetry();
+}
+
+void VehicleTelemetry::onStopTelemetry() {
+    requestStopTelemetry();
+}

@@ -4,16 +4,15 @@
 
 #include <common/mavlink.h>
 
-std::bitset<MavlinkVehicleLogs::LOGS_MASK_SIZE> MavlinkVehicleLogs::_logsDataMask;
-
 MavlinkVehicleLogs::MavlinkVehicleLogs(QObject *parent)
     : VehicleLogs{parent}
 {
     connect(&_logEntriesTimeout, &QTimer::timeout, this, &MavlinkVehicleLogs::requestMissingLogEntries);
     connect(&_logDataTimeout, &QTimer::timeout, this, &MavlinkVehicleLogs::requestMissingLogPackets);
+    connect(&_logErasingTimeout, &QTimer::timeout, this, &MavlinkVehicleLogs::erasingLogsCheck);
 }
 
-void MavlinkVehicleLogs::onMessageReceived(Message msg) {
+void MavlinkVehicleLogs::onMessage(Message msg) {
     MavlinkMessage* message = msg.read<MavlinkMessage>();
     switch (message->msgid) {
     case MAVLINK_MSG_ID_LOG_ENTRY: {
@@ -65,7 +64,7 @@ void MavlinkVehicleLogs::onLogsListRequested() {
 
     Message message;
     message.write(&command);
-    emit sendMessage(message);
+    emit sendMessageRequest(message);
 
     _logEntriesTimeout.start(_logEntriesTimeoutMillis);
 }
@@ -94,6 +93,7 @@ void MavlinkVehicleLogs::onLogDownloadRequested(uint32_t id) {
     _receivingLogId = id;
     _dataReceivedBytes = 0;
     _logDataBuffer.resize(entry->size);
+    _segmentMap.resize(entry->size);
 
     mavlink_message_t command;
     mavlink_msg_log_request_data_pack(
@@ -109,7 +109,7 @@ void MavlinkVehicleLogs::onLogDownloadRequested(uint32_t id) {
 
     Message message;
     message.write(&command);
-    emit sendMessage(message);
+    emit sendMessageRequest(message);
 
     _logDataTimeout.start(_logDataTimeoutMillis);
 }
@@ -124,6 +124,10 @@ void MavlinkVehicleLogs::onEraseLogsRequested() {
         return;
     }
 
+    changeState(State::ErasingLogs);
+
+    qDebug() << "Started erasing logs";
+
     _logEntries.clear();
 
     mavlink_message_t command;
@@ -137,18 +141,35 @@ void MavlinkVehicleLogs::onEraseLogsRequested() {
 
     Message message;
     message.write(&command);
-    emit sendMessage(message);}
+    emit sendMessageRequest(message);
+
+    _logErasingTimeout.start(_logErasingTimeoutMillis);
+}
 
 void MavlinkVehicleLogs::handleMavlink(const mavlink_log_entry_t& msg) {
+    if (_state == State::ErasingLogs) {
+        if (msg.id == 0) {
+            _logErasingTimeout.stop();
+            changeState(State::Idle);
+            qDebug() << "Logs erased";
+            emit logsErased();
+        }
+        else {
+            _logErasingTimeout.start(_logErasingTimeoutMillis);
+            qDebug() << "Still erasing logs";
+        }
+        return;
+    }
+
     if (_state != State::FetchingLogsList) {
-        qDebug() << "Unexpected log entry recieved";
+        qDebug() << "Unexpected log entry received: " << msg.id;
         return;
     }
 
     if (msg.id == 0) {
         _logEntriesTimeout.stop();
         changeState(State::Idle);
-        qDebug() << "Vihecle has no logs";
+        qDebug() << "Vehicle has no logs";
         return;
     }
 
@@ -178,13 +199,13 @@ void MavlinkVehicleLogs::handleMavlink(const mavlink_log_entry_t& msg) {
     if (_logEntries.size() == msg.num_logs) {
         _logEntriesTimeout.stop();
         changeState(State::Idle);
-        qDebug() << "Finished recieving log entries: " << _logEntries.size();
+        qDebug() << "Finished receiving log entries: " << _logEntries.size();
     }
 }
 
 void MavlinkVehicleLogs::handleMavlink(const mavlink_log_data_t& msg) {
     if (_state != State::DownloadingLog) {
-        qDebug() << "Unexpected log data recieved";
+        qDebug() << "Unexpected log data received";
         return;
     }
 
@@ -203,7 +224,7 @@ void MavlinkVehicleLogs::handleMavlink(const mavlink_log_data_t& msg) {
     _logDataBuffer.replace(msg.ofs, msg.count, (const char*)msg.data, msg.count);
 
     for (int32_t i = msg.ofs; i < msg.ofs + msg.count; i++) {
-        _logsDataMask.set(i, true);
+        _segmentMap.segmentWritten(i);
     }
 
     _dataReceivedBytes += msg.count;
@@ -223,14 +244,19 @@ void MavlinkVehicleLogs::handleMavlink(const mavlink_log_data_t& msg) {
 
 void MavlinkVehicleLogs::stopLogDownload() {
     if (_state != State::DownloadingLog) {
-        qWarning() << "Not in log download state";
-        return;
+        if (_state == State::Idle) {
+            qWarning() << "Log download stop requested, but not in log download state.";
+        }
+        else {
+            qWarning() << "Log download stop is not allowed in current state.";
+            return;
+        }
     }
 
     _logDataTimeout.stop();
     _receivingLogId = 0;
     _logDataBuffer.resize(0);
-    _logsDataMask.reset();
+    _segmentMap.resize(0);
 
     mavlink_message_t command;
     mavlink_msg_log_request_end_pack(
@@ -243,7 +269,7 @@ void MavlinkVehicleLogs::stopLogDownload() {
 
     Message message;
     message.write(&command);
-    emit sendMessage(message);
+    emit sendMessageRequest(message);
 
     changeState(State::Idle);
 }
@@ -275,8 +301,8 @@ void MavlinkVehicleLogs::requestMissingLogEntries() {
 
     Message message;
     message.write(&command);
-    emit sendMessage(message);}
-
+    emit sendMessageRequest(message);
+}
 
 void MavlinkVehicleLogs::requestMissingLogPackets() {
     if (_state != State::DownloadingLog) {
@@ -286,16 +312,9 @@ void MavlinkVehicleLogs::requestMissingLogPackets() {
 
     qDebug() << "Log packets are missing.";
 
-    for (size_t i = 0; i < _logDataBuffer.size();) {
-        if (_logsDataMask.test(i)) {
-            i++;
-            continue;
-        }
-        size_t segmentStart = i;
-        while(!_logsDataMask.test(++i) && i < _logDataBuffer.size()) {}
-        size_t segmentEnd = i;
-
-        qDebug() << "Missing segment: " << segmentStart << " " << segmentEnd;
+    QList<Region> missingRegions = _segmentMap.getMissingRegions(1);
+    for (const Region& region : missingRegions) {
+        qDebug() << "Missing segment: " << region.from << " " << region.to;
 
         mavlink_message_t command;
         mavlink_msg_log_request_data_pack(
@@ -305,12 +324,34 @@ void MavlinkVehicleLogs::requestMissingLogPackets() {
             0,
             0,
             _receivingLogId,
-            segmentStart,
-            segmentEnd - segmentStart
+            region.from,
+            region.bytedSize
         );
 
         Message message;
         message.write(&command);
-        emit sendMessage(message);
+        emit sendMessageRequest(message);
     }
+}
+
+void MavlinkVehicleLogs::erasingLogsCheck() {
+    if (_state != State::ErasingLogs) {
+        qWarning() << "Checking for empty logs should only happen while erasing logs";
+        return;
+    }
+
+    mavlink_message_t command;
+    mavlink_msg_log_request_list_pack(
+        255,
+        MAV_COMP_ID_MISSIONPLANNER,
+        &command,
+        0,
+        0,
+        0,
+        0
+    );
+
+    Message message;
+    message.write(&command);
+    emit sendMessageRequest(message);
 }

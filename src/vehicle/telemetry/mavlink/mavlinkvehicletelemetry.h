@@ -12,11 +12,13 @@ public:
     explicit MavlinkVehicleTelemetry(QObject *parent = nullptr);
 
 public slots:
-    void onMessageReceived(Message msg) override;
+    void onMessage(Message msg) override;
 
 private:
     void requestTelemetry() override;
+    void requestStopTelemetry() override;
 
+    void handleMavlink(const mavlink_heartbeat_t& msg);
     void handleMavlink(const mavlink_attitude_t& msg);
     void handleMavlink(const mavlink_local_position_ned_t& msg);
     void handleMavlink(const mavlink_global_position_int_t& msg);

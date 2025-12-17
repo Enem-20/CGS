@@ -60,18 +60,6 @@ void MavlinkContext::sendHeartbeat() {
     sendCommand(_heartBeatMsg);
 }
 
-void MavlinkContext::updateMode(uint8_t autopilot, uint8_t type, uint32_t customMode) {
-    switch(autopilot) {
-    case MAV_AUTOPILOT_ARDUPILOTMEGA:
-        QString stringifiedCustomMode = QString::number(customMode);
-        if (_existingModes.contains(stringifiedCustomMode))
-            emit modeUpdated(_existingModes[stringifiedCustomMode].toString());
-        else
-            emit modeUpdated("UNKNOWN");
-        break;
-    }
-}
-
 void MavlinkContext::onMessageReceived(const mavlink_message_t& msg) {
     // emit messageReceived(msg);
     switch(msg.msgid) {
@@ -79,9 +67,7 @@ void MavlinkContext::onMessageReceived(const mavlink_message_t& msg) {
         mavlink_heartbeat_t heartbeat;
         mavlink_msg_heartbeat_decode(&msg, &heartbeat);
         heartbeatMessageReceived(msg);
-        heartbeatUpdated(heartbeat);
-        updateMode(heartbeat.autopilot, heartbeat.type, heartbeat.custom_mode);
-        armedUpdated((heartbeat.base_mode & MAV_MODE_FLAG_SAFETY_ARMED) ? "ARMED" : "DISARMED");
+        emit heartbeatUpdated(heartbeat);
         break;
     case MAVLINK_MSG_ID_PARAM_VALUE:
         mavlink_param_value_t paramValue;
@@ -104,24 +90,6 @@ void MavlinkContext::onMessageReceived(const mavlink_message_t& msg) {
 
 void MavlinkContext::onParameterListDownloadCompleted() {
     emit parameterListDownloadCompleted();
-}
-
-void MavlinkContext::loadModes() {
-    QFile file("modes.json");
-    if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Unable to open file: " << "modes.json";
-        return;
-    }
-    QByteArray data = file.readAll();
-    file.close();
-    QJsonParseError error;
-    QJsonDocument doc = QJsonDocument::fromJson(data, &error);
-    if (error.error != QJsonParseError::NoError) {
-        qWarning() << "modes.json parse error: " << error.errorString();
-        return;
-    }
-
-    _existingModes = doc.object();
 }
 
 void MavlinkContext::sendCommand(mavlink_message_t msg) {
@@ -215,7 +183,7 @@ void MavlinkContext::onMakeDeviceActive(QStringView name) {
     connect(_activeDevice, &MavlinkDevice::portOpened, this, [this](){
         _parameterListDownloadedConnection = connect(this, &MavlinkContext::parameterListDownloadCompleted, this, [this](){
             //onParameterListDownloadCompleted();
-            requestTelemetry();
+            // requestTelemetry();
             disconnect(_parameterListDownloadedConnection);
         });
     });

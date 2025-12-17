@@ -1,7 +1,7 @@
 #include "vehiclelogs.h"
 
 VehicleLogs::VehicleLogs(QObject *parent)
-    : QObject{parent}
+    : ProtocolSubscriber{parent}
 {}
 
 bool VehicleLogs::changeState(State state) {

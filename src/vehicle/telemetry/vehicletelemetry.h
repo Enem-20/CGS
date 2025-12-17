@@ -1,13 +1,13 @@
 #ifndef VEHICLETELEMETRY_H
 #define VEHICLETELEMETRY_H
 
-#include <QObject>
+#include "protocols/ProtocolSubscriber.h"
 
 #include <QVector3D>
 
 #include "protocols/message.h"
 
-class VehicleTelemetry : public QObject {
+class VehicleTelemetry : public ProtocolSubscriber {
     Q_OBJECT
 
 public:
@@ -15,20 +15,30 @@ public:
 
 protected:
     QVector3D _orientation;
-    QVector3D _speeds;
-    int32_t _altitude;
+    QVector3D _velocityNED;
+    QVector3D _positionNED;
+    float _altitude;
+    float _relativeAltitude;
+    float _heading;
+    float _latitude;
+    float _longitude;
+    uint32_t _mode;
+    bool _armed;
 
 signals:
-    void sendMessage(Message msg);
-    void orientationUpdated(const QVector3D& orientation);
-    void speedsUpdated(const QVector3D& orientation);
-    void altitudeUpdated(int32_t altitude);
+    void orientationUpdated(const QVector3D& orientation, uint64_t timestamp);
+    void velocityUpdated(const QVector3D& velocity, uint64_t timestamp);
+    void altitudeUpdated(float altitude, uint64_t timestamp);
+    void modeUpdated(uint32_t mode);
+    void armStateUpdated(bool state);
 
 public slots:
-    virtual void onMessageReceived(Message msg) = 0;
+    void onStartTelemetry();
+    void onStopTelemetry();
 
 private:
     virtual void requestTelemetry() = 0;
+    virtual void requestStopTelemetry() = 0;
 };
 
 #endif // VEHICLETELEMETRY_H

@@ -6,8 +6,6 @@
 #include "UI/plotter/plotgroup.h"
 #include "UI/plotter/plot.h"
 
-#include <common/mavlink.h>
-
 #include "UI/plotter/plotter.h"
 
 bool TelemetryWindow::groupExists(const QString& groupName) {
@@ -151,53 +149,76 @@ TelemetryWindow::~TelemetryWindow() {
     delete ui;
 }
 
-void TelemetryWindow::onGlobalPositionIntUpdated(const mavlink_global_position_int_t& msg) {
+void TelemetryWindow::onVehicleOrientationUpdated(const QVector3D& orientation, uint64_t timestamp) {
     static const QString groupName("GLOBAL_POSITION_INT");
 
     if (!_telemetryMap.contains(groupName)) [[unlikely]] {
-        TelemetryGroup& group = createGroup(groupName, static_cast<uint64_t>(msg.time_boot_ms));
-        createParam(group, "alt");
-        createParam(group, "hdg");
-        createParam(group, "lat");
-        createParam(group, "lon");
-        createParam(group, "ralt");
+        TelemetryGroup& group = createGroup(groupName, timestamp);
+    }
+
+    TelemetryGroup& group = _telemetryMap.find(groupName).value();
+
+    if (!parameterExists(group, "roll")) [[unlikely]] {
+        createParam(group, "roll");
+        createParam(group, "pitch");
+        createParam(group, "yaw");
+    }
+
+    group._params["roll"].values += orientation.x();
+    group._params["pitch"].values += orientation.y();
+    group._params["yaw"].values += orientation.z();
+
+    const double t = static_cast<double>(timestamp - group.timestamp);
+    plotValue(groupName, "roll", t, static_cast<double>(orientation.x()));
+    plotValue(groupName, "pitch", t, static_cast<double>(orientation.y()));
+    plotValue(groupName, "yaw", t, static_cast<double>(orientation.z()));
+}
+
+void TelemetryWindow::onVehicleVelocityUpdated(const QVector3D& velocity, uint64_t timestamp) {
+    static const QString groupName("GLOBAL_POSITION_INT");
+
+    if (!_telemetryMap.contains(groupName)) [[unlikely]] {
+        TelemetryGroup& group = createGroup(groupName, timestamp);
+    }
+
+    TelemetryGroup& group = _telemetryMap.find(groupName).value();
+
+    if (!parameterExists(group, "vx")) [[unlikely]] {
         createParam(group, "vx");
         createParam(group, "vy");
         createParam(group, "vz");
     }
 
+    group._params["vx"].values += velocity.x();
+    group._params["vy"].values += velocity.y();
+    group._params["vz"].values += velocity.z();
+
+    const double t = static_cast<double>(timestamp - group.timestamp);
+    plotValue(groupName, "vx", t, static_cast<double>(velocity.x()));
+    plotValue(groupName, "vy", t, static_cast<double>(velocity.y()));
+    plotValue(groupName, "vz", t, static_cast<double>(velocity.z()));
+}
+
+void TelemetryWindow::onVehicleAltitudeUpdated(float altitude, uint64_t timestamp) {
+    static const QString groupName("GLOBAL_POSITION_INT");
+
+    if (!_telemetryMap.contains(groupName)) [[unlikely]] {
+        TelemetryGroup& group = createGroup(groupName, timestamp);
+    }
+
     TelemetryGroup& group = _telemetryMap.find(groupName).value();
-    group._params["alt"].values += static_cast<float>(msg.alt);
-    group._params["hdg"].values += static_cast<float>(msg.hdg);
-    group._params["lat"].values += static_cast<float>(msg.lat);
-    group._params["lon"].values += static_cast<float>(msg.lon);
-    group._params["ralt"].values += static_cast<float>(msg.relative_alt);
-    group._params["vx"].values += static_cast<float>(msg.vx);
-    group._params["vy"].values += static_cast<float>(msg.vy);
-    group._params["vz"].values += static_cast<float>(msg.vz);
 
-    const double t = static_cast<double>(static_cast<uint64_t>(msg.time_boot_ms) - group.timestamp);
-    group.timeValues.push_back(static_cast<float>(t));
-    plotValue(groupName, "alt", t, static_cast<double>(msg.alt));
-    plotValue(groupName, "hdg", t, static_cast<double>(msg.hdg));
-    plotValue(groupName, "lat", t, static_cast<double>(msg.lat));
-    plotValue(groupName, "lon", t, static_cast<double>(msg.lon));
-    plotValue(groupName, "ralt", t, static_cast<double>(msg.relative_alt));
-    plotValue(groupName, "vx", t, static_cast<double>(msg.vx));
-    plotValue(groupName, "vy", t, static_cast<double>(msg.vy));
-    plotValue(groupName, "vz", t, static_cast<double>(msg.vz));
+    if (!parameterExists(group, "alt")) [[unlikely]] {
+        createParam(group, "alt");
+    }
+
+    group._params["alt"].values += altitude;
+
+    const double t = static_cast<double>(timestamp - group.timestamp);
+    plotValue(groupName, "vx", t, static_cast<double>(altitude));
 }
 
-void TelemetryWindow::onLocalPositionNEDUpdated(const mavlink_local_position_ned_t& msg) {
-
-}
-
-void TelemetryWindow::onAttitudeUpdated(const mavlink_attitude_t& msg) {
-
-}
-
-void TelemetryWindow::onStatusTextUpdated(const mavlink_statustext_t& msg) {
-    QString text = msg.text;
+void TelemetryWindow::onStatusMessageReceived(const QString& text, const QString& severity) {
     QRegularExpression regex(_customTelemetry);
 
     QRegularExpressionMatch match = regex.match(text);
@@ -219,28 +240,4 @@ void TelemetryWindow::onStatusTextUpdated(const mavlink_statustext_t& msg) {
         group._params[paramName].values += value.toFloat();
         plotValue(groupName, paramName, static_cast<double>(timestamp), value.toDouble());
     }
-}
-
-void TelemetryWindow::onHeartbeatUpdated(const mavlink_heartbeat_t& msg) {
-
-}
-
-void TelemetryWindow::onParamValueUpdated(const mavlink_param_value_t& msg) {
-
-}
-
-void TelemetryWindow::onParamExtValueUpdated(const mavlink_param_ext_value_t& msg) {
-
-}
-
-void TelemetryWindow::onParamExtAckUpdated(const mavlink_param_ext_ack_t& msg) {
-
-}
-
-void TelemetryWindow::onLogEntryUpdated(const mavlink_log_entry_t& msg) {
-
-}
-
-void TelemetryWindow::onLogDataUpdated(const mavlink_log_data_t& msg) {
-
 }

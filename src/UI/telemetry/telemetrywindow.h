@@ -8,39 +8,6 @@
 #include "UI/plotter/plotgroup.h"
 #include "UI/plotter/plot.h"
 
-struct __mavlink_global_position_int_t;
-typedef __mavlink_global_position_int_t mavlink_global_position_int_t;
-
-struct __mavlink_local_position_ned_t;
-typedef __mavlink_local_position_ned_t mavlink_local_position_ned_t;
-
-struct __mavlink_attitude_t;
-typedef __mavlink_attitude_t mavlink_attitude_t;
-
-struct __mavlink_statustext_t;
-typedef __mavlink_statustext_t mavlink_statustext_t;
-
-struct __mavlink_message;
-typedef __mavlink_message mavlink_message_t;
-
-struct __mavlink_heartbeat_t;
-typedef __mavlink_heartbeat_t mavlink_heartbeat_t;
-
-struct __mavlink_param_value_t;
-typedef __mavlink_param_value_t mavlink_param_value_t;
-
-struct __mavlink_param_ext_value_t;
-typedef __mavlink_param_ext_value_t mavlink_param_ext_value_t;
-
-struct __mavlink_param_ext_ack_t;
-typedef __mavlink_param_ext_ack_t mavlink_param_ext_ack_t;
-
-struct __mavlink_log_entry_t;
-typedef __mavlink_log_entry_t mavlink_log_entry_t;
-
-struct __mavlink_log_data_t;
-typedef __mavlink_log_data_t mavlink_log_data_t;
-
 namespace Ui {
 class TelemetryWindow;
 }
@@ -63,9 +30,9 @@ struct TelemetryGroup {
     QVector<float> timeValues;
 };
 
-class TelemetryWindow : public QWidget
-{
+class TelemetryWindow : public QWidget {
     Q_OBJECT
+    
 private:
     Plotter* _plotter;
     QHash<QString, TelemetryGroup> _telemetryMap;
@@ -91,16 +58,10 @@ signals:
     void updated(const QStringList& telemetryQueue);
 
 public slots:
-    void onGlobalPositionIntUpdated(const mavlink_global_position_int_t& msg);
-    void onLocalPositionNEDUpdated(const mavlink_local_position_ned_t& msg);
-    void onAttitudeUpdated(const mavlink_attitude_t& msg);
-    void onStatusTextUpdated(const mavlink_statustext_t& msg);
-    void onHeartbeatUpdated(const mavlink_heartbeat_t& msg);
-    void onParamValueUpdated(const mavlink_param_value_t& msg);
-    void onParamExtValueUpdated(const mavlink_param_ext_value_t& msg);
-    void onParamExtAckUpdated(const mavlink_param_ext_ack_t& msg);
-    void onLogEntryUpdated(const mavlink_log_entry_t& msg);
-    void onLogDataUpdated(const mavlink_log_data_t& msg);
+    void onVehicleOrientationUpdated(const QVector3D& orientation, uint64_t timestamp);
+    void onVehicleVelocityUpdated(const QVector3D& velocity, uint64_t timestamp);
+    void onVehicleAltitudeUpdated(float altitude, uint64_t timestamp);
+    void onStatusMessageReceived(const QString& text, const QString& severity);
 };
 
 #endif // TELEMETRYWINDOW_H

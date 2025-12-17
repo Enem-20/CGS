@@ -19,6 +19,10 @@ MavlinkPacketizer::~MavlinkPacketizer() {
         delete _status;
 }
 
+void MavlinkPacketizer::onSendMessageRequest(Message msg) {
+
+}
+
 bool MavlinkPacketizer::onPushByte(uint8_t byte) {
     bool isSuccessfulyParsed = mavlink_parse_char(MAVLINK_COMM_0, byte, _msg, _status);
     if (isSuccessfulyParsed) {

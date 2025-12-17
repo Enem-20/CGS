@@ -72,19 +72,25 @@ void LogsWindow::onLogFileDownloaded(const LogEntry& entry, const QByteArray& da
 }
 
 void LogsWindow::onLogSystemStateChanged(VehicleLogs::State newState, VehicleLogs::State oldState) {
-    if (oldState == VehicleLogs::State::DownloadingLog) {
-        ui->buttonRefresh->setDisabled(false);
-        ui->buttonDownloadSelected->setDisabled(false);
-        ui->buttonDownloadLast->setDisabled(false);
-        ui->buttonClearLogs->setDisabled(false);
-        ui->buttonAnalyzeLog->setDisabled(false);
-    }
-    else if (newState == VehicleLogs::State::DownloadingLog) {
+    // reset to default state
+    ui->buttonRefresh->setDisabled(false);
+    ui->buttonDownloadSelected->setDisabled(false);
+    ui->buttonDownloadLast->setDisabled(false);
+    ui->buttonClearLogs->setDisabled(false);
+    ui->buttonCancelDownload->setDisabled(false);
+
+    if (newState == VehicleLogs::State::DownloadingLog) {
         ui->buttonRefresh->setDisabled(true);
         ui->buttonDownloadSelected->setDisabled(true);
         ui->buttonDownloadLast->setDisabled(true);
         ui->buttonClearLogs->setDisabled(true);
-        ui->buttonAnalyzeLog->setDisabled(true);
+    }
+    else if (newState == VehicleLogs::State::FetchingLogsList || newState == VehicleLogs::State::ErasingLogs) {
+        ui->buttonRefresh->setDisabled(true);
+        ui->buttonDownloadSelected->setDisabled(true);
+        ui->buttonDownloadLast->setDisabled(true);
+        ui->buttonClearLogs->setDisabled(true);
+        ui->buttonCancelDownload->setDisabled(true);
     }
 }
 

@@ -4,8 +4,7 @@
 #include <functional>
 #include <cstring>
 
-struct Message
-{
+struct Message {
     std::function<void*(void*)> _copier;
     std::function<void(void*)> _deleter;
     void* _msg = nullptr;

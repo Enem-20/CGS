@@ -21,7 +21,6 @@ private:
     QHash<QString, MavlinkDevice*> _connectedDevices;
     QTimer _heartBeatTimer;
     mavlink_message_t _heartBeatMsg;
-    QJsonObject _existingModes;
     MavlinkPacketizer_ _packetizer;
     QMetaObject::Connection _parameterListDownloadedConnection;
 
@@ -66,7 +65,6 @@ private slots:
 
 public slots:
     void onParameterListDownloadCompleted();
-    void loadModes();
     void sendCommand(mavlink_message_t msg);
     void onConnectUDPDevice(quint16 port, const QString& address, QObject *parent);
     void onConnectSerialDevice(QSerialPortInfo portInfo);

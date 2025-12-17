@@ -29,15 +29,14 @@ private:
     Ui::MainWindow *ui;
 
     Vehicle* _vehicle = nullptr;
-
-    ParameterList _parameterList;
-    LogsWindow _logsWindow;
     DefaultDeviceWidget _defaultDeviceWidget;
-    TelemetryWindow _telemetry;
-
-    MavlinkContext* _mavlinkContext;
-    QThread _mavlinkThread;
-    StatusText _statusText;
+    LogsWindow _logsWindow;
+    TelemetryWindow _telemetryWindow;
+    ParameterList _parameterList;
+    
+     // MavlinkContext* _mavlinkContext;
+    // QThread _mavlinkThread;
+    // StatusText _statusText;
 
 public:
     MainWindow(QWidget *parent = nullptr);
