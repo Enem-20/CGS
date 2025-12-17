@@ -11,8 +11,9 @@ void Parameter::onMessage(Message msg) {
     mavlink_message_t* converted = msg.read<mavlink_message_t>();
     mavlink_msg_param_value_decode(converted, &paramValue);
     
-    std::memcpy(_id.data(), paramValue.param_id, sizeof(char) * PARAMETER_ID_SIZE);
-    _id = (_id.contains('\0')) ? _id : _id + '\0';
+    char idBuffer[PARAMETER_ID_SIZE + 1]{'\0'};
+    std::memcpy(idBuffer, paramValue.param_id, sizeof(char) * PARAMETER_ID_SIZE);
+    _id = QString(idBuffer);
     _value = paramValue.param_value;
     _type = paramValue.param_type;
     _count = paramValue.param_count;
