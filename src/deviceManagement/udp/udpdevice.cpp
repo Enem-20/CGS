@@ -4,8 +4,6 @@
 #include <QRegularExpression>
 #include <QRegularExpressionMatch>
 
-#include "protocols/basepacketizer.h"
-
 static QString checkIP4Addr(const QString& addr) {
     QRegularExpression re("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b");
     QRegularExpressionMatch match = re.match(addr);
@@ -16,22 +14,32 @@ static QString checkIP4Addr(const QString& addr) {
 }
 
 UDPDevice::UDPDevice(QString name, quint16 port, const QString& address, QObject *parent)
-    : BaseDevice(name, "UDP", new QUdpSocket(parent), parent)
+    : BaseDevice(name, TOKENIZE(UDPDevice), hashes::fnv1a64(TOKENIZE(UDPDevice)), new QUdpSocket(parent), parent)
     , _selfPort(port)
     , _serverAddr(checkIP4Addr(address))
 {
     _socket = qobject_cast<QUdpSocket*>(_device);
     connect(_socket, &QUdpSocket::readyRead, this, &UDPDevice::onReadBytes);
     _socket->bind(QHostAddress(address), port, QAbstractSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+    _waitPacketTimer.setInterval(5000);
+    connect(&_waitPacketTimer, &QTimer::timeout, this, [this](){
+        _initialized = false;
+        emit portClosed();
+    });
 }
 
-void UDPDevice::sendRawCommand(const QByteArray& data) {
+void UDPDevice::onSendRawCommand(const QByteArray& data) {
     if (_socket && _socket->isOpen() && _socket->isWritable()) {
-        _socket->write(data);
+        _socket->writeDatagram(data, QHostAddress(_autopilotAddr), _autopilotSocket);
     }
 }
 
 void UDPDevice::onReadBytes() {
+    if(!_initialized) {
+        _initialized = true;
+        emit portOpened();
+    }
+
     _waitPacketTimer.stop();
     while (_socket->hasPendingDatagrams()) {
         QByteArray datagram;
@@ -46,25 +54,8 @@ void UDPDevice::onReadBytes() {
             bool isSuccessfulyParsed = false;
             for (size_t i = 0; i < datagram.size(); ++i) {
                 uint8_t byte = static_cast<uint8_t>(datagram[i]);
-                isSuccessfulyParsed = _packetizer->onPushByte(byte);
-            }
-            if (!isSuccessfulyParsed) {
-                _waitPacketTimer.start(200);
+                isSuccessfulyParsed = emit byteReceived(byte);
             }
         }
     }
-}
-
-void UDPDevice::onMessageTransmitRequest(Message msg) {
-    if(_socket) {
-        QByteArray data = _packetizer->packagePrepare(msg);
-        _socket->writeDatagram(data, QHostAddress(_autopilotAddr), _autopilotSocket);
-    }
-    else {
-        _messageQueue.push_back(msg);
-    }
-}
-
-void UDPDevice::setPacketizer(BasePacketizer* packetizer) {
-    _packetizer = packetizer;
 }

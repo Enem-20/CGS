@@ -3,7 +3,7 @@
 
 #include "vehicle/logs/vehiclelogs.h"
 
-#include "mavlink/mavlinktypes.h"
+#include "protocols/mavlink/MavlinkFwd.h"
 #include "memoryManagement/segmentmap.h"
 
 class MavlinkVehicleLogs : public VehicleLogs {
@@ -29,15 +29,18 @@ protected:
 
 public slots:
     void onMessage(Message msg) override;
+    void onLogEntryReceived(Message msg) override;
+    void onLogDataReceived(Message msg) override;
     void onActiveDeviceChanged(QStringView deviceName) override;
     void onLogsListRequested() override;
     void onLogDownloadRequested(uint32_t id) override;
     void onLogDownloadStopRequested() override;
     void onEraseLogsRequested() override;
 
-private slots:
     void handleMavlink(const mavlink_log_entry_t& msg);
     void handleMavlink(const mavlink_log_data_t& msg);
+    
+private slots:
     void stopLogDownload();
     void requestMissingLogEntries();
     void requestMissingLogPackets();

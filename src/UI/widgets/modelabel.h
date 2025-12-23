@@ -9,10 +9,10 @@ class ModeLabel : public QLabel {
 public:
     ModeLabel(QWidget* parent = nullptr);
 
+    void loadModes();
+
 private:
     QJsonObject _existingModes;
-
-    void loadModes();
 
 public slots:
     void onModeUpdated(uint32_t mode);

@@ -3,7 +3,7 @@
 
 #include "../vehiclestatuslog.h"
 
-#include "mavlink/mavlinktypes.h"
+#include "protocols/mavlink/MavlinkFwd.h"
 
 class MavlinkVehicleStatusLog : public VehicleStatusLog {
     Q_OBJECT
@@ -13,6 +13,7 @@ public:
 
 public slots:
     void onMessage(Message msg) override;
+    void onStatusTextReceived(Message msg) override;
 
 private:
     void handleMavlink(mavlink_statustext_t message);

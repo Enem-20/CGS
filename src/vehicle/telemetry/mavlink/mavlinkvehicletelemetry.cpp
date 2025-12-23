@@ -39,6 +39,34 @@ void MavlinkVehicleTelemetry::onMessage(Message msg) {
     }
 }
 
+void MavlinkVehicleTelemetry::onHeartbeatReceived(Message msg) {
+    MavlinkMessage* message = msg.read<MavlinkMessage>();
+    mavlink_heartbeat_t heartbeat;
+    mavlink_msg_heartbeat_decode(message, &heartbeat);
+    handleMavlink(heartbeat);
+}
+
+void MavlinkVehicleTelemetry::onAttitudeReceived(Message msg) {
+    MavlinkMessage* message = msg.read<MavlinkMessage>();
+    mavlink_attitude_t attitude;
+    mavlink_msg_attitude_decode(message, &attitude);
+    handleMavlink(attitude);
+}
+
+void MavlinkVehicleTelemetry::onLocalPositionNEDReceived(Message msg) {
+    MavlinkMessage* message = msg.read<MavlinkMessage>();
+    mavlink_local_position_ned_t localPositionNED;
+    mavlink_msg_local_position_ned_decode(message, &localPositionNED);
+    handleMavlink(localPositionNED);
+}
+
+void MavlinkVehicleTelemetry::onGlobalPositionINTReceived(Message msg) {
+    MavlinkMessage* message = msg.read<MavlinkMessage>();
+    mavlink_global_position_int_t globalPositionInt;
+    mavlink_msg_global_position_int_decode(message, &globalPositionInt);
+    handleMavlink(globalPositionInt);
+}
+
 void MavlinkVehicleTelemetry::requestTelemetry() {
     mavlink_message_t command;
     mavlink_msg_request_data_stream_pack(

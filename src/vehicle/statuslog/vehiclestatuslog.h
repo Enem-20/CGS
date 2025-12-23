@@ -13,6 +13,9 @@ public:
 
 signals:
     void statusMessageReceived(const QString& text, const QString& severity);
+
+public slots:
+    virtual void onStatusTextReceived(Message msg) = 0;
 };
 
 #endif // VEHICLESTATUSLOG_H

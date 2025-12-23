@@ -17,6 +17,13 @@ void MavlinkVehicleStatusLog::onMessage(Message msg) {
     }
 }
 
+void MavlinkVehicleStatusLog::onStatusTextReceived(Message msg) {
+    MavlinkMessage* message = msg.read<MavlinkMessage>();
+    mavlink_statustext_t statusText;
+    mavlink_msg_statustext_decode(message, &statusText);
+    handleMavlink(statusText);
+}
+
 void MavlinkVehicleStatusLog::handleMavlink(mavlink_statustext_t message) {
     QString severity = "INFO";
     switch(message.severity) {

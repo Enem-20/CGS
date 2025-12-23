@@ -4,8 +4,6 @@
 #include <QWidget>
 #include <QTableWidget>
 
-#include "mavlink/mavlinkdevice.h"
-
 namespace Ui {
 class DevicesTable;
 }
@@ -26,7 +24,7 @@ signals:
 public slots:
     void onDeviceConnected(QStringView name, QStringView type);
     void onDeviceDisconnected(QStringView name);
-    void onDeviceStateChanged(QStringView name, PortState_ state);
+    void onDeviceStateChanged(QStringView name);
 
 private slots:
     void on_table_itemDoubleClicked(QTableWidgetItem *item);

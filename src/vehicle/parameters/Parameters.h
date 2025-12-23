@@ -16,6 +16,7 @@ class Parameters : public ProtocolSubscriber {
     QHash<QString, Parameter*> _parametersById;
     SegmentMap _segmentMap;
     QTimer _timerPullTimeout;
+    QTimer _pushTimeoutTimer;
     QTimer _syncTimer;
     bool _pulledOnConnect = false;
 public:
@@ -33,6 +34,7 @@ public slots:
     void loadFromFile();
 
     void downloadLost();
+    void uploadLost();
 
     void onMessage(Message msg) override;
     void onErase();

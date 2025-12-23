@@ -10,6 +10,7 @@
 
 Parameters::Parameters(QObject* parent) noexcept
     : ProtocolSubscriber(parent) {
+    _pushTimeoutTimer.setInterval(5000);
     _timerPullTimeout.setInterval(5000);
     _syncTimer.setInterval(5000);
 
@@ -19,6 +20,9 @@ Parameters::Parameters(QObject* parent) noexcept
             _pulledOnConnect = true;
         }
     });
+    connect(&_timerPullTimeout, &QTimer::timeout, this, &Parameters::downloadLost);
+    connect(&_pushTimeoutTimer, &QTimer::timeout, this, &Parameters::uploadLost);
+    
     _syncTimer.start();
 }
 
@@ -70,6 +74,7 @@ void Parameters::loadFromFile() {
 void Parameters::downloadLost() {
     auto missing = _segmentMap.getMissingSegments();
     if(!missing.empty()) {
+        qDebug() << "request lost";
         for(auto element : missing) {
             onRequestSingleFromVehicle(element);
         }
@@ -77,6 +82,10 @@ void Parameters::downloadLost() {
         _timerPullTimeout.stop();
         emit parametersPullingCompleted();
     }
+}
+
+void Parameters::uploadLost() {
+
 }
 
 void Parameters::onMessage(Message msg) {
@@ -96,7 +105,8 @@ void Parameters::onMessage(Message msg) {
     }
     parameter->onMessage(msg);
     emit parameterUpdated(parameter);
-    _segmentMap.segmentWritten(param.param_index);
+    if(param.param_index < _segmentMap.size()) 
+        _segmentMap.segmentWritten(param.param_index);
 } 
 
 void Parameters::onErase() {
@@ -116,8 +126,8 @@ void Parameters::clear() {
 void Parameters::onSendSingleToVehicle(uint16_t index) {
     auto paramIt = _parameters.find(index);
     if(paramIt != _parameters.end()) {
-            _segmentMap.segmentErased(index);
-        connect(&_timerPullTimeout, &QTimer::timeout, this, &Parameters::downloadLost);
+        _segmentMap.segmentErased(index);
+        _pushTimeoutTimer.start();
         mavlink_message_t* msg = new mavlink_message_t{};
         mavlink_param_set_t paramSet;
         QByteArray paramNameBytes = paramIt.value()->getId().toUtf8();
@@ -139,7 +149,8 @@ void Parameters::onSendSingleToVehicle(uint16_t index) {
 
 void Parameters::onSendToVehicle() {
     for(auto paramKey : _parameters.keys()) {
-        onSendSingleToVehicle(paramKey);
+        if(paramKey < _segmentMap.size())
+            onSendSingleToVehicle(paramKey);
     }
 }
     
@@ -169,9 +180,9 @@ void Parameters::onRequestAllFromVehicle() {
 }
 
 void Parameters::onConnect() {
-    _pulledOnConnect = true;
+    _pulledOnConnect = false;
 }
 
 void Parameters::onDisconnect() {
-    _pulledOnConnect = false;
+    _pulledOnConnect = true;
 }

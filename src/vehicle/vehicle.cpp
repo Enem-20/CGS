@@ -1,14 +1,14 @@
 #include "vehicle.h"
 
 #include "protocols/basepacketizer.h"
-
+#include "deviceManagement/basedevice.h"
 #include "./logs/vehiclelogs.h"
 #include "./telemetry/vehicletelemetry.h"
 #include "./statuslog/vehiclestatuslog.h"
 #include "./parameters/Parameters.h"
 
-Vehicle::Vehicle(QObject* parent) 
-    : QObject(parent) {}
+Vehicle::Vehicle(BasePacketizer* packetizer, QObject* parent) 
+    : QObject(parent), _packetizer((packetizer)) {}
 
 Vehicle::~Vehicle() {
     if (_logs) {
@@ -20,9 +20,22 @@ Vehicle::~Vehicle() {
     if (_statusLog) {
         _statusLog->deleteLater();
     }
-    if(_parameters) {
+    if (_parameters) {
         _parameters->deleteLater();
     }
+    if(_active) {
+        _active->quit();
+        _active->wait();
+    }
+    for(auto device : _devices) {
+        device->quit();
+        device->wait();
+    }
+    _devices.clear();
+}
+
+BasePacketizer* Vehicle::getPacketizer() {
+    return _packetizer;
 }
 
 VehicleLogs* Vehicle::getLogs() {
@@ -41,10 +54,17 @@ Parameters* Vehicle::getParameters() {
     return _parameters;
 }
 
-void Vehicle::setDevice(BaseDevice* device) {
-    _device = device;
-}
-
-void Vehicle::setPacketizer(BasePacketizer* packetizer) {
-    _packetizer = packetizer;
+void Vehicle::setActiveDevice(BaseDevice* device) {
+    if(_active) {
+        disconnect(_packetizer, &BasePacketizer::messageTransmitRequest, _active, &BaseDevice::onSendRawCommand);
+        disconnect(_active, &BaseDevice::portOpened, _parameters, &Parameters::onConnect);
+        disconnect(_active, &BaseDevice::portClosed, _parameters, &Parameters::onDisconnect);
+    }
+    
+    _active = device;
+    _active->setParent(this);
+    _packetizer->moveToThread(_active);
+    connect(_packetizer, &BasePacketizer::messageTransmitRequest, _active, &BaseDevice::onSendRawCommand);
+    connect(_active, &BaseDevice::portOpened, _parameters, &Parameters::onConnect);
+    connect(_active, &BaseDevice::portClosed, _parameters, &Parameters::onDisconnect);
 }

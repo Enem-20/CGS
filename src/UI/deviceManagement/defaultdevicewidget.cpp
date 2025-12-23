@@ -1,8 +1,6 @@
 #include "defaultdevicewidget.h"
 #include "ui_defaultdevicewidget.h"
 
-#include "mavlink/mavlinkdevice.h"
-
 DefaultDeviceWidget::DefaultDeviceWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::DefaultDeviceWidget)
@@ -16,11 +14,11 @@ DefaultDeviceWidget::~DefaultDeviceWidget()
 }
 
 void DefaultDeviceWidget::on_buttonConnect_clicked() {
-    emit makeDefaultDeviceActive(DEFAULT_DEVICE_NAME);
+    emit makeDefaultDeviceActive(QString("defaultDevice"));
 }
 
 void DefaultDeviceWidget::onActiveDeviceChanged(QStringView deviceName) {
-    if (deviceName != DEFAULT_DEVICE_NAME) {
+    if (deviceName != "defaultDevice") {
         ui->buttonConnect->setEnabled(true);
     } else {
         ui->buttonConnect->setEnabled(false);

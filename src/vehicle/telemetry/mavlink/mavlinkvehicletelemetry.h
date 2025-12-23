@@ -3,7 +3,7 @@
 
 #include "../vehicletelemetry.h"
 
-#include "mavlink/mavlinktypes.h"
+#include "protocols/mavlink/MavlinkFwd.h"
 
 class MavlinkVehicleTelemetry : public VehicleTelemetry {
     Q_OBJECT
@@ -13,6 +13,10 @@ public:
 
 public slots:
     void onMessage(Message msg) override;
+    void onHeartbeatReceived(Message msg);
+    void onAttitudeReceived(Message msg);
+    void onLocalPositionNEDReceived(Message msg);
+    void onGlobalPositionINTReceived(Message msg);
 
 private:
     void requestTelemetry() override;

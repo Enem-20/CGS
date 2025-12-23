@@ -41,6 +41,8 @@ signals:
     void logsErased();
 
 public slots:
+    virtual void onLogEntryReceived(Message msg) = 0;
+    virtual void onLogDataReceived(Message msg) = 0;
     virtual void onActiveDeviceChanged(QStringView deviceName) = 0;
     virtual void onLogsListRequested() = 0;
     virtual void onLogDownloadRequested(uint32_t id) = 0;

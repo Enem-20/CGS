@@ -7,40 +7,33 @@
 
 #include "protocols/message.h"
 
-class BasePacketizer;
-
 enum class PortState : uint8_t {
     Uninitialized,
     Initialized,
     Opened
 };
 
-class BaseDevice : public QThread
-{
+class BaseDevice : public QThread {
     Q_OBJECT
 private:
     QTimer _queueSendTimer;
     QTimer _connectionWatchdog;
+    uint64_t _typeHash;
     bool _packageisValid = true;
-
 protected:
     QQueue<Message> _messageQueue;
     QByteArray _inputBuffer;
     QTimer _waitPacketTimer;
     QIODevice* _device;
-    BasePacketizer* _packetizer;
     QString _name;
     QString _type;
-
-protected:
-    virtual void sendRawCommand(const QByteArray& data) = 0;
-
 public:
-    explicit BaseDevice(const QString& name, const QString& type, QIODevice* device, QObject *parent = nullptr);
+    explicit BaseDevice(const QString& name, QString type, uint64_t typeHash, QIODevice* device, QObject *parent = nullptr);
     virtual ~BaseDevice();
 
     QStringView getName() const;
     QStringView getType() const;
+    uint64_t getTypeHash() const;
 signals:
     void messageReceived(Message msg);
     void portStateChanged(PortState state);
@@ -48,13 +41,15 @@ signals:
     void portInitialized();
     void portOpened();
     void portClosed();
+    void receivingBegin();
+    bool byteReceived(uint8_t byte);
+    void receivingEnd();
 
 protected slots:
     virtual void onReadBytes() = 0;
     virtual void onWaitPacketTimeout();
 public slots:
-    virtual void onMessageTransmitRequest(Message msg) = 0;
-    virtual void setPacketizer(BasePacketizer* packetizer) = 0;
+    virtual void onSendRawCommand(const QByteArray& data) = 0;
 };
 
 #endif // BASEDEVICE_H

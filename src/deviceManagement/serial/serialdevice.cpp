@@ -5,19 +5,15 @@
 
 #include <common/mavlink.h>
 
-#include "protocols/basepacketizer.h"
-
-void SerialDevice::sendRawCommand(const QByteArray& data) {
-    if (_port && _port->isOpen() && _port->isWritable()) {
-        _port->write(data);
-    }
-}
+#include "tools/hashes.h"
+#include "tools/tokenize.h"
 
 SerialDevice::SerialDevice(QString name, const QSerialPortInfo& portInfo, QObject *parent)
-    : BaseDevice(name, "Serial", new QSerialPort(portInfo, parent), parent)
+    : BaseDevice(name, TOKENIZE(SerialDevice), hashes::fnv1a64(TOKENIZE(SerialDevice)), new QSerialPort(portInfo, parent), parent)
     , _connectivityWatchdog(this)
     , _portInfo(portInfo)
 {
+    _waitPacketTimer.setInterval(1000);
     _port = dynamic_cast<QSerialPort*>(_device);
     connect(&_connectivityWatchdog, &QTimer::timeout, this, &SerialDevice::onOpenSerial);
     connect(&_keepAliveWatchdog, &QTimer::timeout, this, &SerialDevice::onDisconnected);
@@ -27,6 +23,12 @@ SerialDevice::SerialDevice(QString name, const QSerialPortInfo& portInfo, QObjec
     _connectivityWatchdog.start(5000);
     emit portCreated();
     emit portStateChanged(PortState::Uninitialized);
+}
+
+void SerialDevice::onSendRawCommand(const QByteArray& data) {
+    if (_port && _port->isOpen() && _port->isWritable()) {
+        _port->write(data);
+    }
 }
 
 void SerialDevice::onOpenSerial() {
@@ -99,27 +101,11 @@ void SerialDevice::onReadBytes() {
         bool isSuccessfulyParsed = false;
         for (size_t i = 0; i < data.size(); ++i) {
             uint8_t byte = static_cast<uint8_t>(data[i]);
-            isSuccessfulyParsed = _packetizer->onPushByte(byte);
+            emit 
             if(isSuccessfulyParsed) {
                 _keepAliveWatchdog.start(8000);
             }
         }
-        if (!isSuccessfulyParsed) {
-            _waitPacketTimer.start(200);
-        }
-    }
-}
 
-void SerialDevice::onMessageTransmitRequest(Message msg) {
-    if(_port && _port->isOpen()) {
-        QByteArray data = _packetizer->packagePrepare(msg);
-        _port->write(data);
     }
-    else {
-        _messageQueue.push_back(msg);
-    }
-}
-
-void SerialDevice::setPacketizer(BasePacketizer* packetizer) {
-    _packetizer = packetizer;
 }

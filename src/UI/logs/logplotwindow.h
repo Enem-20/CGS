@@ -6,7 +6,7 @@
 
 #include "UI/plotter/plotter.h"
 
-#include "mavlink/dataflashparser.h"
+#include "vehicle/logs/dataflashparser.h"
 #include "logparameterswindow.h"
 
 namespace Ui {

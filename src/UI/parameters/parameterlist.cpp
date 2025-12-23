@@ -107,24 +107,26 @@ void ParameterList::onParameterUpdate(Parameter* parameter) {
     QTableWidgetItem* valueItem = nullptr;
     QTableWidgetItem* idItem = nullptr;
     QTableWidgetItem* typeItem = nullptr;
+    ui->parameterList->blockSignals(true);
     if(items.empty()) {
         nameItem = new QTableWidgetItem(parameter->getId());
         valueItem = new QTableWidgetItem(castParameter(static_cast<MAV_PARAM_TYPE>(parameter->getType()), parameter->getValue()));
         idItem = new QTableWidgetItem(QString::number(parameter->getIndex()));
         typeItem = new QTableWidgetItem(QString::number(parameter->getType()));
         rowIndex = ui->parameterList->rowCount();
+
+        ui->parameterList->insertRow(rowIndex);
+        ui->parameterList->setItem(rowIndex, 0, nameItem);
+        ui->parameterList->setItem(rowIndex, 1, valueItem);
+        ui->parameterList->setItem(rowIndex, 2, idItem);
+        ui->parameterList->setItem(rowIndex, 3, typeItem);
+        
     } else {
         rowIndex = items[0]->row();
-        nameItem = ui->parameterList->item(rowIndex, 0);
-        valueItem = ui->parameterList->item(rowIndex, 1);
-        idItem = ui->parameterList->item(rowIndex, 2);
-        typeItem = ui->parameterList->item(rowIndex, 3);
+        ui->parameterList->item(rowIndex, 0)->setText(parameter->getId());
+        ui->parameterList->item(rowIndex, 1)->setText(castParameter(static_cast<MAV_PARAM_TYPE>(parameter->getType()), parameter->getValue()));
+        ui->parameterList->item(rowIndex, 2)->setText(QString::number(parameter->getIndex()));
+        ui->parameterList->item(rowIndex, 3)->setText(QString::number(parameter->getType()));
     }
-    ui->parameterList->blockSignals(true);
-    ui->parameterList->insertRow(rowIndex);
-    ui->parameterList->setItem(rowIndex, 0, nameItem);
-    ui->parameterList->setItem(rowIndex, 1, valueItem);
-    ui->parameterList->setItem(rowIndex, 2, idItem);
-    ui->parameterList->setItem(rowIndex, 3, typeItem);
     ui->parameterList->blockSignals(false);
 }

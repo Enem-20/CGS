@@ -1,5 +1,5 @@
-#ifndef MAVLINKTYPES_H
-#define MAVLINKTYPES_H
+#ifndef MAVLINK_FWD_H
+#define MAVLINK_FWD_H
 
 struct __mavlink_message;
 typedef __mavlink_message mavlink_message_t;
@@ -50,4 +50,4 @@ typedef __mavlink_log_erase_t mavlink_log_erase_t;
 struct __mavlink_log_request_end_t;
 typedef __mavlink_log_request_end_t mavlink_log_request_end_t;
 
-#endif // MAVLINKTYPES_H
+#endif // MAVLINK_FWD_H

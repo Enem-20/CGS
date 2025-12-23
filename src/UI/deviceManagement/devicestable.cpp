@@ -3,8 +3,6 @@
 
 #include <QTableWidget>
 
-#include "mavlink/mavlinkdevice.h"
-
 DevicesTable::DevicesTable(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::DevicesTable)
@@ -37,26 +35,13 @@ void DevicesTable::onDeviceDisconnected(QStringView name) {
     ui->table->removeRow(items[0]->row());
 }
 
-void DevicesTable::onDeviceStateChanged(QStringView name, PortState_ state) {
+void DevicesTable::onDeviceStateChanged(QStringView name) {
     QList<QTableWidgetItem*> items = ui->table->findItems(name.toString(), Qt::MatchExactly);
     if (items.size() == 0) {
         qDebug() << "Device doesn't exist";
         return;
     }
     int32_t row = items[0]->row();
-    switch (state) {
-    case PortState_::Uninitialized:
-        ui->table->item(row, 2)->setText("Uninitialized");
-        break;
-    case PortState_::Initialized:
-        ui->table->item(row, 2)->setText("Initialized");
-        break;
-    case PortState_::Opened:
-        ui->table->item(row, 2)->setText("Opened");
-        break;
-    default:
-        ui->table->item(row, 2)->setText("Error");
-    }
 }
 
 void DevicesTable::on_table_itemDoubleClicked(QTableWidgetItem *item) {

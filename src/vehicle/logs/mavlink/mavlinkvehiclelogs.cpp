@@ -30,6 +30,20 @@ void MavlinkVehicleLogs::onMessage(Message msg) {
     }
 }
 
+void MavlinkVehicleLogs::onLogEntryReceived(Message msg) {
+    MavlinkMessage* message = msg.read<MavlinkMessage>();
+    mavlink_log_entry_t logEntry;
+    mavlink_msg_log_entry_decode(message, &logEntry);
+    handleMavlink(logEntry);
+}
+
+void MavlinkVehicleLogs::onLogDataReceived(Message msg) {
+    MavlinkMessage* message = msg.read<MavlinkMessage>();
+    mavlink_log_data_t logData;
+    mavlink_msg_log_data_decode(message, &logData);
+    handleMavlink(logData);
+}
+
 void MavlinkVehicleLogs::onActiveDeviceChanged(QStringView deviceName) {
     _logEntriesTimeout.stop();
     _logDataTimeout.stop();

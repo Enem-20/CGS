@@ -2,7 +2,7 @@
 
 #include <QIODevice>
 
-BaseDevice::BaseDevice(const QString& name, const QString& type, QIODevice* device, QObject *parent)
+BaseDevice::BaseDevice(const QString& name, QString type, uint64_t typeHash, QIODevice* device, QObject *parent)
     : QThread(parent)
     , _device(device)
     , _queueSendTimer(parent)
@@ -10,9 +10,8 @@ BaseDevice::BaseDevice(const QString& name, const QString& type, QIODevice* devi
     , _waitPacketTimer(parent)
     , _name(name)
     , _type(type)
-{
-
-}
+    , _typeHash(typeHash)
+{}
 
 BaseDevice::~BaseDevice() {
     if(_device)
@@ -25,6 +24,10 @@ QStringView BaseDevice::getName() const {
 
 QStringView BaseDevice::getType() const {
     return _type;
+}
+
+uint64_t BaseDevice::getTypeHash() const {
+    return _typeHash;
 }
 
 void BaseDevice::onWaitPacketTimeout() {

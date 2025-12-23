@@ -10,8 +10,6 @@
 #include "deviceManagement/serialscanner.h"
 #include "UI/logs/logplotwindow.h"
 
-#include "protocols/mavlink/mavlinkpacketizer.h"
-
 #include "vehicle/logs/vehiclelogs.h"
 #include "vehicle/telemetry/vehicletelemetry.h"
 #include "vehicle/statuslog/vehiclestatuslog.h"
@@ -44,54 +42,35 @@ MainWindow::MainWindow(QWidget *parent)
     //connect(ui->gcsLog->model(), &QAbstractItemModel::rowsInserted, [this](const QModelIndex& parent, int first, int last) {
     //    ui->gcsLog->setAutoScroll(ui->logAutoScroll->isChecked());
     //});
-
-    _vehicle = new MavlinkVehicle();
-    UDPDevice* device = new UDPDevice("DefaultDevice", 14550, "127.0.0.1", this);
-    _vehicle->setDevice(static_cast<BaseDevice*>(device));
-    MavlinkPacketizer* packetizer = new MavlinkPacketizer(device);
-    packetizer->moveToThread(device);
-    _vehicle->setPacketizer(packetizer);
-    device->setPacketizer(packetizer);
+    
+    UDPDevice* device = new UDPDevice("DefaultDevice", 14550, "127.0.0.1", nullptr);
+    _vehicle = new MavlinkVehicle(this);
+    _vehicle->setActiveDevice(static_cast<BaseDevice*>(device));
     device->start();
-    connect(device, &BaseDevice::portOpened, _vehicle->getParameters(), &Parameters::onConnect);
-    connect(device, &BaseDevice::portClosed, _vehicle->getParameters(), &Parameters::onDisconnect);
-    // tconnect packetizer
-    connect(packetizer, &BasePacketizer::messageReceived, _vehicle->getLogs(), &VehicleLogs::onMessage);
-    connect(packetizer, &BasePacketizer::messageReceived, _vehicle->getTelemetry(), &VehicleTelemetry::onMessage);
-    connect(packetizer, &BasePacketizer::messageReceived, _vehicle->getStatusLog(), &VehicleStatusLog::onMessage);
-    connect(packetizer, &BasePacketizer::messageReceived, _vehicle->getParameters(), &Parameters::onMessage);
 
     // connect VehicleLogs
-    connect(_vehicle->getLogs(), &VehicleLogs::sendMessageRequest, packetizer, &BasePacketizer::onSendMessageRequest);
     connect(_vehicle->getLogs(), &VehicleLogs::logsListReceived, &_logsWindow, &LogsWindow::onLogListReceived);
     connect(_vehicle->getLogs(), &VehicleLogs::logDownloadProgressUpdated, &_logsWindow, &LogsWindow::onLogDownloadProgressUpdated);
     connect(_vehicle->getLogs(), &VehicleLogs::logFileDownloaded, &_logsWindow, &LogsWindow::onLogFileDownloaded);
     connect(_vehicle->getLogs(), &VehicleLogs::stateChanged, &_logsWindow, &LogsWindow::onLogSystemStateChanged);
 
     // connect VehicleTelemetry
-    connect(_vehicle->getTelemetry(), &VehicleTelemetry::sendMessageRequest, packetizer, &BasePacketizer::onSendMessageRequest);
     connect(_vehicle->getTelemetry(), &VehicleTelemetry::orientationUpdated, &_telemetryWindow, &TelemetryWindow::onVehicleOrientationUpdated);
     connect(_vehicle->getTelemetry(), &VehicleTelemetry::velocityUpdated, &_telemetryWindow, &TelemetryWindow::onVehicleVelocityUpdated);
     connect(_vehicle->getTelemetry(), &VehicleTelemetry::altitudeUpdated, &_telemetryWindow, &TelemetryWindow::onVehicleAltitudeUpdated);
     connect(_vehicle->getTelemetry(), &VehicleTelemetry::orientationUpdated, ui->attitude, &AttitudeLabel::onOrientationUpdated);
     connect(_vehicle->getTelemetry(), &VehicleTelemetry::altitudeUpdated, ui->altitude, &AltitudeLabel::onAltitudeUpdated);
     connect(_vehicle->getTelemetry(), &VehicleTelemetry::velocityUpdated, ui->speeds, &SpeedsLabel::onVelocityUpdated);
-    // connect((_vehicle->getTelemetry(), &VehicleTelemetry::modeUpdated, ui->modeValue, &ModeLabel::onModeUpdated);
-    // connect((_vehicle->getTelemetry(), &VehicleTelemetry::armStateUpdated, ui->armedStatus, &ArmLabel::onArmStateUpdated);
+    // connect(_vehicle->getTelemetry(), &VehicleTelemetry::modeUpdated, ui->modeValue, &ModeLabel::onModeUpdated);
+    // connect(_vehicle->getTelemetry(), &VehicleTelemetry::armStateUpdated, ui->armedStatus, &ArmLabel::onArmStateUpdated);
 
     // connect VehicleStatusLog
-    connect(_vehicle->getStatusLog(), &VehicleStatusLog::sendMessageRequest, packetizer, &BasePacketizer::onSendMessageRequest);
     connect(_vehicle->getStatusLog(), &VehicleStatusLog::statusMessageReceived, &_telemetryWindow, &TelemetryWindow::onStatusMessageReceived);
     connect(_vehicle->getStatusLog(), &VehicleStatusLog::statusMessageReceived, ui->gcsLog, &GCSLog::onLogUpdated);
 
     // connect Parameters
-    connect(_vehicle->getParameters(), &Parameters::sendMessageRequest, packetizer, &BasePacketizer::onSendMessageRequest);
     connect(_vehicle->getParameters(), &Parameters::newParameterReceived, &_parameterList, &ParameterList::onParameterUpdate);
     connect(_vehicle->getParameters(), &Parameters::parameterUpdated, &_parameterList, &ParameterList::onParameterUpdate);
-
-    // connect system interactions
-    connect(_vehicle->getParameters(), &Parameters::parametersPullingStarted, _vehicle->getTelemetry(), &VehicleTelemetry::onStopTelemetry);
-    connect(_vehicle->getParameters(), &Parameters::parametersPullingCompleted, _vehicle->getTelemetry(), &VehicleTelemetry::onStartTelemetry);
 
     // connect LogsWindow
     connect(&_logsWindow, &LogsWindow::requestLogList, _vehicle->getLogs(), &VehicleLogs::onLogsListRequested);
@@ -136,29 +115,13 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_actionParameters_set_triggered() {
-    if (_parameterList.isHidden())
+    if (_parameterList.isHidden()) {
         _parameterList.show();
+    }
 }
-
 
 void MainWindow::on_actionRefresh_configs_triggered() {
-    // _mavlinkContext->loadModes();
-}
-
-void MainWindow::onParamUpdated(const mavlink_param_value_t& param) {
-    // _parameterList.handleMavlink(param);
-}
-
-void MainWindow::onParamExtUpdated(const mavlink_param_value_t& param) {
-    // _parameterList.handleMavlink(param);
-}
-
-void MainWindow::paramsRequested(const mavlink_message_t& msg) {
-    emit paramsRequest(msg);
-}
-
-void MainWindow::setParamRequested(const mavlink_message_t& msg) {
-    emit setParamRequest(msg);
+    // ui->modeValue->loadModes();
 }
 
 void MainWindow::on_actionOpen_Telemetry_triggered() {
