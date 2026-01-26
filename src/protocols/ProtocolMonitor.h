@@ -4,9 +4,9 @@
 #include <QObject>
 #include <QTimer>
 
+#include "channelManagement/RemoteChannelID.h"
 #include "message.h"
 #include "tools/hashes.h"
-#include "vehicleManagement/VehicleId.h"
 
 class MavlinkPacketizer;
 class BasePacketizer;
@@ -18,22 +18,24 @@ class ProtocolMonitor : public QObject {
     MavlinkPacketizer*  _mavlinkPacketizer;
     BaseDevice*         _device;
 
-    QHash<VehicleId, QTimer*> _detectedVehiclesTimers;
+    QHash<RemoteChannelID, QTimer*> _detectedChannelsTimers;
 
 public:
-    ProtocolMonitor(BaseDevice* device);
+    explicit ProtocolMonitor(QObject* parent = nullptr);
+    ~ProtocolMonitor();
 
+    void init();
 signals:
-    void vehicleDetected(VehicleId id);
-    void vehicleLost(VehicleId id);
+    void channelDetected(RemoteChannelID id);
+    void channelLost(RemoteChannelID id);
     
-    bool checkContainsBlockable(VehicleId id);
-    void createVehicle(VehicleId id);
+    bool checkContainsBlockable(RemoteChannelID id);
+    void createChannel(RemoteChannelID id);
     void packetizerUpdate(BasePacketizer* packetizer);
 
 private slots:
     void onHeartbeatMessage(Message msg);
-    void onVehicleLost(VehicleId id);
+    void onChannelLost(RemoteChannelID id);
 };
 
 #endif // C_PROTOCOL_MONITOR_H

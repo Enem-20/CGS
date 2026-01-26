@@ -17,10 +17,12 @@ public:
 
 private:
     Ui::DevicesTable *ui;
-
+private:
+    void showAll();
+    void hideAll();
 signals:
     void makeDeviceActive(QStringView deviceName);
-
+    void transitToAddDevice();
 public slots:
     void onDeviceConnected(QStringView name, QStringView type);
     void onDeviceDisconnected(QStringView name);
@@ -28,6 +30,7 @@ public slots:
 
 private slots:
     void on_table_itemDoubleClicked(QTableWidgetItem *item);
+    void on_add_clicked();
 };
 
 #endif // DEVICESTABLE_H

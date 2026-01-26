@@ -46,6 +46,13 @@ void MavlinkVehicleTelemetry::onHeartbeatReceived(Message msg) {
     handleMavlink(heartbeat);
 }
 
+void MavlinkVehicleTelemetry::onAltitudeReceived(Message msg) {
+    MavlinkMessage* message = msg.read<MavlinkMessage>();
+    mavlink_altitude_t* altitude = new mavlink_altitude_t;
+    mavlink_msg_altitude_decode(message, altitude);
+    emit altitudeUpdate(reinterpret_cast<void*>(altitude));
+}
+
 void MavlinkVehicleTelemetry::onAttitudeReceived(Message msg) {
     MavlinkMessage* message = msg.read<MavlinkMessage>();
     mavlink_attitude_t attitude;

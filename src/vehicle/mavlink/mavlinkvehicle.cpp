@@ -2,54 +2,53 @@
 
 #include "common/mavlink.h"
 
-#include "deviceManagement/basedevice.h"
-#include "../logs/mavlink/mavlinkvehiclelogs.h"
-#include "../telemetry/mavlink/mavlinkvehicletelemetry.h"
-#include "../statuslog/mavlink/mavlinkvehiclestatuslog.h"
-#include "../parameters/Parameters.h"
+#include "vehicle/logs/mavlink/mavlinkvehiclelogs.h"
+#include "vehicle/telemetry/mavlink/mavlinkvehicletelemetry.h"
+#include "vehicle/statuslog/mavlink/mavlinkvehiclestatuslog.h"
+#include "vehicle/parameters/Parameters.h"
 #include "protocols/mavlink/mavlinkpacketizer.h"
 
-MavlinkVehicle::MavlinkVehicle(QObject *parent)
-    : Vehicle(new MavlinkPacketizer(nullptr), parent)
+MavlinkVehicle::MavlinkVehicle(QWidget *parent)
+    : Vehicle(parent)
 {
-    MavlinkPacketizer* mavlinkPacketizer = qobject_cast<MavlinkPacketizer*>(_packetizer);
-    //mavlinkPacketizer->setParent(this);
-    MavlinkVehicleLogs* mavlinkLogs = new MavlinkVehicleLogs();
-    MavlinkVehicleTelemetry* mavlinkTelemetry = new MavlinkVehicleTelemetry();
-    MavlinkVehicleStatusLog* mavlinkStatusLog = new MavlinkVehicleStatusLog();
-    Parameters* mavlinkParameters = new Parameters();
+    //_logs = new MavlinkVehicleLogs();
+    //_telemetry = new MavlinkVehicleTelemetry();
+    //_statusLog = new MavlinkVehicleStatusLog();
+    //_parameters = new Parameters();
+}
 
-    _logs = mavlinkLogs;
-    _telemetry = mavlinkTelemetry;
-    _statusLog = mavlinkStatusLog;
-    _parameters = mavlinkParameters;
+void MavlinkVehicle::connectPacketizer(MavlinkPacketizer* packetizer) {
+    // MavlinkVehicleLogs* mavlinkLogs = qobject_cast<MavlinkVehicleLogs*>(_logs);
+    // MavlinkVehicleTelemetry* mavlinkTelemetry = qobject_cast<MavlinkVehicleTelemetry*>(_logs);
+    // MavlinkVehicleStatusLog* mavlinkStatusLog = qobject_cast<MavlinkVehicleStatusLog*>(_logs);
+    // Parameters* mavlinkParameters = qobject_cast<Parameters*>(_logs);
 
-    // connect self
-    connect(mavlinkPacketizer, &MavlinkPacketizer::heartbeatReceived, this, &MavlinkVehicle::onHeartbeatReceived);
+    // // connect self
+    // connect(packetizer, &MavlinkPacketizer::heartbeatReceived, this, &MavlinkVehicle::onHeartbeatReceived);
 
-    // connect logs
-    connect(mavlinkLogs, &VehicleLogs::sendMessageRequest, mavlinkPacketizer, &MavlinkPacketizer::onSendMessageRequest);
-    connect(mavlinkPacketizer, &MavlinkPacketizer::logEntryReceived, mavlinkLogs, &MavlinkVehicleLogs::onLogEntryReceived);
-    connect(mavlinkPacketizer, &MavlinkPacketizer::logDataReceived, mavlinkLogs, &MavlinkVehicleLogs::onLogDataReceived);
+    // // connect logs
+    // connect(mavlinkLogs, &VehicleLogs::sendMessageRequest, packetizer, &MavlinkPacketizer::onSendMessageRequest);
+    // connect(packetizer, &MavlinkPacketizer::logEntryReceived, mavlinkLogs, &MavlinkVehicleLogs::onLogEntryReceived);
+    // connect(packetizer, &MavlinkPacketizer::logDataReceived, mavlinkLogs, &MavlinkVehicleLogs::onLogDataReceived);
 
-    // connect telemetry
-    connect(mavlinkTelemetry, &MavlinkVehicleTelemetry::sendMessageRequest, mavlinkPacketizer, &MavlinkPacketizer::onSendMessageRequest);
-    connect(mavlinkPacketizer, &MavlinkPacketizer::heartbeatReceived, mavlinkTelemetry, &MavlinkVehicleTelemetry::onHeartbeatReceived);
-    connect(mavlinkPacketizer, &MavlinkPacketizer::attitudeReceived, mavlinkTelemetry, &MavlinkVehicleTelemetry::onAttitudeReceived);
-    connect(mavlinkPacketizer, &MavlinkPacketizer::localPositionNEDReceived, mavlinkTelemetry, &MavlinkVehicleTelemetry::onLocalPositionNEDReceived);
-    connect(mavlinkPacketizer, &MavlinkPacketizer::globalPositionINTReceived, mavlinkTelemetry, &MavlinkVehicleTelemetry::onGlobalPositionINTReceived);
+    // // connect telemetry
+    // connect(mavlinkTelemetry, &MavlinkVehicleTelemetry::sendMessageRequest, packetizer, &MavlinkPacketizer::onSendMessageRequest);
+    // connect(packetizer, &MavlinkPacketizer::heartbeatReceived, mavlinkTelemetry, &MavlinkVehicleTelemetry::onHeartbeatReceived);
+    // connect(packetizer, &MavlinkPacketizer::attitudeReceived, mavlinkTelemetry, &MavlinkVehicleTelemetry::onAttitudeReceived);
+    // connect(packetizer, &MavlinkPacketizer::localPositionNEDReceived, mavlinkTelemetry, &MavlinkVehicleTelemetry::onLocalPositionNEDReceived);
+    // connect(packetizer, &MavlinkPacketizer::globalPositionINTReceived, mavlinkTelemetry, &MavlinkVehicleTelemetry::onGlobalPositionINTReceived);
     
-    // connect status log
-    connect(mavlinkStatusLog, &MavlinkVehicleStatusLog::sendMessageRequest, mavlinkPacketizer, &MavlinkPacketizer::onSendMessageRequest);
-    connect(mavlinkPacketizer, &MavlinkPacketizer::statusTextReceived, mavlinkStatusLog, &MavlinkVehicleStatusLog::onStatusTextReceived);
+    // // connect status log
+    // connect(mavlinkStatusLog, &MavlinkVehicleStatusLog::sendMessageRequest, packetizer, &MavlinkPacketizer::onSendMessageRequest);
+    // connect(packetizer, &MavlinkPacketizer::statusTextReceived, mavlinkStatusLog, &MavlinkVehicleStatusLog::onStatusTextReceived);
 
-    // connect parameters
-    connect(mavlinkParameters, &Parameters::sendMessageRequest, mavlinkPacketizer, &MavlinkPacketizer::onSendMessageRequest);
-    connect(mavlinkPacketizer, &MavlinkPacketizer::paramValueReceived, mavlinkParameters, &Parameters::onMessage);
+    // // connect parameters
+    // connect(mavlinkParameters, &Parameters::sendMessageRequest, packetizer, &MavlinkPacketizer::onSendMessageRequest);
+    // connect(packetizer, &MavlinkPacketizer::paramValueReceived, mavlinkParameters, &Parameters::onMessage);
 
-    // connect system interactions
-    connect(mavlinkParameters, &Parameters::parametersPullingStarted, mavlinkTelemetry, &MavlinkVehicleTelemetry::onStopTelemetry);
-    connect(mavlinkParameters, &Parameters::parametersPullingCompleted, mavlinkTelemetry, &MavlinkVehicleTelemetry::onStartTelemetry);
+    // // connect system interactions
+    // connect(mavlinkParameters, &Parameters::parametersPullingStarted, mavlinkTelemetry, &MavlinkVehicleTelemetry::onStopTelemetry);
+    // connect(mavlinkParameters, &Parameters::parametersPullingCompleted, mavlinkTelemetry, &MavlinkVehicleTelemetry::onStartTelemetry);
     
     // connect(_packetizer, &BasePacketizer::messageReceived, _logs, &VehicleLogs::onMessage);
     // connect(_packetizer, &BasePacketizer::messageReceived, _telemetry, &VehicleTelemetry::onMessage);

@@ -3,6 +3,7 @@
 #include <common/mavlink.h>
 
 #include "../message.h"
+#include "tools/hashes.h"
 
 void MavlinkPacketizer::sendEmits(uint32_t msgId, Message msg) {
     switch(msgId) {
@@ -34,7 +35,7 @@ void MavlinkPacketizer::sendEmits(uint32_t msgId, Message msg) {
 }
 
 MavlinkPacketizer::MavlinkPacketizer(QObject *parent)
-    : BasePacketizer(parent)
+    : BasePacketizer(GENERATE_HASH(MavlinkPacketizer), parent)
     , _msg(new mavlink_message_t{})
     , _status(new mavlink_status_t{})
 {

@@ -1,25 +1,25 @@
 #ifndef MAVLINKVEHICLE_H
 #define MAVLINKVEHICLE_H
 
-#include "../vehicle.h"
+#include "../Vehicle.h"
 
 #include <QVector>
 #include <QPair>
 
 #include "protocols/message.h"
 
+class MavlinkPacketizer;
+
 class MavlinkVehicle : public Vehicle {
     Q_OBJECT
 
-    QVector<QPair<uint32_t, uint32_t>> _detectedComponents;
-
-    uint8_t _sysId;
-    uint8_t _compId;
-    
+    QVector<QPair<uint32_t, uint32_t>>  _detectedComponents;
 public:
-    explicit MavlinkVehicle(QObject *parent = nullptr);
+    explicit MavlinkVehicle(QWidget *parent = nullptr);
 
-private slots:
+    void connectPacketizer(MavlinkPacketizer* packetizer);
+
+public slots:
     void onHeartbeatReceived(Message msg);
 };
 

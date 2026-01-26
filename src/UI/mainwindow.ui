@@ -14,9 +14,9 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
-    <item>
-     <widget class="QSplitter" name="splitter_2">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QSplitter" name="splitter">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -34,11 +34,26 @@
         </sizepolicy>
        </property>
        <property name="frameShape">
-        <enum>QFrame::Shape::NoFrame</enum>
+        <enum>QFrame::Shape::StyledPanel</enum>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <property name="spacing">
+         <number>0</number>
+        </property>
         <item row="1" column="0">
-         <widget class="QLabel" name="label_7">
+         <widget class="QLabel" name="Log">
           <property name="text">
            <string>Log</string>
           </property>
@@ -96,67 +111,19 @@
         </item>
        </layout>
       </widget>
-      <widget class="QSplitter" name="splitter">
-       <property name="orientation">
-        <enum>Qt::Orientation::Vertical</enum>
+      <widget class="QFrame" name="frame">
+       <property name="frameShape">
+        <enum>QFrame::Shape::StyledPanel</enum>
        </property>
-       <widget class="QWidget" name="devicesContainer" native="true">
-        <layout class="QVBoxLayout" name="verticalLayout">
-         <property name="leftMargin">
-          <number>0</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QFrame" name="frame">
-           <property name="frameShape">
-            <enum>QFrame::Shape::NoFrame</enum>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_3">
-            <item>
-             <widget class="DevicesTable" name="devicesTable" native="true">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-       <widget class="QScrollArea" name="connectionsScroll">
-        <property name="sizeAdjustPolicy">
-         <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustIgnored</enum>
-        </property>
-        <property name="widgetResizable">
-         <bool>true</bool>
-        </property>
-        <widget class="SerialScanner" name="serialScanner">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>68</width>
-           <height>68</height>
-          </rect>
-         </property>
-        </widget>
-       </widget>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="Devices" name="widget" native="true"/>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
-    <item>
+    <item row="1" column="0">
      <widget class="QFrame" name="frame_2">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
@@ -223,7 +190,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuParameters_set">
@@ -279,18 +246,6 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>SerialScanner</class>
-   <extends>QWidget</extends>
-   <header>UI/deviceManagement/serialscanner.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>DevicesTable</class>
-   <extends>QWidget</extends>
-   <header>UI/deviceManagement/devicestable.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>AttitudeLabel</class>
    <extends>QLabel</extends>
    <header>src/UI/widgets/attitudelabel.h</header>
@@ -319,6 +274,12 @@
    <class>ArmLabel</class>
    <extends>QLabel</extends>
    <header>src/UI/widgets/armlabel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>Devices</class>
+   <extends>QWidget</extends>
+   <header>UI/deviceManagement/devices.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

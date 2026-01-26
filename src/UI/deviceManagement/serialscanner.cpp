@@ -3,6 +3,9 @@
 
 #include <QRegularExpression>
 
+#include "src/deviceManagement/serial/serialdevice.h"
+#include "src/deviceManagement/DeviceManager.h"
+
 Q_DECLARE_METATYPE(QSerialPortInfo)
 
 QString SerialScanner::_defaultPortMatchPattern = "^tty(USB|AMA|ACM)\\d+$";
@@ -57,6 +60,29 @@ SerialScanner::SerialScanner(QWidget *parent)
     });
 
     _portsWatchdog.start(500);
+
+    connect(this, QOverload<QSerialPortInfo>::of(&SerialScanner::connectSerialDevice), this,
+            [this](QSerialPortInfo portInfo) {
+                qDebug() << "trying to connect serial device";
+
+                SerialDevice* device = DeviceManager::getInstance()->createSerialDevice(portInfo.portName(), portInfo);
+                QMetaObject::invokeMethod(device, "onSetupPort", Qt::QueuedConnection,
+                                          Q_ARG(const QSerialPortInfo&, portInfo)
+                                          );
+            }
+            );
+    connect(this, QOverload<QSerialPortInfo, int32_t, uint8_t, uint8_t, uint8_t, uint8_t>::of(&SerialScanner::connectSerialDevice), this,
+            [this](QSerialPortInfo portInfo, int32_t baudRate, uint8_t dataBits, uint8_t stopBits, uint8_t parity, uint8_t flowControl) {
+                qDebug() << "trying to connect serial device with parameters";
+
+                SerialDevice* device = DeviceManager::getInstance()->createSerialDevice(portInfo.portName(), portInfo);
+                QMetaObject::invokeMethod(device, "onSetupPort", Qt::QueuedConnection,
+                                          Q_ARG(const QSerialPortInfo&, portInfo), Q_ARG(int32_t, baudRate),
+                                          Q_ARG(uint8_t, dataBits), Q_ARG(uint8_t, stopBits),
+                                          Q_ARG(uint8_t, parity), Q_ARG(uint8_t, flowControl)
+                                          );
+            }
+            );
 }
 
 SerialScanner::~SerialScanner() {

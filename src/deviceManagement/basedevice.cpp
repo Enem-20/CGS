@@ -2,6 +2,8 @@
 
 #include <QIODevice>
 
+#include "protocols/ProtocolMonitor.h"
+
 BaseDevice::BaseDevice(const QString& name, QString type, uint64_t typeHash, QIODevice* device, QObject *parent)
     : QThread(parent)
     , _device(device)
@@ -11,11 +13,17 @@ BaseDevice::BaseDevice(const QString& name, QString type, uint64_t typeHash, QIO
     , _name(name)
     , _type(type)
     , _typeHash(typeHash)
-{}
+{
+    _protocolMonitor = new ProtocolMonitor(this);
+}
 
 BaseDevice::~BaseDevice() {
-    if(_device)
+    if (_device) {
         _device->deleteLater();
+    }
+    if (_protocolMonitor) {
+        _protocolMonitor->deleteLater();
+    }
 }
 
 QStringView BaseDevice::getName() const {
@@ -28,6 +36,10 @@ QStringView BaseDevice::getType() const {
 
 uint64_t BaseDevice::getTypeHash() const {
     return _typeHash;
+}
+
+ProtocolMonitor* BaseDevice::getProtocolMonitor() {
+    return _protocolMonitor;
 }
 
 void BaseDevice::onWaitPacketTimeout() {

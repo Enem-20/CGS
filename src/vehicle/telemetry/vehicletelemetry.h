@@ -36,7 +36,6 @@ public slots:
     void onStartTelemetry();
     void onStopTelemetry();
 
-    void onMessage(Message msg) override;
 private:
     virtual void requestTelemetry() = 0;
     virtual void requestStopTelemetry() = 0;

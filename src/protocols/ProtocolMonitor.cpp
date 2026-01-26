@@ -2,22 +2,37 @@
 
 #include <common/mavlink.h>
 
+#include "channelManagement/ChannelManager.h"
+#include "channelManagement/RemoteChannelID.h"
 #include "mavlink/mavlinkpacketizer.h"
-#include "vehicleManagement/VehicleManager.h"
 #include "deviceManagement/basedevice.h"
+#include "protocols/mavlink/MavlinkProtocol.h"
 
-ProtocolMonitor::ProtocolMonitor(BaseDevice* device) 
-    : _device(device)
+ProtocolMonitor::ProtocolMonitor(QObject* parent) 
+    : QObject(parent)
+    , _device(qobject_cast<BaseDevice*>(parent))
 {
     _mavlinkPacketizer = new MavlinkPacketizer(this);
-    VehicleManager* manager = VehicleManager::getInstance();
-    connect(_device, &BaseDevice::byteReceived, _mavlinkPacketizer, &MavlinkPacketizer::onPushByte);
-    connect(_mavlinkPacketizer, &MavlinkPacketizer::heartbeatReceived, this, &ProtocolMonitor::onHeartbeatMessage);
+
+    
     // connect(this, &ProtocolMonitor::vehicleDetected, manager, &VehicleManager::create);
     // connect(this, &ProtocolMonitor::checkContainsBlockable, manager, &VehicleManager::contains, Qt::BlockingQueuedConnection);
-    connect(this, &ProtocolMonitor::vehicleLost, this, &ProtocolMonitor::onVehicleLost);
-    connect(this, &ProtocolMonitor::vehicleLost, manager, &VehicleManager::onVehicleLost);
-    connect(this, &ProtocolMonitor::vehicleDetected, manager, &VehicleManager::onVehicleDetected);
+    //connect(this, &ProtocolMonitor::channelLost, this, &ProtocolMonitor::onChannelLost);
+}
+
+ProtocolMonitor::~ProtocolMonitor() {
+    if (_mavlinkPacketizer) {
+        _mavlinkPacketizer->deleteLater();
+    }
+}
+
+void ProtocolMonitor::init() {
+    ChannelManager* manager = ChannelManager::getInstance();
+    connect(this, &ProtocolMonitor::channelDetected, manager, &ChannelManager::onChannelDetected);
+    connect(this, &ProtocolMonitor::channelLost, manager, &ChannelManager::onChannelLost);
+    connect(_device, &BaseDevice::byteReceived, _mavlinkPacketizer, &MavlinkPacketizer::onPushByte);
+    connect(_mavlinkPacketizer, &MavlinkPacketizer::heartbeatReceived, this, &ProtocolMonitor::onHeartbeatMessage);
+
 }
 
 void ProtocolMonitor::onHeartbeatMessage(Message msg) {
@@ -31,40 +46,31 @@ void ProtocolMonitor::onHeartbeatMessage(Message msg) {
     break;
     }
 
-    VehicleManager* manager = VehicleManager::getInstance();
+    RemoteChannelID id;
+    id._protocolID = MavlinkProtocol::getInstance<MavlinkProtocol>()->getTypeHash();
+    id._sourceID = converted->sysid;
+    id._portType = _device->getTypeHash();
+    id._portID = reinterpret_cast<uint64_t>(_device);
 
-    VehicleId id;
-    id.protocolId = 0;
-    id.uniqueVehicleId = converted->sysid;
-    id.deviceType = _device->getTypeHash();
-    id.deviceId = reinterpret_cast<uint64_t>(_device);
-
-    auto vehicleTimer = _detectedVehiclesTimers.find(id);
-    if (vehicleTimer == _detectedVehiclesTimers.end()) {
-        QTimer* vehicleConnectionTimeout = new QTimer();
-        vehicleConnectionTimeout->start(5000);
-        connect(vehicleConnectionTimeout, &QTimer::timeout, [this, id](){
-            emit vehicleLost(id);
+    auto channelTimer = _detectedChannelsTimers.find(id);
+    if (channelTimer == _detectedChannelsTimers.end()) {
+        QTimer* channelConnectionTimeout = new QTimer();
+        channelConnectionTimeout->start(5000);
+        connect(channelConnectionTimeout, &QTimer::timeout, [this, id](){
+            emit channelLost(id);
         });
-        _detectedVehiclesTimers.insert(id, vehicleConnectionTimeout);
-        emit vehicleDetected(id);
+        _detectedChannelsTimers.insert(id, channelConnectionTimeout);
+        emit channelDetected(id);
     }
     else {
-        vehicleTimer.value()->start();
+        channelTimer.value()->start();
     }
-
-    // emit packetizerUpdate(new MavlinkPacketizer());
-
-    // bool result = emit checkContainsBlockable(id);
-    // if(!result) {
-    //     emit createVehicle(id);
-    // }
 }
 
-void ProtocolMonitor::onVehicleLost(VehicleId id) {
-    auto _vehicleIt = _detectedVehiclesTimers.find(id);
-    if(_vehicleIt != _detectedVehiclesTimers.end()) {
-        delete _vehicleIt.value();
-        _detectedVehiclesTimers.remove(id);
+void ProtocolMonitor::onChannelLost(RemoteChannelID id) {
+    auto channelIDIt = _detectedChannelsTimers.find(id);
+    if(channelIDIt != _detectedChannelsTimers.end()) {
+        delete channelIDIt.value();
+        _detectedChannelsTimers.remove(id);
     }
 }

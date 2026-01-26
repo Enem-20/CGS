@@ -108,8 +108,6 @@ protected:
         _cursor += sizeof(T);
         return data;
     }
-
-signals:
 };
 
 #endif // DATAFLASHPARSER_H

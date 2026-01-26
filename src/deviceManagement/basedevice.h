@@ -7,6 +7,8 @@
 
 #include "protocols/message.h"
 
+class ProtocolMonitor;
+
 enum class PortState : uint8_t {
     Uninitialized,
     Initialized,
@@ -15,18 +17,22 @@ enum class PortState : uint8_t {
 
 class BaseDevice : public QThread {
     Q_OBJECT
+
 private:
     QTimer _queueSendTimer;
     QTimer _connectionWatchdog;
     uint64_t _typeHash;
-    bool _packageisValid = true;
+    bool _packageIsValid = true;
+
 protected:
     QQueue<Message> _messageQueue;
     QByteArray _inputBuffer;
     QTimer _waitPacketTimer;
     QIODevice* _device;
+    ProtocolMonitor* _protocolMonitor;
     QString _name;
     QString _type;
+
 public:
     explicit BaseDevice(const QString& name, QString type, uint64_t typeHash, QIODevice* device, QObject *parent = nullptr);
     virtual ~BaseDevice();
@@ -34,6 +40,8 @@ public:
     QStringView getName() const;
     QStringView getType() const;
     uint64_t getTypeHash() const;
+    ProtocolMonitor* getProtocolMonitor();
+
 signals:
     void messageReceived(Message msg);
     void portStateChanged(PortState state);
@@ -48,6 +56,7 @@ signals:
 protected slots:
     virtual void onReadBytes() = 0;
     virtual void onWaitPacketTimeout();
+
 public slots:
     virtual void onSendRawCommand(const QByteArray& data) = 0;
 };

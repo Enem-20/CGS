@@ -5,12 +5,10 @@
 #include <QThread>
 #include <QTimer>
 
+#include "channelManagement/RemoteChannelID.h"
 #include "parameters/parameterlist.h"
 #include "logs/logswindow.h"
-#include "deviceManagement/defaultdevicewidget.h"
 #include "telemetry/telemetrywindow.h"
-
-#include "protocols/mavlink/MavlinkFwd.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -27,23 +25,14 @@ class MainWindow : public QMainWindow {
 private:
     Ui::MainWindow *ui;
 
-    Vehicle* _vehicle = nullptr;
-    DefaultDeviceWidget _defaultDeviceWidget;
+    Vehicle* _activeVehicle = nullptr;
     LogsWindow _logsWindow;
     TelemetryWindow _telemetryWindow;
     ParameterList _parameterList;
-    
-     // MavlinkContext* _mavlinkContext;
-    // QThread _mavlinkThread;
-    // StatusText _statusText;
 
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
-signals:
-    void paramsRequest(const mavlink_message_t& msg);
-    void setParamRequest(const mavlink_message_t& msg);
 
 private slots:
     void on_actionParameters_set_triggered();
@@ -51,5 +40,9 @@ private slots:
     void on_actionOpen_Telemetry_triggered();
     void on_actionDownload_Log_triggered();
     void on_actionReview_Log_triggered();
+
+    void onDeviceCreated(uint64_t id);
+    void onActiveChannelChanged(RemoteChannelID id);
 };
+
 #endif // MAINWINDOW_H

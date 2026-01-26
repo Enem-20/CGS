@@ -67,8 +67,7 @@ ParameterList::ParameterList(QWidget *parent)
     });
 }
 
-ParameterList::~ParameterList()
-{
+ParameterList::~ParameterList() {
     delete ui;
 }
 

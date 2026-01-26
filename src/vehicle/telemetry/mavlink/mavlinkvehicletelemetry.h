@@ -11,9 +11,12 @@ class MavlinkVehicleTelemetry : public VehicleTelemetry {
 public:
     explicit MavlinkVehicleTelemetry(QObject *parent = nullptr);
 
+signals:
+    void altitudeUpdate(void* data);
 public slots:
     void onMessage(Message msg) override;
     void onHeartbeatReceived(Message msg);
+    void onAltitudeReceived(Message msg);
     void onAttitudeReceived(Message msg);
     void onLocalPositionNEDReceived(Message msg);
     void onGlobalPositionINTReceived(Message msg);
