@@ -24,6 +24,7 @@ signals:
     void makeDeviceActive(QStringView deviceName);
     void transitToAddDevice();
 public slots:
+    void onDeviceCreated(uint64_t id);
     void onDeviceConnected(QStringView name, QStringView type);
     void onDeviceDisconnected(QStringView name);
     void onDeviceStateChanged(QStringView name);

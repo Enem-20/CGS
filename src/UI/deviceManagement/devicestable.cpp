@@ -5,6 +5,9 @@
 #include <QTableWidget>
 #include <QPushButton>
 
+#include "deviceManagement/basedevice.h"
+#include "deviceManagement/DeviceManager.h"
+
 DevicesTable::DevicesTable(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::DevicesTable)
@@ -23,6 +26,8 @@ DevicesTable::DevicesTable(QWidget *parent)
     connect(ui->add, &QPushButton::clicked, this, [this](){
         emit transitToAddDevice();
     });
+
+    connect(DeviceManager::getInstance(), &DeviceManager::deviceCreated, this, &DevicesTable::onDeviceCreated);
 }
 
 DevicesTable::~DevicesTable() {
@@ -36,9 +41,24 @@ void DevicesTable::showAll() {
 }
 
 void DevicesTable::hideAll() {
-        for(size_t i = 0; i < ui->table->rowCount(); ++i) {
+    for(size_t i = 0; i < ui->table->rowCount(); ++i) {
         ui->table->hideRow(i);
     }
+}
+
+void DevicesTable::onDeviceCreated(uint64_t id) {
+    BaseDevice* device = DeviceManager::getInstance()->getDevice(id);
+    QString name = device->getName().toString();
+    QString type = device->getType().toString();
+    QList<QTableWidgetItem*> items = ui->table->findItems(name, Qt::MatchExactly);
+    if (items.size() > 0) {
+        return;
+    }
+
+    ui->table->insertRow(ui->table->rowCount());
+    ui->table->setItem(ui->table->rowCount()-1, 0, new QTableWidgetItem(name));
+    ui->table->setItem(ui->table->rowCount()-1, 1, new QTableWidgetItem(type));
+    ui->table->setItem(ui->table->rowCount()-1, 2, new QTableWidgetItem("Connecting..."));
 }
 
 void DevicesTable::onDeviceConnected(QStringView name, QStringView type) {
